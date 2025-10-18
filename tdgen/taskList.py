@@ -23,15 +23,18 @@ class TaskList(ImageTask, SiteTask, Cr2Task):
         self.build_dir = build_dir
         self.dist_dir = dist_dir
         self.assets_dir = self.dist_dir / "site" / "assets"
-        self.scan()
+        self.__scan()
 
     def toDict(self):
+        """Convert this object to a dictionary so that doit can use it."""
         return dict((name, getattr(self, name)) for name in dir(self))
 
-    def scan(self):
+    def __scan(self):
+        """Scan the source directory and identify files and directories."""
         self.handle(self.source_dir)            
 
     def handle(self, source):
+        """Handle a source file or directory based on its tags."""
         tags = identify.tags_from_path(source)
         print(f"> Processing {source} [{" ".join(tags)}]")
 
@@ -64,9 +67,11 @@ class TaskList(ImageTask, SiteTask, Cr2Task):
         print(f"Warning: No handler for {source} with tags {tags} and extension '{ext}'")            
 
     def handle_directory(self, source):
+        """Handle a directory by processing its contents."""
         for item in source.iterdir():
             self.handle(item)
     
     def handle_symlink(self, source):
+        """Handle a symlink by resolving its target."""
         target = source.resolve()
         self.handle(target)
