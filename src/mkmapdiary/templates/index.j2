@@ -2,14 +2,10 @@
 
 ## {{ grid_title }}
 
-<div class="grid cards gallery-grid index-grid" markdown>
-
-{% for item in grid_items %}
-- ![](assets/{{ item.name }}){ .gallery-image }
-  { .gallery-box .index-grid }
-
-{% endfor %}
-
+<div id="photo_gallery" markdown>
+{%- for item in grid_items -%}
+![](assets/{{ item.name }}){ height="200" width="200" }
+{%- endfor -%}
 </div>
 
 <div class="clear"></div>
