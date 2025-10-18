@@ -15,6 +15,8 @@ markdown_extensions:
       check_paths: True
   - attr_list
   - md_in_html
+  - pymdownx.blocks.html
+  - pymdownx.blocks.admonition
 extra_css:
   - extra.css
   - https://unpkg.com/leaflet@1.9.4/dist/leaflet.css

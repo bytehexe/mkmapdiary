@@ -39,7 +39,7 @@ class SiteTask(BaseTask):
         def _generate_mkdocs_config():
 
             script_dir = pathlib.Path(__file__).parent
-            with open(script_dir / "site_config.yaml") as f:
+            with open(script_dir.parent / "extras" / "site_config.yaml") as f:
                 config = yaml.safe_load(f)
 
             config["site_name"] = self.config["site_name"]

@@ -32,7 +32,7 @@ def main(dist_dir, build_dir, params, source_dir, always_execute, num_processes)
     script_dir = pathlib.Path(__file__).parent
 
     # Load config defaults
-    with open(script_dir / "defaults.yaml", "r") as f:
+    with open(script_dir / "extras" / "defaults.yaml", "r") as f:
         config_data = yaml.safe_load(f)
 
     lc = locale.getlocale()[0].split("_")[0]
