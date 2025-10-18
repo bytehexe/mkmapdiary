@@ -4,6 +4,15 @@ from abc import ABC, abstractmethod
 from jinja2 import Environment, PackageLoader, select_autoescape, StrictUndefined
 import dateutil.parser
 
+def debug(func):
+    """Decorator to print debug information for a function."""
+    def wrapper(*args, **kwargs):
+        print(f"DEBUG: Calling {func.__name__} with args={args}, kwargs={kwargs}")
+        result = func(*args, **kwargs)
+        print(f"DEBUG: Called {func.__name__} with args={args}, kwargs={kwargs}, returned {result}")
+        return result
+    return wrapper
+
 class BaseTask(ABC):
     Asset = namedtuple("Asset", ["path", "type", "meta"])
 

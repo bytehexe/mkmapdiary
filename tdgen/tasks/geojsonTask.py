@@ -74,15 +74,17 @@ class GeojsonTask(BaseTask, ExifReader):
     def __nominatim_query(self, location):
         # get geocoder lock
         with coder_lock:
+            print(f"Looking up location: {location}")
             time.sleep(1)  # respect rate limit
 
+            print("Querying Nominatim...")
             r = requests.get("https://nominatim.openstreetmap.org/", params={
                 "q": location,
                 "format": "json",
                 "limit": 1
             }, headers={
                 "User-Agent": "tdgen travel-diary generator"
-            })
+            }, timeout=4)
             r.raise_for_status()
             results = r.json()
             return results

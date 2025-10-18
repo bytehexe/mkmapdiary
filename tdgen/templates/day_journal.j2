@@ -4,6 +4,16 @@
 {% for asset in assets %}
 {% if asset.type == "markdown" %}
 --8<-- "docs/assets/{{ asset.path }}"
+{% elif asset.type == "audio" %}
+### Audio
+
+<div class="audio-section">
+<audio controls>
+  <source src="assets/{{ asset.path }}" type="audio/mpeg">
+  Your browser does not support the audio element.
+</audio>
+--8<-- "docs/assets/{{ asset.path }}.md"
+</div>
 {% endif %}
 {% endfor %}
 {% endif %}

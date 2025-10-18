@@ -100,19 +100,27 @@ class SiteTask(BaseTask):
             targets=[output_css]
         )
     
-    def task_compile_js(self):
-        script_dir = pathlib.Path(__file__).parent
-        input_js = script_dir.parent / "extras" / "extra.js"
-        output_js = self.docs_dir / "extra.js"
+    def task_copy_js(self):
+        scripts = [
+            "geo.js",
+            "audio.js"
+        ]
 
-        def _generate():
+        script_dir = pathlib.Path(__file__).parent
+
+        def _generate(input_js, output_js):
             shutil.copy2(input_js, output_js)
 
-        return dict(
-            actions=[_generate],
-            file_dep=[input_js],
-            targets=[output_js]
-        )
+        for script in scripts:
+            input_js = script_dir.parent / "extras" / script
+            output_js = self.docs_dir / script
+
+            yield dict(
+                name=script,
+                actions=[(_generate, (input_js, output_js))],
+                file_dep=[input_js],
+                targets=[output_js]
+            )
 
 
     def task_build_site(self):
@@ -126,7 +134,8 @@ class SiteTask(BaseTask):
                 yield self.docs_dir / f"{date}.md"
                 yield self.templates_dir / f"{date}_gallery.md"
             yield self.docs_dir / "extra.css"
-            yield self.docs_dir / "extra.js"
+            yield self.docs_dir / "geo.js"
+            yield self.docs_dir / "audio.js"
 
         return dict(
             actions=["mkdocs build --clean --config-file " + str(self.build_dir / "mkdocs.yml")],

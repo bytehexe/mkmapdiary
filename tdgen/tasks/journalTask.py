@@ -13,13 +13,7 @@ class JournalTask(BaseTask):
 
             assets = []
             
-            for asset, asset_type in self.db.get_assets_by_date(date, ("markdown",)):
-                with open(asset, "r") as f:
-                    text = f.read()
-
-                if not text:
-                    continue
-
+            for asset, asset_type in self.db.get_assets_by_date(date, ("markdown","audio")):
                 item = dict(
                     type = asset_type,
                     path = pathlib.PosixPath(asset).name,
