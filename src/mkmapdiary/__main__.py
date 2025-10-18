@@ -3,15 +3,16 @@ import pathlib
 import yaml
 
 from .taskList import TaskList
+from . import util
 from doit.api import run_tasks
 from doit.doit_cmd import DoitMain
 from doit.cmd_base import ModuleTaskLoader
-from pydantic.utils import deep_update
 from tabulate import tabulate
 from .cache import Cache
 import os
 import locale
 import gettext
+import tempfile
 
 import sys
 
@@ -25,20 +26,6 @@ def validate_param(ctx, param, value):
 
 @click.command()
 @click.option(
-    "-C",
-    "--change-dir",
-    default=".",
-    type=click.Path(path_type=pathlib.Path),
-    help="Change to this directory before doing anything",
-)
-@click.option(
-    "-d",
-    "--dist-dir",
-    default="dist",
-    type=click.Path(path_type=pathlib.Path),
-    help="Path to distribution directory",
-)
-@click.option(
     "-x",
     "--params",
     multiple=True,
@@ -49,22 +36,20 @@ def validate_param(ctx, param, value):
 @click.option(
     "-b",
     "--build-dir",
-    default="build",
     type=click.Path(path_type=pathlib.Path),
-    help="Path to build directory",
+    help="Path to the build directory (implies -B; defaults to a temporary directory)",
 )
 @click.option(
-    "-s",
-    "--source-dir",
-    default="src",
-    type=click.Path(path_type=pathlib.Path),
-    help="Path to source directory",
+    "-B",
+    "--persistent-build",
+    is_flag=True,
+    help="Uses a persistent build directory",
 )
 @click.option(
     "-a",
     "--always-execute",
     is_flag=True,
-    help="Always execute tasks, even if up-to-date",
+    help="Always execute tasks, even if up-to-date. Only relevant with persistent build directory.",
 )
 @click.option(
     "-n",
@@ -75,9 +60,43 @@ def validate_param(ctx, param, value):
 )
 @click.option("-v", "--verbose", is_flag=True, help="Enable verbose output")
 @click.option("--no-cache", is_flag=True, help="Disable caching mechanism")
-@click.option(
-    "-c", "--clean", is_flag=True, help="Remove build directory before building"
+@click.argument(
+    "source_dir",
+    type=click.Path(path_type=pathlib.Path),
 )
+@click.argument(
+    "dist_dir",
+    type=click.Path(path_type=pathlib.Path),
+    required=False,
+)
+def start(
+    source_dir,
+    dist_dir,
+    build_dir,
+    persistent_build,
+    **kwargs,
+):
+    if dist_dir is None:
+        dist_dir = source_dir.with_name(source_dir.name + "_dist")
+
+    if persistent_build and build_dir is None:
+        build_dir = source_dir.with_name(source_dir.name + "_build")
+
+    main_exec = lambda: main(
+        dist_dir=dist_dir,
+        build_dir=build_dir,
+        source_dir=source_dir,
+        **kwargs,
+    )
+
+    if build_dir is None:
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            build_dir = pathlib.Path(tmpdirname)
+            main_exec()
+    else:
+        main_exec()
+
+
 def main(
     dist_dir,
     build_dir,
@@ -87,13 +106,9 @@ def main(
     num_processes,
     verbose,
     no_cache,
-    clean,
-    change_dir,
 ):
-    click.echo("Generating configuration ...")
 
-    if change_dir:
-        os.chdir(change_dir)
+    click.echo("Generating configuration ...")
 
     script_dir = pathlib.Path(__file__).parent
 
@@ -104,14 +119,14 @@ def main(
     # Load local user configuration
     user_config_file = pathlib.Path.home() / f".mkmapdiary/config.yaml"
     if user_config_file.exists():
-        config_data = deep_update(
+        config_data = util.deep_update(
             config_data, yaml.safe_load(user_config_file.read_text())
         )
 
     # Load project configuration file if provided
     project_config_file = source_dir / "config.yaml"
     if project_config_file.is_file():
-        config_data = deep_update(
+        config_data = util.deep_update(
             config_data, yaml.safe_load(project_config_file.read_text())
         )
 
@@ -165,17 +180,63 @@ def main(
             )
             sys.exit(1)
 
+    click.echo("Preparing directories ...")
+    # Sanity checks
+    if not source_dir.is_dir():
+        click.echo(
+            f"Error: Source directory '{source_dir}' does not exist or is not a directory."
+        )
+        sys.exit(1)
+    if build_dir.is_file():
+        click.echo(f"Error: Build directory '{build_dir}' is a file.")
+        sys.exit(1)
+    if dist_dir.is_file():
+        click.echo(f"Error: Distribution directory '{dist_dir}' is a file.")
+        sys.exit(1)
+    if build_dir == dist_dir:
+        click.echo("Error: Build and distribution directories must be different.")
+        sys.exit(1)
+    if build_dir == source_dir:
+        click.echo("Error: Build and source directories must be different.")
+        sys.exit(1)
+    if dist_dir == source_dir:
+        click.echo("Error: Distribution and source directories must be different.")
+        sys.exit(1)
+    if (
+        build_dir.is_dir()
+        and any(build_dir.iterdir())
+        and not (build_dir / "mkdocs.yml").is_file()
+    ):
+        click.echo(
+            f"Error: Build directory '{build_dir}' is not empty and does not contain a mkdocs.yml file."
+        )
+        sys.exit(1)
+    if (
+        dist_dir.is_dir()
+        and any(dist_dir.iterdir())
+        and not (dist_dir / "index.html").is_file()
+    ):
+        click.echo(
+            f"Error: Distribution directory '{dist_dir}' is not empty and does not contain an index.html file."
+        )
+        sys.exit(1)
+
+    # Create directories
+    if not dist_dir.is_dir():
+        dist_dir.mkdir(parents=True, exist_ok=True)
+    if not build_dir.is_dir():
+        build_dir.mkdir(parents=True, exist_ok=True)
+
+    # Clean build directory if needed
+    if always_execute:
+        util.clean_dir(build_dir)
+
     click.echo("Generating tasks ...")
 
     if no_cache:
         cache = {}
     else:
         cache = Cache(pathlib.Path.home() / ".mkmapdiary" / "cache.sqlite")
-
-    if clean and build_dir.is_dir() and (build_dir / "mkdocs.yml").is_file():
-        import shutil
-
-        shutil.rmtree(build_dir)
 
     taskList = TaskList(config_data, source_dir, build_dir, dist_dir, cache)
 
@@ -194,10 +255,21 @@ def main(
     proccess_args.append("--parallel-type=thread")
 
     click.echo("Running tasks ...")
-    exitcode = DoitMain(ModuleTaskLoader(taskList.toDict())).run(proccess_args)
+
+    doit_config = {
+        "GLOBAL": {
+            "backend": "sqlite3",
+            "dep_file": str(build_dir / "doit.db"),
+        }
+    }
+    exitcode = DoitMain(
+        ModuleTaskLoader(taskList.toDict()),
+        config_filenames=(),
+        extra_config=doit_config,
+    ).run(proccess_args)
     click.echo("Done.")
     sys.exit(exitcode)
 
 
 if __name__ == "__main__":
-    main()
+    start()

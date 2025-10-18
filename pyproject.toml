@@ -28,7 +28,6 @@ classifiers = [
 dependencies = [
     "click",
     "pyyaml",
-    "pydantic",
     "mkdocs-glightbox",
     "mkdocs-material",
     "mkdocs",
