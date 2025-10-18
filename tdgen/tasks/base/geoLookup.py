@@ -23,7 +23,7 @@ class GeoLookup(HttpRequest):
 
     @staticmethod
     def __decimals_for_zoom(zoom):
-        return max(0, min(8, round(0.33 * zoom - 1.5)))
+        return max(0, min(6, round(0.33 * zoom - 1.5)))
 
     @staticmethod
     def __round_coord(coord, zoom):
