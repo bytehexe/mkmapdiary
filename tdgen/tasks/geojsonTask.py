@@ -4,7 +4,9 @@ from .base.exifReader import ExifReader
 import json, yaml
 from jsonschema import validate
 import pathlib
-from lxml import etree
+import gpxpy
+import gpxpy.gpx
+import dateutil
 from itertools import zip_longest
 from threading import Lock
 import requests
@@ -33,27 +35,40 @@ class GeojsonTask(BaseTask, ExifReader):
         return self.make_unique_filename(source, filename)
 
     @classmethod
+    def __parseDate(cls, dt):
+        if dt is None:
+            return None
+        else:
+            return dateutil.parser.isoparse(dt)
+
+    @classmethod
     def __addPoint(cls, gpx, coordinates, properties, tag="wpt"):
-        wpt = etree.SubElement(gpx, tag, lat=str(coordinates[1]), lon=str(coordinates[0]))
-        if len(coordinates) > 2 and coordinates[2] is not None:
-            etree.SubElement(wpt, "ele").text = str(coordinates[2])
-        if properties.get("time") is not None:
-            etree.SubElement(wpt, "time").text = str(properties["time"])
-        if properties.get("name") is not None:
-            etree.SubElement(wpt, "name").text = str(properties["name"])
-        if properties.get("type") is not None:
-            etree.SubElement(wpt, "type").text = str(properties["type"])
-        if properties.get("symbol") is not None:
-            etree.SubElement(wpt, "sym").text = str(properties["symbol"])
-        return wpt
+        if tag == "wpt":
+            wpt = gpxpy.gpx.GPXWaypoint(
+                latitude=coordinates[1], longitude=coordinates[0],
+                elevation=coordinates[2] if len(coordinates) > 2 and coordinates[2] is not None else None,
+                time=cls.__parseDate(properties.get("time")),
+                name=properties.get("name"),
+                type=properties.get("type"),
+                symbol=properties.get("symbol")
+            )
+            gpx.waypoints.append(wpt)
+            return wpt
+        elif tag == "trkpt":
+            assert properties.get("type") == None
+            pt = gpxpy.gpx.GPXTrackPoint(
+                latitude=coordinates[1], longitude=coordinates[0],
+                elevation=coordinates[2] if len(coordinates) > 2 and coordinates[2] is not None else None,
+                time=cls.__parseDate(properties.get("time")),
+                name=properties.get("name"),
+                symbol=properties.get("symbol")
+            )
+            return pt
 
     @classmethod
     def __addLineString(cls, gpx, coordinates, properties):
-        trk = etree.SubElement(gpx, "trk")
-        if "name" in properties:
-            etree.SubElement(trk, "name").text = str(properties["name"])
-        trkseg = etree.SubElement(trk, "trkseg")
-
+        trk = gpxpy.gpx.GPXTrack(name=properties.get("name"))
+        trkseg = gpxpy.gpx.GPXTrackSegment()
         items = list(zip_longest(
             coordinates,
             properties.get("names", []),
@@ -61,14 +76,16 @@ class GeojsonTask(BaseTask, ExifReader):
             properties.get("types", []),
             properties.get("symbols", []),
             fillvalue=None))
-
         for coord, name, ts, ty, sym in items:
-            cls.__addPoint(trkseg, coord, {
+            pt = cls.__addPoint(None, coord, {
                 "name": name,
                 "time": ts,
                 "type": ty,
                 "symbol": sym
             }, tag="trkpt")
+            trkseg.points.append(pt)
+        trk.segments.append(trkseg)
+        gpx.tracks.append(trk)
         return trkseg
     
     def __nominatim_query(self, location):
@@ -106,8 +123,7 @@ class GeojsonTask(BaseTask, ExifReader):
         return [location["lat"], location["lon"]]
 
     def task_geo2gpx(self):
-        """Convert a geojson or geoyaml file to gpx."""
-        
+        """Convert a geojson or geoyaml file to gpx using gpxpy."""
         def _convert(src, dst):
             ext = src.suffix
             if ext == ".yaml":
@@ -116,26 +132,16 @@ class GeojsonTask(BaseTask, ExifReader):
                 loader = json.load
             else:
                 raise ValueError(f"Invalid extension: {ext}")
-            
             script_dir = pathlib.Path(__file__).parent
             with open(script_dir.parent / "extras" / "geo.schema.yaml") as f:
                 schema = yaml.safe_load(f)
-
             with open(src) as f:
                 data = loader(f)
-
             validate(instance=data, schema=schema)
-
-            gpx = etree.Element(
-                "gpx",
-                nsmap=NSMAP,
-                version="1.1",
-                creator="tdgen"
-            )
-
+            gpx = gpxpy.gpx.GPX()
+            gpx.creator = "tdgen"
             for feature in data["features"]:
                 if feature["geometry"] is None:
-                    # lookup type - check if Point or LineString
                     lookup_type = type(feature["properties"]["lookup"])
                     if lookup_type is list:
                         feature["geometry"] = {
@@ -147,23 +153,18 @@ class GeojsonTask(BaseTask, ExifReader):
                             "type": "Point",
                             "coordinates": self.__lookup(feature["properties"]["lookup"])
                         }
-
                 if feature["geometry"]["type"] == "Point":
                     self.__addPoint(gpx, feature["geometry"]["coordinates"], feature.get("properties", {}))
-
                 elif feature["geometry"]["type"] == "LineString":
                     self.__addLineString(gpx, feature["geometry"]["coordinates"], feature.get("properties", {}))
-
-            # write gpx to file
-            tree = etree.ElementTree(gpx)
-            tree.write(dst, xml_declaration=True, encoding="utf-8", pretty_print=True)
-
+            with open(dst, "w", encoding="utf-8") as f:
+                f.write(gpx.to_xml())
         for src in self.__sources:
             dst = self.__generate_destination_filename(src)
             yield dict(
-                    name=dst,
-                    actions=[(_convert, (src, dst))],
-                    file_dep=[src],
-                    task_dep=[f"create_directory:{dst.parent}"],
-                    targets=[dst],
-                )
+                name=dst,
+                actions=[(_convert, (src, dst))],
+                file_dep=[src],
+                task_dep=[f"create_directory:{dst.parent}"],
+                targets=[dst],
+            )
