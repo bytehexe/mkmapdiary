@@ -20,15 +20,41 @@ class GeojsonTask(GeoLookup):
         self.__sources = []
 
     def handle_ext_geo_json(self, source):
-        self.__sources.append(source)
-        return []
+        return self.__handle(source)
     
     def handle_ext_geo_yaml(self, source):
-        self.__sources.append(source)
-        return []
+        return self.__handle(source)
     
+    def __handle(self, source):
+        self.__sources.append(source)
+        intermediate_file = self.__generate_destination_filename(source)
+
+        # Load and validate file
+        data = self.__load_file(source)
+        script_dir = pathlib.Path(__file__).parent
+        with open(script_dir.parent / "extras" / "geo.schema.yaml") as f:
+            schema = yaml.safe_load(f)
+        validate(instance=data, schema=schema)
+
+        # Extract dates
+        dates = self.__extract_dates(data)
+
+        assets = list(self.handle_gpx(intermediate_file, additional_dates=dates))
+        return assets
+
+    def __extract_dates(self, data):
+        dates = set()
+        for feature in data["features"]:
+            props = feature.get("properties", {})
+            if "timestamp" in props:
+                dates.add(dateutil.parser.isoparse(props["timestamp"]).date())
+            if "timestamps" in props:
+                for ts in props["timestamps"]:
+                    dates.add(dateutil.parser.isoparse(ts).date())
+        return dates
+
     def __generate_destination_filename(self, source):
-        filename = (self.assets_dir / source.stem).with_suffix(f"{source.suffix[0:2]}.gpx")
+        filename = (self.files_dir / source.stem).with_suffix(f"{source.suffix[0:2]}.gpx")
         return self.make_unique_filename(source, filename)
 
     @classmethod
@@ -44,7 +70,7 @@ class GeojsonTask(GeoLookup):
             wpt = gpxpy.gpx.GPXWaypoint(
                 latitude=coordinates[1], longitude=coordinates[0],
                 elevation=coordinates[2] if len(coordinates) > 2 and coordinates[2] is not None else None,
-                time=cls.__parseDate(properties.get("time")),
+                time=cls.__parseDate(properties.get("timestamp")),
                 name=properties.get("name"),
                 type=properties.get("type"),
                 symbol=properties.get("symbol")
@@ -56,7 +82,7 @@ class GeojsonTask(GeoLookup):
             pt = gpxpy.gpx.GPXTrackPoint(
                 latitude=coordinates[1], longitude=coordinates[0],
                 elevation=coordinates[2] if len(coordinates) > 2 and coordinates[2] is not None else None,
-                time=cls.__parseDate(properties.get("time")),
+                time=cls.__parseDate(properties.get("timestamp")),
                 name=properties.get("name"),
                 symbol=properties.get("symbol")
             )
@@ -76,7 +102,7 @@ class GeojsonTask(GeoLookup):
         for coord, name, ts, ty, sym in items:
             pt = cls.__addPoint(None, coord, {
                 "name": name,
-                "time": ts,
+                "timestamp": ts,
                 "type": ty,
                 "symbol": sym
             }, tag="trkpt")
@@ -100,22 +126,23 @@ class GeojsonTask(GeoLookup):
         
         return [location["lat"], location["lon"]]
 
+    def __load_file(self, source):
+        ext = source.suffix
+        if ext == ".yaml":
+            loader = yaml.safe_load
+        elif ext == ".json":
+            loader = json.load
+        else:
+            raise ValueError(f"Invalid extension: {ext}")
+        with open(source) as f:
+            data = loader(f)
+        return data
+
     def task_geo2gpx(self):
         """Convert a geojson or geoyaml file to gpx using gpxpy."""
         def _convert(src, dst):
-            ext = src.suffix
-            if ext == ".yaml":
-                loader = yaml.safe_load
-            elif ext == ".json":
-                loader = json.load
-            else:
-                raise ValueError(f"Invalid extension: {ext}")
-            script_dir = pathlib.Path(__file__).parent
-            with open(script_dir.parent / "extras" / "geo.schema.yaml") as f:
-                schema = yaml.safe_load(f)
-            with open(src) as f:
-                data = loader(f)
-            validate(instance=data, schema=schema)
+            data = self.__load_file(src)
+
             gpx = gpxpy.gpx.GPX()
             gpx.creator = "tdgen"
             for feature in data["features"]:

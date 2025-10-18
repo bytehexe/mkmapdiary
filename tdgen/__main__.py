@@ -29,8 +29,8 @@ def validate_param(ctx, param, value):
 @click.option('-n', '--num-processes', default=os.cpu_count(), type=int, help='Number of parallel processes to use')
 @click.option('-v', '--verbose', is_flag=True, help='Enable verbose output')
 @click.option('--no-cache', is_flag=True, help='Disable caching mechanism')
-@click.option('--clear-cache', is_flag=True, help='Clear the cache before running')
-def main(dist_dir, build_dir, params, source_dir, always_execute, num_processes, verbose, no_cache, clear_cache):
+@click.option('-c', '--clean', is_flag=True, help='Remove build directory before building')
+def main(dist_dir, build_dir, params, source_dir, always_execute, num_processes, verbose, no_cache, clean):
     click.echo("Generating configuration ...")
 
     script_dir = pathlib.Path(__file__).parent
@@ -80,15 +80,14 @@ def main(dist_dir, build_dir, params, source_dir, always_execute, num_processes,
 
     click.echo("Generating tasks ...")
 
-    cache_file = pathlib.Path.home() / ".tdgen" / "cache.sqlite"
-    if clear_cache:
-        if cache_file.exists():
-            cache_file.unlink()
-
     if no_cache:
         cache = {}
     else:
         cache = Cache(pathlib.Path.home() / ".tdgen" / "cache.sqlite")
+
+    if clean and build_dir.is_dir() and (build_dir / "mkdocs.yml").is_file():
+        import shutil
+        shutil.rmtree(build_dir)
 
     taskList = TaskList(config_data, source_dir, build_dir, dist_dir, cache)
 

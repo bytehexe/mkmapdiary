@@ -11,6 +11,7 @@ from .tasks import JournalTask
 from .tasks import TextTask
 from .tasks import MarkdownTask
 from .tasks import AudioTask
+from .tasks import GPXTask
 
 from .db import Db
 
@@ -25,6 +26,7 @@ tasks = [
     TextTask,
     MarkdownTask,
     AudioTask,
+    GPXTask,
 ]
 
 class TaskList(*tasks):

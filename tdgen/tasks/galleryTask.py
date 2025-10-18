@@ -19,6 +19,7 @@ class GalleryTask(BaseTask):
                 item = dict(
                     basename = pathlib.PosixPath(asset).name,
                 )
+
                 gallery_items.append(item)
 
                 geo_data_item = self.db.get_geo_by_name(asset)
@@ -33,6 +34,14 @@ class GalleryTask(BaseTask):
                     )
                     geo_items.append(geo_item)
 
+            gpx = self.db.get_assets_by_date(date, "gpx")
+            assert len(gpx) <= 1
+            if len(gpx) == 1:
+                with open(gpx[0][0], "r") as f:
+                    gpx_data = f.read()
+            else:
+                gpx_data = None
+
             with open(gallery_path, "w") as f:
                 f.write(self.template(
                     "day_gallery.j2",
@@ -40,6 +49,7 @@ class GalleryTask(BaseTask):
                     gallery_title = self.config["gallery_title"],
                     gallery_items = gallery_items,
                     geo_items = geo_items,
+                    gpx_data = gpx_data,
                 ))
 
         for date in self.db.get_all_dates():
