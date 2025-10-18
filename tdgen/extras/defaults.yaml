@@ -2,6 +2,9 @@ locale: "en_US.utf8"
 image_format: jpg
 ollama_ai_model: "llama3:8b"
 
+geo_lookup:
+  high_precision: false
+
 # Translations are set within the code using gettext; can be overriden in the project config
 
 ai:
