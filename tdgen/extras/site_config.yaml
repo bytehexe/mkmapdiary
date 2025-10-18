@@ -3,8 +3,11 @@ strict: True
 
 theme:
   name: material
-  logo: "logo-white-s.svg"
-  favicon: "logo-blue-s.svg"
+  logo: "logo-white.svg"
+  favicon: "logo-blue.svg"
+  palette:
+    primary: "blue"
+    accent: "blue"
 
 plugins:
   - search
