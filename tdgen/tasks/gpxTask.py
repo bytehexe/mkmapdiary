@@ -1,7 +1,8 @@
 from .base.baseTask import BaseTask
 import gpxpy
 import gpxpy.gpx
-from datetime import datetime
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 import hdbscan
 import numpy as np
 from tdgen.geoCluster import GeoCluster
@@ -9,6 +10,7 @@ from doit import create_after
 from tabulate import tabulate
 import warnings
 import sys
+import bisect
 
 class GPXTask(BaseTask):
     def __init__(self):
@@ -172,8 +174,57 @@ class GPXTask(BaseTask):
             "actions": [_gpx_deps],
             "verbosity": 2,
         }
+    
+    def __get_timed_coords(self, gpx, coords):
+        for wpt in gpx.waypoints:
+            if wpt.time is not None:
+                coords.append((wpt.time, wpt.latitude, wpt.longitude))
+        for trk in gpx.tracks:
+            for seg in trk.segments:
+                for pt in seg.points:
+                    if pt.time is not None:
+                        coords.append((pt.time, pt.latitude, pt.longitude))
+        for rte in gpx.routes:
+            for pt in rte.points:
+                if pt.time is not None:
+                    coords.append((pt.time, pt.latitude, pt.longitude))
+
+    def task_geo_correlation(self):
+        def _update_positions():
+            tz = ZoneInfo(self.config["geo_correlation"]["timezone"])
+            offset = timedelta(seconds=self.config["geo_correlation"]["time_offset"])
+
+            coords = []
+            for path in self.__sources:
+                with open(path, "r", encoding="utf-8") as f:
+                    gpx = gpxpy.parse(f)
+                self.__get_timed_coords(gpx, coords)
+            coords.sort(key=lambda x: x[0])
+            for asset_id, asset_time in self.db.get_unpositioned_assets():
+                # Find closest coordinate by time
+                asset_time = datetime.fromisoformat(asset_time).replace(tzinfo=tz) + offset
+                candidates = []
+                pos = bisect.bisect_left(coords, asset_time, key=lambda x: x[0])
+                if pos > 0:
+                    candidates.append(coords[pos-1])
+                if pos < len(coords):
+                    candidates.append(coords[pos])
+                if candidates:
+                    closest = min(candidates, key=lambda x: abs(x[0] - asset_time))
+                    diff = (closest[0] - asset_time).total_seconds()
+                    if abs(diff) < 120:
+                        self.db.update_asset_position(asset_id, closest[1], closest[2], int(diff))
+            sys.stderr.write(tabulate(*self.db.dump()))
+            sys.stderr.write("\n")
+            sys.stderr.flush()
+
+        return {
+            "actions": [_update_positions],
+            "file_dep": [str(src) for src in self.__sources],
+            "verbosity": 2,
+        }
         
     def __debug_dump_gpx(self):
-        sys.stderr.write(tabulate(self.db.dump("gpx"), headers=["ID", "Path", "Type", "DateTime", "Latitude", "Longitude"]))
+        sys.stderr.write(tabulate(*self.db.dump("gpx")))
         sys.stderr.write("\n")
         sys.stderr.flush()
