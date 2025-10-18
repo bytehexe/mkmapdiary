@@ -7,11 +7,13 @@ on:
 
 jobs:
   deploy:
+    name: Deploy docs to GitHub Pages 📚
+    # Note: Change to non-prerelease tags later
+    if: github.ref_type == 'tag'
     runs-on: ubuntu-latest
     permissions:
       pages: write      # to deploy to Pages
       id-token: write   # to verify the deployment originates from an appropriate source
-    if: false
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
