@@ -20,8 +20,10 @@ class TaskList(ImageTask, SiteTask, Cr2Task):
         self.config = config
         self.source_dir = source_dir
         self.build_dir = build_dir
+        self.files_dir = self.build_dir / "files"
+        self.docs_dir = self.build_dir / "docs"
+        self.assets_dir = self.docs_dir / "assets"
         self.dist_dir = dist_dir
-        self.assets_dir = self.dist_dir / "site" / "assets"
 
         # Store assets by date and then type
         self.db = Db()

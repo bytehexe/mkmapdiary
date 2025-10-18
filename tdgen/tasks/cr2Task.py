@@ -9,7 +9,7 @@ class Cr2Task(BaseTask, ExifReader):
         self.__sources = []
 
     def __generate_intermediate_filename(self, source):
-        filename = (self.build_dir / source.stem).with_suffix(".jpeg")
+        filename = (self.files_dir / source.stem).with_suffix(".jpeg")
         return self.make_unique_filename(source, filename)
 
     def handle_ext_cr2(self, source):
