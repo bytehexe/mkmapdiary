@@ -1,12 +1,9 @@
+{% if assets %}
 ## {{ journal_title }}
 
 {% for asset in assets %}
-
-### {{ asset.title}}
-
-{% if asset.type == "text" %}
-```text {.native-block}
-{{ asset.text }}
-```
+{% if asset.type == "markdown" %}
+--8<-- "docs/assets/{{ asset.path }}"
 {% endif %}
 {% endfor %}
+{% endif %}

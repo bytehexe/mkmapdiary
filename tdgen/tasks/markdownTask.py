@@ -1,13 +1,12 @@
 
 from .base.baseTask import BaseTask
-import shutil
 
-class TextTask(BaseTask):
+class MarkdownTask(BaseTask):
     def __init__(self):
         super().__init__()
         self.__sources = []
 
-    def handle_plain_text(self, source):
+    def handle_markdown(self, source):
         # Create task to convert image to target format
         self.__sources.append(source)
 
@@ -24,7 +23,7 @@ class TextTask(BaseTask):
         filename = (self.assets_dir / source.stem).with_suffix(f".{format}")
         return self.make_unique_filename(source, filename)
 
-    def task_text2markdown(self):
+    def task_markdown2markdown(self):
         """Copy text files to the assets directory."""
 
         
@@ -32,15 +31,21 @@ class TextTask(BaseTask):
             with open(src, "r") as f_src, open(dst, "w") as f_dst:
                 content = f_src.readlines()
 
-                title = content[0].strip() if content else "No Title"
-                text = "".join(content[1:]).strip() if len(content) > 1 else ""
+                # Check if there is a title
+                if not content:
+                    f_dst.write("")
+                    return
+                
+                if not content[0].startswith("#"):
+                    content.insert(0, f"# No Title\n")
+                    content.insert(1, "\n")
 
-                markdown = self.template("md_text.j2",
-                    title = title,
-                    text = text,
-                )
+                for i, line in enumerate(content):
+                    if line.startswith("#"):
+                        content[i] = "##" + line
+                        break                    
 
-                f_dst.write(markdown)
+                f_dst.write("".join(content))
 
         for src in self.__sources:
             dst = self.__generate_destination_filename(src)

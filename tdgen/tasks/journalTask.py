@@ -13,7 +13,7 @@ class JournalTask(BaseTask):
 
             assets = []
             
-            for asset, asset_type in self.db.get_assets_by_date(date, ("text", "markdown", "audio")):
+            for asset, asset_type in self.db.get_assets_by_date(date, ("markdown",)):
                 with open(asset, "r") as f:
                     text = f.read()
 
@@ -22,8 +22,7 @@ class JournalTask(BaseTask):
 
                 item = dict(
                     type = asset_type,
-                    title = text.splitlines()[0],
-                    text = "\n".join(text.splitlines()[1:]).strip(),
+                    path = pathlib.PosixPath(asset).name,
                 )
                 assets.append(item)
 
