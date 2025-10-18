@@ -5,3 +5,4 @@ from .dayPageTask import DayPageTask
 from .geojsonTask import GeojsonTask
 from .galleryTask import GalleryTask
 from .journalTask import JournalTask
+from .textTask import TextTask

@@ -6,7 +6,9 @@
 <figure markdown="span" class="gallery-float-grid">
 <a href="{{ item.date }}.html">
 <div class="gallery-item gallery-box-s" markdown>
+{% if item.basename %}
 ![Image title](assets/{{ item.basename }}){ .skip-lightbox .gallery-image-s }
+{% endif %}
 </div>
 <figcaption>{{ item.formatted_date }}</figcaption>
 </figure>

@@ -8,6 +8,7 @@ from .tasks import DayPageTask
 from .tasks import GeojsonTask
 from .tasks import GalleryTask
 from .tasks import JournalTask
+from .tasks import TextTask
 from .db import Db
 
 tasks = [
@@ -18,6 +19,7 @@ tasks = [
     GeojsonTask,
     GalleryTask,
     JournalTask,
+    TextTask,
 ]
 
 class TaskList(*tasks):

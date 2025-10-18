@@ -1,0 +1,10 @@
+## {{ journal_title }}
+
+{% for item in text_assets %}
+
+### {{ item.title}}
+
+```text {.native-block}
+{{ item.text }}
+```
+{% endfor %}
