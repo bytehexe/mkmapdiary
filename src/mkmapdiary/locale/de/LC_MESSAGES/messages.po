@@ -16,8 +16,5 @@ msgstr "Startseite"
 msgid "Days"
 msgstr "Tage"
 
-msgid "Mosaic"
-msgstr "Mosaik"
-
 msgid "Audio"
 msgstr "Audio"
