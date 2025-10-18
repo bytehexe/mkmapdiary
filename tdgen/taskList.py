@@ -35,7 +35,7 @@ class TaskList(*tasks):
     them accordingly.
     """
 
-    def __init__(self, config, source_dir, build_dir, dist_dir):
+    def __init__(self, config, source_dir, build_dir, dist_dir, cache):
         super().__init__()
 
         self.config = config
@@ -46,6 +46,7 @@ class TaskList(*tasks):
         self.templates_dir = self.docs_dir / "templates"
         self.assets_dir = self.docs_dir / "assets"
         self.dist_dir = dist_dir
+        self.cache = cache
 
         # Store assets by date and then type
         self.db = Db()

@@ -7,6 +7,7 @@ from doit.api import run_tasks
 from doit.doit_cmd import DoitMain
 from doit.cmd_base import ModuleTaskLoader
 from tabulate import tabulate
+from .cache import Cache
 import os
 import locale
 import gettext
@@ -76,7 +77,9 @@ def main(dist_dir, build_dir, params, source_dir, always_execute, num_processes,
 
     click.echo("Generating tasks ...")
 
-    taskList = TaskList(config_data, source_dir, build_dir, dist_dir)
+    cache = Cache(pathlib.Path.home() / ".tdgen" / "cache.sqlite")
+
+    taskList = TaskList(config_data, source_dir, build_dir, dist_dir, cache)
 
     n_assets = taskList.db.count_assets()
     click.echo(f"Found {n_assets} assets" + (":" if n_assets > 0 else "."))
