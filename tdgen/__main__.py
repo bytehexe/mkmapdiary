@@ -6,6 +6,7 @@ from .taskList import TaskList
 from doit.api import run_tasks
 from doit.doit_cmd import DoitMain
 from doit.cmd_base import ModuleTaskLoader
+from tabulate import tabulate
 
 import sys
 
@@ -45,8 +46,9 @@ def main(dist_dir, config, build_dir, params, source_dir):
 
     n_assets = taskList.db.count_assets()
     click.echo(f"Found {n_assets} assets" + (":" if n_assets > 0 else "."))
-    for date, count in taskList.db.count_assets_by_date().items():
-        click.echo(f"  {date}: {count}")
+    if n_assets > 0:
+        print(tabulate(taskList.db.dump(), headers=["ID", "Path", "Type", "DateTime", "Latitude", "Longitude"]))
+
     click.echo("Running tasks ...")
 
     sys.exit(DoitMain(ModuleTaskLoader(taskList.toDict())).run([]))
