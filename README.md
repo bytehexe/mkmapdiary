@@ -19,7 +19,6 @@ msgfmt tdgen/locale/de/LC_MESSAGES/messages.po -o tdgen/locale/de/LC_MESSAGES/me
 
 * Show journal icons on map (icon book-solid/microphone-solid; marker cluster: keyframes-couple-solid, over 10: keyframes-solid)
 * Adjust color palette for map data
-* Add AI summary to day pages?
 * Write documentation
   * General workings
   * Asset database
