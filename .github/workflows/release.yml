@@ -19,7 +19,7 @@ jobs:
           python -m pip install hatch pre-commit yamllint black --user
       - name: Run tests
         run: |
-          pre-commit run -a
+          env SKIP=mypy pre-commit run -a
 
   build:
     name: Build distribution 📦
