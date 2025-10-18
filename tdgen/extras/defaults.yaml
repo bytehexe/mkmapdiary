@@ -32,3 +32,18 @@ ai:
       temperature: 0.2
       top_p: 0.8
       #seed: 42
+
+  generate_tags:
+    prompt: |
+      Extract a list of relevant tags in {locale} from the following text.
+      The list should not exceed 15 tags.
+      Produce a single list of tags, separated by commas.
+      Do not include explanations or additional text.
+      Output only the list of tags, nothing else.
+      Do not include phrases like 'Tags:' or 'The tags are'.
+
+      Text:
+      {text}
+    options:
+      temperature: 0.8
+      top_p: 0.8

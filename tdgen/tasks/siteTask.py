@@ -154,6 +154,7 @@ class SiteTask(BaseTask):
                 "build_day_page:*",
                 "build_gallery:*",
                 "build_journal:*",
+                "build_tags:*",
             ],
             calc_dep=["get_gpx_deps"],
             targets=[
