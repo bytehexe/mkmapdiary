@@ -13,19 +13,14 @@ class DayPageTask(BaseTask):
         def _generate_day_page(date):
             day_page_path = self.docs_dir / f"{date}.md"
             with open(day_page_path, "w") as f:
-                formatted_date = datetime.datetime.strptime(date, "%Y-%m-%d").strftime("%x")    
-                f.write(textwrap.dedent(f"""\
-                # {formatted_date}
-
-                --8<--
-                docs/templates/{date}_gallery.md
-                --8<--
-
-                ## {self.config["map_title"]}
-
-                ## {self.config["journal_title"]}
-                
-                """))
+                formatted_date = datetime.datetime.strptime(date, "%Y-%m-%d").strftime("%x")
+                f.write(self.template(
+                    "date_base.j2",
+                    formatted_date = formatted_date,
+                    map_title = self.config["map_title"],
+                    journal_title = self.config["journal_title"],
+                    date = date,
+                ))
         
         for date in self.db.get_all_dates():
             yield dict(
