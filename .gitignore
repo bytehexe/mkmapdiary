@@ -16,3 +16,6 @@ __about__.py
 # MonkeyType
 monkeytype/
 monkeytype.sqlite3
+
+# Caches
+/.*cache

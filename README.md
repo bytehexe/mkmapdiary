@@ -10,7 +10,7 @@ A travel journal generator.
 ## Installation
 
 ```console
-pip install mkmapdiary
+pip install mkmapdiary[all]
 ```
 
 ## License

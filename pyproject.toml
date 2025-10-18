@@ -28,6 +28,7 @@ classifiers = [
 dependencies = [
     "click",
     "pyyaml",
+    "pydantic",
     "mkdocs-glightbox",
     "mkdocs-material",
     "mkdocs",
@@ -43,10 +44,19 @@ dependencies = [
     "jsonschema",
     "lxml",
     "pydub",
-    "openai-whisper",
     "ollama",
     "gpxpy",
     "hdbscan",
+]
+
+[project.optional-dependencies]
+
+transcription = [
+    "openai-whisper",
+]
+
+all = [
+    "openai-whisper",
 ]
 
 [project.scripts]
@@ -69,6 +79,11 @@ local_scheme = "no-local-version"
 [tool.hatch.build.hooks.vcs]
 version-file = "src/mkmapdiary/__about__.py"
 
+[tool.hatch.envs.default]
+features = ["all"]
+
+[tool.hatch.envs.min]
+features = []
 
 [tool.hatch.envs.types]
 extra-dependencies = [
