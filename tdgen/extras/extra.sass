@@ -1,3 +1,5 @@
+@import "source:material-color.scss";
+
 .gallery-item
     border: .05rem solid var(--md-default-fg-color--lightest)
     border-radius: .1rem
@@ -131,48 +133,24 @@ html
 .audio-section audio
     width: 100%
 
+// Compare to material color scheme:
+// https://github.com/squidfunk/mkdocs-material/blob/master/src/templates/assets/stylesheets/palette/_primary.scss
+// https://app.unpkg.com/material-design-color@2.3.2/files/material-color.scss
+
 .map-simple-icon
     font-size: 20px
     text-align: center
     opacity: 0.9
     &-red
-        color: #F44336
-    &-pink
-        color: #E91E63
+        color: $clr-red-400
     &-purple
-        color: #9C27B0
-    &-deep-purple
-        color: #673AB7
-    &-indigo
-        color: #3F51B5
+        color: $clr-purple-500
     &-blue
-        color: #2196F3
-    &-light-blue
-        color: #03A9F4
-    &-cyan
-        color: #00BCD4
-    &-teal
-        color: #009688
-    &-green
-        color: #4CAF50
-    &-light-green
-        color: #8BC34A
-    &-lime
-        color: #CDDC39
-    &-yellow
-        color: #FFEB3B
-    &-amber
-        color: #FFC107
+        color: $clr-blue-500
     &-orange
-        color: #FF9800
-    &-deep-orange
-        color: #FF5722
-    &-brown
-        color: #795548
-    &-grey
-        color: #9E9E9E
-    &-blue-grey
-        color: #607D8B
+        color: $clr-orange-400
+    &-green
+        color: $clr-green-500
 
 .md-nav__link .md-ellipsis
     font-family: monospace
