@@ -3,7 +3,6 @@
 [![PyPI - Version](https://img.shields.io/pypi/v/mkmapdiary.svg)](https://pypi.org/project/mkmapdiary)
 ![PyPI - License](https://img.shields.io/pypi/l/mkmapdiary)
 ![PyPI - Status](https://img.shields.io/pypi/status/mkmapdiary)
-![GitHub branch status](https://img.shields.io/github/checks-status/bytehexe/mkmapdiary/main)
 
 -----
 
