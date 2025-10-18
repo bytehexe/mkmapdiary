@@ -12,11 +12,11 @@ class Cr2Task:
     def handle_ext_cr2(self, source):
         self.__sources.append(source)
         intermediate_file = self.__generate_intermediate_filename(source)
-        self.handle(intermediate_file)
+        self.handle_image(intermediate_file)
 
     def task_convert_raw(self):
         """Convert a RAW image to JPEG."""
-        def _convert():
+        def _convert(src, dst):
             with rawpy.imread(str(src)) as raw:
                 rgb = raw.postprocess(
                     use_camera_wb=True,      # Kamera-Weißabgleich
