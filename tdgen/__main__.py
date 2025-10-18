@@ -21,13 +21,12 @@ def validate_param(ctx, param, value):
 
 @click.command()
 @click.option('-d', '--dist-dir', default="dist", type=click.Path(path_type=pathlib.Path), help='Path to distribution directory')
-@click.option('-c', '--config', type=click.Path(path_type=pathlib.Path), help='Path to configuration file')
 @click.option('-x', '--params', multiple=True, callback=validate_param, type=str, help='Additional parameters')
 @click.option('-b', '--build-dir', default="build", type=click.Path(path_type=pathlib.Path), help='Path to build directory')
 @click.option('-s', '--source-dir', default="src", type=click.Path(path_type=pathlib.Path), help='Path to source directory')
 @click.option('-a', '--always-execute', is_flag=True, help='Always execute tasks, even if up-to-date')
 @click.option('-n', '--num-processes', default=os.cpu_count(), type=int, help='Number of parallel processes to use')
-def main(dist_dir, config, build_dir, params, source_dir, always_execute, num_processes):
+def main(dist_dir, build_dir, params, source_dir, always_execute, num_processes):
     click.echo("Generating configuration ...")
 
     script_dir = pathlib.Path(__file__).parent
@@ -43,8 +42,9 @@ def main(dist_dir, config, build_dir, params, source_dir, always_execute, num_pr
             config_data.update(yaml.safe_load(f))
 
     # Load configuration file if provided
-    if config:
-        config_data.update(yaml.safe_load(config.read_text()))
+    config_file = source_dir / "config.yaml"
+    if config_file.is_file():
+        config_data.update(yaml.safe_load(config_file.read_text()))
 
     # Override config with params
     for param in params:
