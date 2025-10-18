@@ -12,3 +12,6 @@ msgstr "Tagebuch"
 
 msgid "Home"
 msgstr "Startseite"
+
+msgid "Days"
+msgstr "Tage"
