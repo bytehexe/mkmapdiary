@@ -2,7 +2,7 @@ definitions:
   Feature:
     type: object
     title: Feature
-    description: A geo feature 
+    description: A geo feature
     properties:
       type:
         const: Feature
@@ -52,7 +52,7 @@ definitions:
       - properties
       - geometry
     unevaluatedProperties: false
-      
+
   Waypoint:
     title: Waypoint
     allOf:
@@ -86,7 +86,7 @@ definitions:
           properties:
             allOf:
               - $ref: '#/definitions/PropertyBase'
-              - $ref: '#/definitions/TrackProperties'    
+              - $ref: '#/definitions/TrackProperties'
             unevaluatedProperties: false
 
   WaypointProperties:
@@ -164,7 +164,7 @@ definitions:
                     lookup: {}
                 - $ref: '#/definitions/WaypointProperties'
               unevaluatedProperties: false
-  
+
   PropertyBase:
     title: PropertyBase
     description: Common properties
@@ -179,7 +179,7 @@ definitions:
     anyOf:
       - type: string
       - $ref: '#/definitions/Coordinates'
-      
+
   Coordinates:
     type: array
     items:
