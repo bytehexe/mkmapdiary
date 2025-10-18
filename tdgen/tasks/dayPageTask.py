@@ -1,4 +1,6 @@
 from .base.baseTask import BaseTask
+import datetime
+import textwrap
 
 class DayPageTask(BaseTask):
     def __init__(self):
@@ -10,9 +12,17 @@ class DayPageTask(BaseTask):
         def _generate_day_page(date):
             day_page_path = self.docs_dir / f"{date}.md"
             with open(day_page_path, "w") as f:
-                f.write(f"# Photos from {date}\n\n")
-                # Here you could add more content, like a gallery template inclusion
-                #f.write(f"{{% include '{date}_gallery.md' %}}\n")
+                formatted_date = datetime.datetime.strptime(date, "%Y-%m-%d").strftime("%x")    
+                f.write(textwrap.dedent(f"""\
+                # {formatted_date}
+                
+                ## Gallery
+
+                ## Map
+
+                ## Journal
+                
+                """))
         
         for date in self.db.get_all_dates():
             yield dict(

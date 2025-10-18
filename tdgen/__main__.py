@@ -29,6 +29,9 @@ def validate_param(ctx, param, value):
 def main(dist_dir, config, build_dir, params, source_dir, always_execute, num_processes):
     click.echo("Generating configuration ...")
 
+    # Set locale
+    locale.setlocale(locale.LC_TIME, "")
+
     # Load config defaults
     with open(pathlib.Path(__file__).parent / "defaults.yaml", "r") as f:
         config_data = yaml.safe_load(f)

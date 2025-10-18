@@ -42,6 +42,10 @@ class SiteTask(BaseTask):
                 "theme": {
                     "name": self.config.get("theme", "material"),
                 },
+                "plugins": [
+                    "search",
+                    "offline",
+                ]
             }
 
             with open(self.build_dir / "mkdocs.yml", "w") as f:
