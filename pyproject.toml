@@ -11,7 +11,7 @@ requires-python = ">=3.8"
 license = "PolyForm-Noncommercial-1.0.0"
 keywords = []
 authors = [
-  { name = "Janna Hopp", email = "795581+bytehexe@users.noreply.github.com" },
+  { name = "Janna Hopp" },
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
