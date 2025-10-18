@@ -16,11 +16,11 @@ class DayPageTask(BaseTask):
                 f.write(textwrap.dedent(f"""\
                 # {formatted_date}
                 
-                ## Gallery
+                ## {self.config["gallery_title"]}
 
-                ## Map
+                ## {self.config["map_title"]}
 
-                ## Journal
+                ## {self.config["journal_title"]}
                 
                 """))
         

@@ -7,8 +7,9 @@ from doit.api import run_tasks
 from doit.doit_cmd import DoitMain
 from doit.cmd_base import ModuleTaskLoader
 from tabulate import tabulate
-import locale
 import os
+import locale
+import gettext
 
 import sys
 
@@ -29,15 +30,14 @@ def validate_param(ctx, param, value):
 def main(dist_dir, config, build_dir, params, source_dir, always_execute, num_processes):
     click.echo("Generating configuration ...")
 
-    # Set locale
-    locale.setlocale(locale.LC_TIME, "")
+    script_dir = pathlib.Path(__file__).parent
 
     # Load config defaults
-    with open(pathlib.Path(__file__).parent / "defaults.yaml", "r") as f:
+    with open(script_dir / "defaults.yaml", "r") as f:
         config_data = yaml.safe_load(f)
 
     lc = locale.getlocale()[0].split("_")[0]
-    locale_file = pathlib.Path(__file__).parent / f"defaults_{lc}.yaml"
+    locale_file = script_dir / f"defaults_{lc}.yaml"
     if locale_file.exists():
         with open(locale_file, "r") as f:
             config_data.update(yaml.safe_load(f))
@@ -54,6 +54,23 @@ def main(dist_dir, config, build_dir, params, source_dir, always_execute, num_pr
         for k in key[:-1]:
             d = d.setdefault(k, {})
         d[key[-1]] = yaml.safe_load(value)
+
+    # Load gettext
+    localedir = script_dir / "locale"
+    lang = gettext.translation("messages", localedir=str(localedir), languages=[config_data["locale"].split("_")[0]], fallback=True)
+    lang.install()
+    _ = lang.gettext
+
+    # Load defaults for unset parameters
+    config_data.setdefault("site_name", _("Travel Diary"))
+    config_data.setdefault("home_title", _("Home"))
+    config_data.setdefault("gallery_title", _("Gallery"))
+    config_data.setdefault("map_title", _("Map"))
+    config_data.setdefault("journal_title", _("Journal"))
+
+    # Set locale
+    locale.setlocale(locale.LC_TIME, config_data["locale"])
+
 
     click.echo("Generating tasks ...")
 

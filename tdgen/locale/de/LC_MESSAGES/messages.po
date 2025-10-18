@@ -1,0 +1,14 @@
+msgid "Travel Diary"
+msgstr "Reisetagebuch"
+
+msgid "Gallery"
+msgstr "Galerie"
+
+msgid "Map"
+msgstr "Karte"
+
+msgid "Journal"
+msgstr "Tagebuch"
+
+msgid "Home"
+msgstr "Startseite"
