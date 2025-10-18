@@ -9,17 +9,20 @@ class SiteTask(BaseTask):
         return [
             self.build_dir,
             self.assets_dir,
+            self.docs_dir,
+            self.dist_dir,
+            self.files_dir,
         ]
 
     def task_create_directory(self):
         """Create a directory if it doesn't exist."""
 
-        def _create_directory():
+        def _create_directory(dir):
             dir.mkdir(parents=True, exist_ok=True)
 
         for dir in self.__site_dirs:
             yield dict(
                     name=dir,
-                    actions=[_create_directory],
+                    actions=[(_create_directory, (dir,))],
                     targets=[dir],
                 )

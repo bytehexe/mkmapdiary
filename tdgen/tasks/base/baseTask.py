@@ -16,7 +16,10 @@ class BaseTask(ABC):
 
     def extract_meta_mtime(self, source):
         """Extract metadata from the file's modification time."""
-        stat = source.stat()
+        try:
+            stat = source.stat()
+        except FileNotFoundError:
+            return None
         return datetime.datetime.fromtimestamp(stat.st_mtime)
     
     def make_unique_filename(self, source, destination):
