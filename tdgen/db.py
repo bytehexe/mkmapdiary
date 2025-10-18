@@ -1,10 +1,12 @@
 
 import sqlite3
+import threading
 
 class Db:
     def __init__(self):
         self.conn = sqlite3.connect(':memory:', check_same_thread=False)
         self.create_tables()
+        self.lock = threading.Lock()
     
     def create_tables(self):
         cursor = self.conn.cursor()
@@ -21,51 +23,58 @@ class Db:
         self.conn.commit()
 
     def add_asset(self, path, type, meta):
-        cursor = self.conn.cursor()
-        cursor.execute('''
-            INSERT INTO assets (path, type, datetime, latitude, longitude)
-            VALUES (?, ?, ?, ?, ?)
-            ''', (
-                str(path),
-                type,
-                meta.get('date'),
-                meta.get('latitude'),
-                meta.get('longitude')
-            ))
+        with self.lock:
+            cursor = self.conn.cursor()
+            cursor.execute('''
+                INSERT INTO assets (path, type, datetime, latitude, longitude)
+                VALUES (?, ?, ?, ?, ?)
+                ''', (
+                    str(path),
+                    type,
+                    meta.get('date'),
+                    meta.get('latitude'),
+                    meta.get('longitude')
+                ))
 
-        self.conn.commit()
+            self.conn.commit()
 
     def count_assets(self):
-        cursor = self.conn.cursor()
-        cursor.execute('SELECT COUNT(*) FROM assets')
-        return cursor.fetchone()[0]
+        with self.lock:
+            cursor = self.conn.cursor()
+            cursor.execute('SELECT COUNT(*) FROM assets')
+            return cursor.fetchone()[0]
     
     def count_assets_by_date(self):
-        cursor = self.conn.cursor()
-        cursor.execute('''
-            SELECT DATE(datetime) as date, COUNT(*) as count
-            FROM assets
-            GROUP BY DATE(datetime)
-            ORDER BY DATE(datetime) ASC
-        ''')
-        return dict(cursor.fetchall())
+        with self.lock:
+            cursor = self.conn.cursor()
+            cursor.execute('''
+                SELECT DATE(datetime) as date, COUNT(*) as count
+                FROM assets
+                GROUP BY DATE(datetime)
+                ORDER BY DATE(datetime) ASC
+            ''')
+            return dict(cursor.fetchall())
     
     def get_all_assets(self):
-        cursor = self.conn.cursor()
-        cursor.execute('SELECT path FROM assets ORDER BY datetime ASC')
-        return list(row[0] for row in cursor.fetchall())
+        with self.lock:
+            cursor = self.conn.cursor()
+            cursor.execute('SELECT path FROM assets ORDER BY datetime ASC')
+            return list(row[0] for row in cursor.fetchall())
     
     def get_all_dates(self):
-        cursor = self.conn.cursor()
-        cursor.execute('SELECT DISTINCT DATE(datetime) as date FROM assets ORDER BY DATE(datetime) ASC')
-        return list(row[0] for row in cursor.fetchall())
+        with self.lock:
+            cursor = self.conn.cursor()
+            cursor.execute('SELECT DISTINCT DATE(datetime) as date FROM assets ORDER BY DATE(datetime) ASC')
+            return list(row[0] for row in cursor.fetchall())
 
     def get_assets_by_date(self, date):
-        cursor = self.conn.cursor()
-        cursor.execute('SELECT path FROM assets WHERE DATE(datetime) = ? ORDER BY datetime ASC', (date,))
-        return [row[0] for row in cursor.fetchall()]
+        with self.lock:
+            cursor = self.conn.cursor()
+            cursor.execute('SELECT path FROM assets WHERE DATE(datetime) = ? ORDER BY datetime ASC', (date,))
+            return [row[0] for row in cursor.fetchall()]
 
     def dump(self):
-        cursor = self.conn.cursor()
-        cursor.execute('SELECT * FROM assets')
-        return list(cursor.fetchall())
+        with self.lock:
+            cursor = self.conn.cursor()
+            cursor.execute('SELECT * FROM assets')
+            return list(cursor.fetchall())
