@@ -18,7 +18,8 @@ class Db:
                 type TEXT NOT NULL,
                 datetime TIMESTAMP,
                 latitude REAL,
-                longitude REAL
+                longitude REAL,
+                approx INTEGER DEFAULT NULL
             )
         ''')
         self.conn.commit()
@@ -104,10 +105,28 @@ class Db:
             return None
 
     def dump(self, asset_type=None):
+        headers = ["ID", "Path", "Type", "DateTime", "Latitude", "Longitude", "approx"]
         with self.lock:
             cursor = self.conn.cursor()
             if asset_type:
                 cursor.execute('SELECT * FROM assets WHERE type = ?', (asset_type,))
             else:
                 cursor.execute('SELECT * FROM assets')
-            return list(cursor.fetchall())
+            
+            return list(cursor.fetchall()), headers
+        
+    def get_unpositioned_assets(self):
+        with self.lock:
+            cursor = self.conn.cursor()
+            cursor.execute('SELECT id, datetime FROM assets WHERE latitude IS NULL OR longitude IS NULL')
+            return list(row for row in cursor.fetchall())
+
+    def update_asset_position(self, asset_id, latitude, longitude, approx):
+        with self.lock:
+            cursor = self.conn.cursor()
+            cursor.execute('''
+                UPDATE assets
+                SET latitude = ?, longitude = ?, approx = ?
+                WHERE id = ?
+            ''', (latitude, longitude, approx, asset_id))
+            self.conn.commit()

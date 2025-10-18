@@ -94,7 +94,7 @@ def main(dist_dir, build_dir, params, source_dir, always_execute, num_processes,
     n_assets = taskList.db.count_assets()
     click.echo(f"Found {n_assets} assets" + (":" if n_assets > 0 else "."))
     if n_assets > 0:
-        print(tabulate(taskList.db.dump(), headers=["ID", "Path", "Type", "DateTime", "Latitude", "Longitude"]))
+        print(tabulate(*taskList.db.dump()))
 
     proccess_args = []
     if always_execute:

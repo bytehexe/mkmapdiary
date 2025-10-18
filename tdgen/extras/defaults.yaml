@@ -6,6 +6,10 @@ ollama_ai_model: "llama3:8b"
 geo_lookup:
   high_precision: false
 
+geo_correlation:
+  timezone: "UTC"
+  time_offset: 0  # in seconds
+
 # Translations are set within the code using gettext; can be overriden in the project config
 
 ai:
