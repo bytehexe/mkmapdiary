@@ -18,3 +18,9 @@ monkeytype.sqlite3
 
 # Caches
 /.*cache
+
+# venv
+venv/
+env/
+.venv/
+.env/
