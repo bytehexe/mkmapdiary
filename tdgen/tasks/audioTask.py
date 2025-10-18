@@ -3,6 +3,8 @@ from .base.baseTask import BaseTask
 from .base.exifReader import ExifReader
 from pydub import AudioSegment
 import whisper
+import hashlib
+
 
 class AudioTask(BaseTask):
     def __init__(self):
@@ -49,6 +51,18 @@ class AudioTask(BaseTask):
                     targets=[dst],
                 )
             
+    def __file_md5(self, path):
+        hash_md5 = hashlib.md5()
+        with open(path, "rb") as f:
+            for chunk in iter(lambda: f.read(4096), b""):
+                hash_md5.update(chunk)
+        return hash_md5.hexdigest()
+
+    def __transcribe_audio(self, src):
+        model = whisper.load_model("turbo")
+        result = model.transcribe(str(src))
+        return result
+
     def task_transcribe_audio(self):
         """Transcribe audio to text."""
 
@@ -57,10 +71,14 @@ class AudioTask(BaseTask):
             output = []
             output.append("<div class='transcript'>")
 
-            model = whisper.load_model("turbo")
-            audio = AudioSegment.from_file(src)
+            result = self.with_cache(
+                "whisper",
+                self.__transcribe_audio,
+                src,
+                cache_args=(self.__file_md5(src),)
+            )
 
-            result = model.transcribe(str(src))
+            audio = AudioSegment.from_file(src)
 
             for segment in result["segments"]:
                 if segment["end"] > audio.duration_seconds:

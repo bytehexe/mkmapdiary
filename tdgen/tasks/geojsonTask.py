@@ -96,7 +96,7 @@ class GeojsonTask(BaseTask, ExifReader):
             return lookup
         
 
-        data = self.cache.with_cache("nominatim", self.__nominatim_query, lookup)
+        data = self.with_cache("nominatim", self.__nominatim_query, lookup)
 
         location = data[0] if data else None
 

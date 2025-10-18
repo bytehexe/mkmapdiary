@@ -17,31 +17,45 @@ class Cache(collections.abc.MutableMapping):
             cursor = self.__conn.cursor()
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS cache (
-                    key TEXT PRIMARY KEY,
-                    value TEXT NOT NULL
+                    section TEXT NOT NULL,
+                    parameters TEXT NOT NULL,
+                    value TEXT NOT NULL,
+                    PRIMARY KEY (section, parameters)
                 )
             ''')
             self.__conn.commit()
 
     def __getitem__(self, key):
+        section, parameters = key
+        assert type(section) is str, "Section must be a string"
+        assert type(parameters) in (tuple, list), "Parameters must be a tuple or list"
+
         with lock:
             cursor = self.__conn.cursor()
-            cursor.execute('SELECT value FROM cache WHERE key = ?', (json.dumps(key),))
+            cursor.execute('SELECT value FROM cache WHERE section = ? AND parameters = ?', (section, json.dumps(parameters),))
             row = cursor.fetchone()
             if row is None:
                 raise KeyError(key)
             return json.loads(row[0])
         
     def __setitem__(self, key, value):
+        section, parameters = key
+        assert type(section) is str, "Section must be a string"
+        assert type(parameters) in (tuple, list), "Parameters must be a tuple or list"
+
         with lock:
             cursor = self.__conn.cursor()
-            cursor.execute('REPLACE INTO cache (key, value) VALUES (?, ?)', (json.dumps(key), json.dumps(value)))
+            cursor.execute('REPLACE INTO cache (section, parameters, value) VALUES (?, ?, ?)', (section, json.dumps(parameters), json.dumps(value)))
             self.__conn.commit()
 
     def __delitem__(self, key):
+        section, parameters = key
+        assert type(section) is str, "Section must be a string"
+        assert type(parameters) in (tuple, list), "Parameters must be a tuple or list"
+
         with lock:
             cursor = self.__conn.cursor()
-            cursor.execute('DELETE FROM cache WHERE key = ?', (json.dumps(key),))
+            cursor.execute('DELETE FROM cache WHERE section = ? AND parameters = ?', (section, json.dumps(parameters)))
             if cursor.rowcount == 0:
                 raise KeyError(key)
             self.__conn.commit()
@@ -49,25 +63,13 @@ class Cache(collections.abc.MutableMapping):
     def __iter__(self):
         with lock:
             cursor = self.__conn.cursor()
-            cursor.execute('SELECT key FROM cache')
+            cursor.execute('SELECT section, parameters FROM cache')
             rows = cursor.fetchall()
             for row in rows:
-                yield json.loads(row[0])
+                yield row[0], json.loads(row[1])
 
     def __len__(self):
         with lock:
             cursor = self.__conn.cursor()
             cursor.execute('SELECT COUNT(*) FROM cache')
             return cursor.fetchone()[0]
-        
-    def with_cache(self, key, compute_func, *args, **kwargs):
-        """Get the value from cache or compute it if not present."""
-        
-        full_key = (key, args, list(sorted(kwargs.items())))
-
-        try:
-            return self[full_key]
-        except KeyError:
-            value = compute_func(*args, **kwargs)
-            self[full_key] = value
-            return value

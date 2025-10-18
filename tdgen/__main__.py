@@ -28,7 +28,9 @@ def validate_param(ctx, param, value):
 @click.option('-a', '--always-execute', is_flag=True, help='Always execute tasks, even if up-to-date')
 @click.option('-n', '--num-processes', default=os.cpu_count(), type=int, help='Number of parallel processes to use')
 @click.option('-v', '--verbose', is_flag=True, help='Enable verbose output')
-def main(dist_dir, build_dir, params, source_dir, always_execute, num_processes, verbose):
+@click.option('--no-cache', is_flag=True, help='Disable caching mechanism')
+@click.option('--clear-cache', is_flag=True, help='Clear the cache before running')
+def main(dist_dir, build_dir, params, source_dir, always_execute, num_processes, verbose, no_cache, clear_cache):
     click.echo("Generating configuration ...")
 
     script_dir = pathlib.Path(__file__).parent
@@ -77,7 +79,15 @@ def main(dist_dir, build_dir, params, source_dir, always_execute, num_processes,
 
     click.echo("Generating tasks ...")
 
-    cache = Cache(pathlib.Path.home() / ".tdgen" / "cache.sqlite")
+    cache_file = pathlib.Path.home() / ".tdgen" / "cache.sqlite"
+    if clear_cache:
+        if cache_file.exists():
+            cache_file.unlink()
+
+    if no_cache:
+        cache = {}
+    else:
+        cache = Cache(pathlib.Path.home() / ".tdgen" / "cache.sqlite")
 
     taskList = TaskList(config_data, source_dir, build_dir, dist_dir, cache)
 
