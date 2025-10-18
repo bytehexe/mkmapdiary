@@ -16,12 +16,24 @@ window.addEventListener("DOMContentLoaded", () => {
     GLightbox().openAt(evt.layer.photo.index);
   });
 
+
+  gpx_data = '<?xml version="1.0" encoding="UTF-8"?> <gpx version="1.1" creator="ChatGPT - GPT-5" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd"> <wpt lat="48.8566" lon="2.3522"> <name>Paris</name> <desc>Capital city of France</desc> </wpt> <trk> <name>Seine Walk</name> <desc>Short track through central Paris</desc> <trkseg> <trkpt lat="48.8570" lon="2.3499"><ele>35.0</ele></trkpt> <trkpt lat="48.8578" lon="2.3525"><ele>34.5</ele></trkpt> <trkpt lat="48.8586" lon="2.3551"><ele>33.8</ele></trkpt> </trkseg> </trk> </gpx>';
+  parser = new DOMParser();
+  xmlDoc = parser.parseFromString(gpx_data, "text/xml");
+  
+  const gpx = new L.GPX().parseGPX(xmlDoc, {});
+  gpx.addTo(map);
+
   photoLayer.add(photo_data).addTo(map);
 
   var combinedBounds = L.latLngBounds([]);
 
-  combinedBounds.extend(photoLayer.getBounds());
+  // Get GPX layers
+  for (const layer in gpx._layers) {
+    combinedBounds.extend(gpx._layers[layer]._bounds);
+  }
 
+  combinedBounds.extend(photoLayer.getBounds());
   map.fitBounds(combinedBounds);
 
 });
