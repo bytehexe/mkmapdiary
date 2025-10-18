@@ -29,29 +29,8 @@ class GeojsonTask(GeoLookup):
         self.__sources.append(source)
         intermediate_file = self.__generate_destination_filename(source)
 
-        # Load and validate file
-        data = self.__load_file(source)
-        script_dir = pathlib.Path(__file__).parent
-        with open(script_dir.parent / "extras" / "geo.schema.yaml") as f:
-            schema = yaml.safe_load(f)
-        validate(instance=data, schema=schema)
-
-        # Extract dates
-        dates = self.__extract_dates(data)
-
         assets = list(self.handle_gpx(intermediate_file))
         return assets
-
-    def __extract_dates(self, data):
-        dates = set()
-        for feature in data["features"]:
-            props = feature.get("properties", {})
-            if "timestamp" in props:
-                dates.add(dateutil.parser.isoparse(props["timestamp"]).date())
-            if "timestamps" in props:
-                for ts in props["timestamps"]:
-                    dates.add(dateutil.parser.isoparse(ts).date())
-        return dates
 
     def __generate_destination_filename(self, source):
         filename = (self.files_dir / source.stem).with_suffix(f"{source.suffix[0:2]}.gpx")
@@ -145,6 +124,12 @@ class GeojsonTask(GeoLookup):
         """Convert a geojson or geoyaml file to gpx using gpxpy."""
         def _convert(src, dst):
             data = self.__load_file(src)
+
+            # Validate file
+            script_dir = pathlib.Path(__file__).parent
+            with open(script_dir.parent / "extras" / "geo.schema.yaml") as f:
+                schema = yaml.safe_load(f)
+            validate(instance=data, schema=schema)
 
             gpx = gpxpy.gpx.GPX()
             gpx.creator = "tdgen"
