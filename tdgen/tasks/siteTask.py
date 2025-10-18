@@ -35,7 +35,7 @@ class SiteTask(BaseTask):
         def _generate_mkdocs_config():
 
             config = {
-                "site_name": self.config.get("site_name", "Travel Diary"),
+                "site_name": self.config["site_name"],
                 "docs_dir": str(self.docs_dir.absolute()),
                 "site_dir": str(self.dist_dir.absolute()),
                 "use_directory_urls": False,
