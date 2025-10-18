@@ -36,5 +36,6 @@ extra_javascript:
   - path: https://unpkg.com/leaflet@1.9.4/dist/leaflet.js
   - path: https://unpkg.com/leaflet.markercluster@1.0.3/dist/leaflet.markercluster.js
   - path: https://unpkg.com/@lychee-org/leaflet.photo@1.0.0/Leaflet.Photo.js
+  - path: https://unpkg.com/leaflet-plugins@3.4.0/layer/vector/GPX.js
   - path: geo.js
   - path: audio.js
