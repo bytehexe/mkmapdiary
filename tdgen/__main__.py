@@ -7,6 +7,7 @@ from doit.api import run_tasks
 from doit.doit_cmd import DoitMain
 from doit.cmd_base import ModuleTaskLoader
 from tabulate import tabulate
+import os
 
 import sys
 
@@ -22,7 +23,9 @@ def validate_param(ctx, param, value):
 @click.option('-x', '--params', multiple=True, callback=validate_param, type=str, help='Additional parameters')
 @click.option('-b', '--build-dir', default="build", type=click.Path(path_type=pathlib.Path), help='Path to build directory')
 @click.option('-s', '--source-dir', default="src", type=click.Path(path_type=pathlib.Path), help='Path to source directory')
-def main(dist_dir, config, build_dir, params, source_dir):
+@click.option('-a', '--always-execute', is_flag=True, help='Always execute tasks, even if up-to-date')
+@click.option('-n', '--num-processes', default=os.cpu_count(), type=int, help='Number of parallel processes to use')
+def main(dist_dir, config, build_dir, params, source_dir, always_execute, num_processes):
     click.echo("Generating configuration ...")
 
     # Load configuration file if provided
@@ -51,7 +54,14 @@ def main(dist_dir, config, build_dir, params, source_dir):
 
     click.echo("Running tasks ...")
 
-    sys.exit(DoitMain(ModuleTaskLoader(taskList.toDict())).run([]))
+    proccess_args = []
+    if always_execute:
+        proccess_args.append("--always-execute")
+    if num_processes > 0:
+        proccess_args.append(f"--process={num_processes}")
+    proccess_args.append("--parallel-type=thread")
+
+    sys.exit(DoitMain(ModuleTaskLoader(taskList.toDict())).run(proccess_args))
 
 if __name__ == "__main__":
     main()

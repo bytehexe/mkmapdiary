@@ -51,6 +51,7 @@ class SiteTask(BaseTask):
             actions=[(_generate_mkdocs_config, ())],
             targets=[self.build_dir / "mkdocs.yml"],
             task_dep=[f"create_directory:{self.build_dir}"],
+            uptodate=[True],
         )
     
     def task_build_static_pages(self):
@@ -62,6 +63,7 @@ class SiteTask(BaseTask):
                 f"create_directory:{self.dist_dir}",
             ],
             targets=[self.docs_dir / "index.md"],
+            uptodate=[True],
         )
 
     def task_build_site(self):
