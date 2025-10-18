@@ -6,9 +6,21 @@ from .tasks import SiteTask
 from .tasks import Cr2Task
 from .tasks import DayPageTask
 from .tasks import GeojsonTask
+from .tasks import GalleryTask
+from .tasks import JournalTask
 from .db import Db
 
-class TaskList(ImageTask, SiteTask, Cr2Task, DayPageTask, GeojsonTask):
+tasks = [
+    ImageTask,
+    SiteTask,
+    Cr2Task,
+    DayPageTask,
+    GeojsonTask,
+    GalleryTask,
+    JournalTask,
+]
+
+class TaskList(*tasks):
     """
     Generates task lists based on source directory and configuration.
     
