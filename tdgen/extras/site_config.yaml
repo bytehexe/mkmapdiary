@@ -1,15 +1,21 @@
 use_directory_urls: False
 strict: True
+
 theme:
   name: material
   icon:
     logo: "material/plane-train"
+
 plugins:
   - search
   - offline
   - glightbox:
       skip_classes:
         - skip-lightbox
+
+exclude_docs: |
+  /assets/*.md
+
 markdown_extensions: 
   - pymdownx.snippets:
       check_paths: True
@@ -18,11 +24,13 @@ markdown_extensions:
   - pymdownx.blocks.html
   - pymdownx.blocks.admonition
   - pymdownx.superfences
+
 extra_css:
   - extra.css
   - https://unpkg.com/leaflet@1.9.4/dist/leaflet.css
   - https://unpkg.com/leaflet.markercluster@1.0.3/dist/MarkerCluster.css
   - https://unpkg.com/@lychee-org/leaflet.photo@1.0.0/Leaflet.Photo.css
+
 extra_javascript:
   - path: https://unpkg.com/leaflet@1.9.4/dist/leaflet.js
   - path: https://unpkg.com/leaflet.markercluster@1.0.3/dist/leaflet.markercluster.js

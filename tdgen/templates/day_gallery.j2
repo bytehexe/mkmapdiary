@@ -1,3 +1,4 @@
+{% if gallery_items %}
 ## {{ gallery_title }}
 
 <div class="grid cards gallery-grid" markdown>
@@ -12,3 +13,4 @@ photo_data = {{ geo_items | tojson }};
 </script>
 
 </div>
+{% endif %}
