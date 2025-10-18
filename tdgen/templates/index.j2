@@ -5,7 +5,7 @@
 {% for item in date_items %}
 <figure markdown="span" class="gallery-float-grid">
 <a href="{{ item.date }}.html">
-<div class="gallery-item gallery-box-s" markdown>
+<div class="gallery-item gallery-box-s{% if not item.basename %} empty{% endif %}" markdown>
 {% if item.basename %}
 ![Image title](assets/{{ item.basename }}){ .skip-lightbox .gallery-image-s }
 {% endif %}
