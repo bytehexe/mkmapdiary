@@ -50,6 +50,10 @@ class Db:
         ''')
         return dict(cursor.fetchall())
     
+    def get_all_assets(self):
+        cursor = self.conn.cursor()
+        cursor.execute('SELECT path FROM assets ORDER BY datetime ASC')
+        return list(row[0] for row in cursor.fetchall())
     def dump(self):
         cursor = self.conn.cursor()
         cursor.execute('SELECT * FROM assets')
