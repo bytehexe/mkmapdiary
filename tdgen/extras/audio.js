@@ -35,6 +35,9 @@ class AudioSection {
                 segment.classList.remove('highlight');
             }
         });
+        this.audioElement.addEventListener('play', () => {
+            this.stopOtherAudios();
+        });
     }
 
 
@@ -45,6 +48,15 @@ class AudioSection {
                 this.audioElement.currentTime = seconds;
                 this.audioElement.play();
             });
+        }
+    }
+
+    stopOtherAudios() {
+        const audios = document.querySelectorAll('audio');
+        for (const audio of audios) {
+            if (audio !== this.audioElement) {
+                audio.pause();
+            }
         }
     }
 }
