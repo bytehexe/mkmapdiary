@@ -17,6 +17,9 @@ imageio = "*"
 pyexiftool = "*"
 tabulate = "*"
 libsass = "*"
+requests = "*"
+jsonschema = "*"
+lxml = "*"
 
 [dev-packages]
 
