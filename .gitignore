@@ -1,0 +1,10 @@
+/src/
+/dist/
+/build/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Doit
+/.doit.db
