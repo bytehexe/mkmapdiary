@@ -26,7 +26,8 @@ def validate_param(ctx, param, value):
 @click.option('-s', '--source-dir', default="src", type=click.Path(path_type=pathlib.Path), help='Path to source directory')
 @click.option('-a', '--always-execute', is_flag=True, help='Always execute tasks, even if up-to-date')
 @click.option('-n', '--num-processes', default=os.cpu_count(), type=int, help='Number of parallel processes to use')
-def main(dist_dir, build_dir, params, source_dir, always_execute, num_processes):
+@click.option('-v', '--verbose', is_flag=True, help='Enable verbose output')
+def main(dist_dir, build_dir, params, source_dir, always_execute, num_processes, verbose):
     click.echo("Generating configuration ...")
 
     script_dir = pathlib.Path(__file__).parent
@@ -82,16 +83,19 @@ def main(dist_dir, build_dir, params, source_dir, always_execute, num_processes)
     if n_assets > 0:
         print(tabulate(taskList.db.dump(), headers=["ID", "Path", "Type", "DateTime", "Latitude", "Longitude"]))
 
-    click.echo("Running tasks ...")
-
     proccess_args = []
     if always_execute:
         proccess_args.append("--always-execute")
     if num_processes > 0:
         proccess_args.append(f"--process={num_processes}")
+    if verbose:
+        proccess_args.extend(["-v", "2"])
     proccess_args.append("--parallel-type=thread")
 
-    sys.exit(DoitMain(ModuleTaskLoader(taskList.toDict())).run(proccess_args))
+    click.echo("Running tasks ...")
+    exitcode = DoitMain(ModuleTaskLoader(taskList.toDict())).run(proccess_args)
+    click.echo("Done.")
+    sys.exit(exitcode)
 
 if __name__ == "__main__":
     main()
