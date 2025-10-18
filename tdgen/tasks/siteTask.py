@@ -43,6 +43,7 @@ class SiteTask(BaseTask):
                 "strict": True,
                 "theme": {
                     "name": self.config.get("theme", "material"),
+                    "language": self.config["locale"].split("_")[0]
                 },
                 "plugins": [
                     "search",
