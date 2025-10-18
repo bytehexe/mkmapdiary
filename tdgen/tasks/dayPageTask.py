@@ -14,7 +14,7 @@ class DayPageTask(BaseTask):
         def _generate_day_page(date):
             day_page_path = self.docs_dir / f"{date}.md"
             with open(day_page_path, "w") as f:
-                formatted_date = datetime.datetime.strptime(date, "%Y-%m-%d").strftime("%x")
+                formatted_date = datetime.datetime.strptime(date, "%Y-%m-%d").strftime("%a, %x")
                 f.write(self.template(
                     "day_base.j2",
                     formatted_date = formatted_date,
