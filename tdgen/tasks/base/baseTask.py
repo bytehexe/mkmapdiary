@@ -85,8 +85,9 @@ class BaseTask(ABC):
             return None
         
         # Try to extract timestamp from filename
+        timestr = "".join(x for x in str(source.stem) if x.isdigit())
         try:
-            return dateutil.parser.parse(source.name, fuzzy=True, ignoretz=True)
+            return dateutil.parser.parse(f"<{timestr}>", fuzzy=True, ignoretz=True)
         except dateutil.parser.ParserError:
             pass # Ignore and fallback to mtime
 
