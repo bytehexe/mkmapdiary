@@ -1,11 +1,12 @@
 from .base.baseTask import BaseTask
+from .base.httpRequest import HttpRequest
 import yaml
 import pathlib
 import datetime
 import sass
 import shutil
 
-class SiteTask(BaseTask):
+class SiteTask(HttpRequest):
     def __init__(self):
         super().__init__()
 
@@ -99,8 +100,34 @@ class SiteTask(BaseTask):
         input_sass = script_dir.parent / "extras" / "extra.sass"
         output_css = self.docs_dir / "extra.css"
 
+        def _http_importer(path):
+            try:
+                prefix, name = path.split(":", 1)
+            except ValueError:
+                return None  # Not a special import, use default behavior
+
+            if prefix != "source":
+                return None  # Not a special import, use default behavior
+
+            sources = {
+                "material-color.scss": "https://unpkg.com/material-design-color@2.3.2/material-color.scss"
+            }
+
+            try:
+                url = sources[name]
+            except KeyError:
+                raise ImportError(f"Unknown import source: {name}")
+
+            response = self.httpRequest(url, data={}, headers={}, json=False)
+
+            return [(name, response)]
+
         def _generate():
-            css = sass.compile(filename=str(input_sass), output_style='compressed')
+            css = sass.compile(
+                filename=str(input_sass),
+                output_style='compressed',
+                importers=[(0, _http_importer)],
+            )
             with open(str(output_css), "w") as f:
                 f.write(css)
 

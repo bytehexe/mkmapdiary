@@ -2,12 +2,15 @@ from .baseTask import BaseTask
 import requests
 
 class HttpRequest(BaseTask):
+    def __init__(self):
+        super().__init__()
+
     def httpRequest(self, url, data, headers, json=True):
 
         req = requests.Request('GET', url, params=data, headers=headers)
         prepared = req.prepare()
 
-        assert "?" in prepared.url
+        assert "?" in prepared.url or not data
 
         return self.with_cache(
             "http-request",
