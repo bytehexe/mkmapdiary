@@ -212,7 +212,7 @@ class GPXTask(BaseTask):
                 if candidates:
                     closest = min(candidates, key=lambda x: abs(x[0] - asset_time))
                     diff = (closest[0] - asset_time).total_seconds()
-                    if abs(diff) < 120:
+                    if abs(diff) < self.config["geo_correlation"]["max_time_diff"]:
                         self.db.update_asset_position(asset_id, closest[1], closest[2], int(diff))
             sys.stderr.write(tabulate(*self.db.dump()))
             sys.stderr.write("\n")
