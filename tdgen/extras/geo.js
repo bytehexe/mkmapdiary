@@ -34,12 +34,12 @@ window.addEventListener("DOMContentLoaded", () => {
       iconSize: [0, 0]
     })
 
-    const clusterIcon = new L.divIcon({
-      html: '<i class="iconoir iconoir-component"></i>',
-      className: 'map-simple-icon map-simple-icon-orange',
-      iconSize: [24, 24],
-      iconAnchor: [12, 12],
-    })
+    const clusterIcon = new L.icon({
+      iconUrl: 'cross-orange.svg',
+      iconSize: [17, 17],
+      iconAnchor: [9, 9],
+      className: 'map-cluster-icon',
+    });
 
     const startIcon = new L.divIcon({
       html: '<i class="iconoir iconoir-play-solid"></i>',
@@ -57,7 +57,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
     const starIcon = new L.divIcon({
       html: '<i class="iconoir iconoir-star-solid"></i>',
-      className: 'map-simple-icon map-simple-icon-red',
+      className: 'map-simple-icon map-simple-icon-green',
       iconSize: [24, 24],
       iconAnchor: [12, 12],
     })
@@ -69,8 +69,8 @@ window.addEventListener("DOMContentLoaded", () => {
       async: true,
       max_point_interval: 15000,
       markers: {
-        startIcon: startIcon,
-        endIcon: endIcon,
+        startIcon: invisibleIcon,
+        endIcon: invisibleIcon,
         wptIcons: {
           '': starIcon,
           'cluster-mass': clusterIcon,
@@ -78,7 +78,7 @@ window.addEventListener("DOMContentLoaded", () => {
         }
       }
     }).on('addpoint', function(e) {
-      if (e.point_type == "waypoint" && e.element.querySelector("sym").innerHTML == "cluster-center") {
+      if (e.point_type == "waypoint" && e.element.querySelector("sym") && e.element.querySelector("sym").innerHTML == "cluster-center") {
         console.log('Added cluster ' + e.point_type + ' point:', e);
         var pdop = parseFloat(e.element.querySelector("pdop").innerHTML);
         deferred.push(new L.circle(e.point._latlng, {
@@ -92,6 +92,21 @@ window.addEventListener("DOMContentLoaded", () => {
       for (const layer of deferred) {
         layer.addTo(map);
       }
+
+      map.on('zoomend', function() {
+        const currentZoom = map.getZoom();
+        elements = document.querySelectorAll('.map-cluster-icon');
+        console.log(`Current zoom level: ${currentZoom}, found ${elements.length} cluster icons.`);
+        elements.forEach((el) => {
+          if (currentZoom < 15) {
+            el.style.display = 'none';
+          } else {
+            el.style.display = 'block';
+          }
+        });
+      });
+      map.fire('zoomend');
+
     }).addTo(map);
   }
 
