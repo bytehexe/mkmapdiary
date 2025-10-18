@@ -9,6 +9,7 @@ geo_lookup:
 geo_correlation:
   timezone: "UTC"
   time_offset: 0  # in seconds
+  max_time_diff: 300  # in seconds
 
 # Translations are set within the code using gettext; can be overriden in the project config
 
