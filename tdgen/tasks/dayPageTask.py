@@ -16,7 +16,6 @@ class DayPageTask(BaseTask):
                 f.write(self.template(
                     "day_base.j2",
                     formatted_date = formatted_date,
-                    map_title = self.config["map_title"],
                     journal_title = self.config["journal_title"],
                     date = date,
                 ))

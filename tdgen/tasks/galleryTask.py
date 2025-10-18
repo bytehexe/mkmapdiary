@@ -36,6 +36,7 @@ class GalleryTask(BaseTask):
             with open(gallery_path, "w") as f:
                 f.write(self.template(
                     "day_gallery.j2",
+                    map_title = self.config["map_title"],
                     gallery_title = self.config["gallery_title"],
                     gallery_items = gallery_items,
                     geo_items = geo_items,
