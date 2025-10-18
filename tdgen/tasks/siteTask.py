@@ -130,7 +130,7 @@ class SiteTask(BaseTask):
             )
 
 
-    @create_after("gpx2gpx")
+    @create_after("build_day_page")
     def task_build_site(self):
         """Build the mkdocs site."""
 
