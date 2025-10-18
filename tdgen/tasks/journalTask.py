@@ -1,4 +1,5 @@
 from .base.baseTask import BaseTask
+import pathlib
 
 class JournalTask(BaseTask):
     def __init__(self):
@@ -10,10 +11,26 @@ class JournalTask(BaseTask):
         def _generate_journal(date):
             gallery_path = self.docs_dir / "templates" / f"{date}_journal.md"
 
+            text_assets = []
+            
+            for asset in self.db.get_assets_by_date(date, "text"):
+                with open(asset, "r") as f:
+                    text = f.read()
+
+                if not text:
+                    continue
+
+                item = dict(
+                    title = text.splitlines()[0],
+                    text = "\n".join(text.splitlines()[1:]).strip(),
+                )
+                text_assets.append(item)
+
             with open(gallery_path, "w") as f:
                 f.write(self.template(
                     "day_journal.j2",
-                    gallery_title = self.config["journal_title"],
+                    journal_title = self.config["journal_title"],
+                    text_assets = text_assets,
                 ))
 
         for date in self.db.get_all_dates():

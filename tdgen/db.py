@@ -67,10 +67,10 @@ class Db:
             cursor.execute('SELECT DISTINCT DATE(datetime) as date FROM assets ORDER BY DATE(datetime) ASC')
             return list(row[0] for row in cursor.fetchall())
 
-    def get_assets_by_date(self, date):
+    def get_assets_by_date(self, date, type):
         with self.lock:
             cursor = self.conn.cursor()
-            cursor.execute('SELECT path FROM assets WHERE DATE(datetime) = ? ORDER BY datetime ASC', (date,))
+            cursor.execute('SELECT path FROM assets WHERE DATE(datetime) = ? AND type = ? ORDER BY datetime ASC', (date, type))
             return [row[0] for row in cursor.fetchall()]
 
     def get_geo_by_name(self, name):

@@ -65,11 +65,14 @@ class SiteTask(BaseTask):
 
             date_items = []
             for date in self.db.get_all_dates():
-                first = self.db.get_assets_by_date(date)[0]
+                try:
+                    first = self.db.get_assets_by_date(date, "image")[0]
+                except IndexError:
+                    first = None
                 item = dict(
                     date = date,
                     formatted_date = datetime.datetime.strptime(date, "%Y-%m-%d").strftime("%x"),
-                    basename = pathlib.PosixPath(first).name
+                    basename = pathlib.PosixPath(first).name if first else None,
                 )
                 date_items.append(item)
 
