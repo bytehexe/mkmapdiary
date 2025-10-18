@@ -1,7 +1,7 @@
 import gpxpy
 import hdbscan
 import numpy as np
-from tdgen.geoCluster import GeoCluster
+from mkmapdiary.geoCluster import GeoCluster
 import warnings
 
 

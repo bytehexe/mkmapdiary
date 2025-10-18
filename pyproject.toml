@@ -1,7 +1,29 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
 [project]
-
-# refer to https://packaging.python.org/en/latest/tutorials/packaging-projects/
-
+name = "mkmapdiary"
+dynamic = ["version"]
+description = 'A travel journal generator'
+readme = "README.md"
+requires-python = ">=3.8"
+license = "PolyForm-Noncommercial-1.0.0"
+keywords = []
+authors = [
+  { name = "Janna Hopp", email = "795581+bytehexe@users.noreply.github.com" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
 
 dependencies = [
     "click",
@@ -25,4 +47,51 @@ dependencies = [
     "ollama",
     "gpxpy",
     "hdbscan",
+]
+
+[project.scripts]
+mkmapdiary = "mkmapdiary.__main__:main"
+
+[project.urls]
+Documentation = "https://github.com/Janna Hopp/mkmapdiary#readme"
+Issues = "https://github.com/Janna Hopp/mkmapdiary/issues"
+Source = "https://github.com/Janna Hopp/mkmapdiary"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.version.vcs]
+fallback-version = "0.0.0"
+
+[tool.hatch.version.raw-options]
+local_scheme = "no-local-version"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/mkmapdiary/__about__.py"
+
+
+[tool.hatch.envs.types]
+extra-dependencies = [
+  "mypy>=1.0.0",
+]
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:src/mkmapdiary tests}"
+
+[tool.coverage.run]
+source_pkgs = ["mkmapdiary", "tests"]
+branch = true
+parallel = true
+omit = [
+  "src/mkmapdiary/__about__.py",
+]
+
+[tool.coverage.paths]
+mkmapdiary = ["src/mkmapdiary", "*/mkmapdiary/src/mkmapdiary"]
+tests = ["tests", "*/mkmapdiary/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
 ]

@@ -1,11 +1,14 @@
-/src*/
-/dist/
-/build/
-/alpha/
-
 # Python
 __pycache__/
 *.py[cod]
 
+# Distribution / packaging
+dist/
+__about__.py
+
 # Doit
 /.doit.db
+
+# Example files
+/example*/
+/alpha

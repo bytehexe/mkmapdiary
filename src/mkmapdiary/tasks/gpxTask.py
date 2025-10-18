@@ -3,12 +3,12 @@ import gpxpy
 import gpxpy.gpx
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
-from tdgen.geoCluster import GeoCluster
+from mkmapdiary.geoCluster import GeoCluster
 from doit import create_after
 from tabulate import tabulate
 import sys
 import bisect
-from tdgen.gpxCreator import GpxCreator
+from mkmapdiary.gpxCreator import GpxCreator
 
 
 class GPXTask(BaseTask):

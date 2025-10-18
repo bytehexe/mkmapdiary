@@ -147,7 +147,7 @@ class GeojsonTask(GeoLookup):
             validate(instance=data, schema=schema)
 
             gpx = gpxpy.gpx.GPX()
-            gpx.creator = "tdgen"
+            gpx.creator = "mkmapdiary"
             for feature in data["features"]:
                 if feature["geometry"] is None:
                     lookup_type = type(feature["properties"]["lookup"])

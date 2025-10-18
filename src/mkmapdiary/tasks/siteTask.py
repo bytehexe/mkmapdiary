@@ -14,7 +14,6 @@ class SiteTask(HttpRequest):
         self.__simple_assets = [
             "geo.js",
             "audio.js",
-            "gpx.js",
             "cross-orange.svg",
             "logo-blue.svg",
             "logo-white.svg",

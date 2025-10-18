@@ -24,6 +24,13 @@ def validate_param(ctx, param, value):
 
 @click.command()
 @click.option(
+    "-C",
+    "--change-dir",
+    default=".",
+    type=click.Path(path_type=pathlib.Path),
+    help="Change to this directory before doing anything",
+)
+@click.option(
     "-d",
     "--dist-dir",
     default="dist",
@@ -80,8 +87,12 @@ def main(
     verbose,
     no_cache,
     clean,
+    change_dir,
 ):
     click.echo("Generating configuration ...")
+
+    if change_dir:
+        os.chdir(change_dir)
 
     script_dir = pathlib.Path(__file__).parent
 
@@ -138,7 +149,7 @@ def main(
     if no_cache:
         cache = {}
     else:
-        cache = Cache(pathlib.Path.home() / ".tdgen" / "cache.sqlite")
+        cache = Cache(pathlib.Path.home() / ".mkmapdiary" / "cache.sqlite")
 
     if clean and build_dir.is_dir() and (build_dir / "mkdocs.yml").is_file():
         import shutil
