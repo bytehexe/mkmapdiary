@@ -20,6 +20,8 @@ libsass = "*"
 requests = "*"
 jsonschema = "*"
 lxml = "*"
+pydub = "*"
+openai-whisper = "*"
 
 [dev-packages]
 

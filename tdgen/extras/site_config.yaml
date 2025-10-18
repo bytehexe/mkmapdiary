@@ -15,6 +15,7 @@ plugins:
 
 exclude_docs: |
   /assets/*.md
+  /assets/*.txt
 
 markdown_extensions: 
   - pymdownx.snippets:
