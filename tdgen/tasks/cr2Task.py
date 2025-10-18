@@ -1,7 +1,8 @@
 import rawpy
 import imageio.v2 as imageio
+from .baseTask import BaseTask
 
-class Cr2Task:
+class Cr2Task(BaseTask):
     def __init__(self):
         super().__init__()
         self.__sources = []

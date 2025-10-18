@@ -4,8 +4,7 @@ from collections import namedtuple, defaultdict
 from .tasks import ImageTask
 from .tasks import SiteTask
 from .tasks import Cr2Task
-
-Asset = namedtuple("Asset", ["path", "type", "metadata"])
+from .db import Db
 
 class TaskList(ImageTask, SiteTask, Cr2Task):
     """
@@ -23,6 +22,9 @@ class TaskList(ImageTask, SiteTask, Cr2Task):
         self.build_dir = build_dir
         self.dist_dir = dist_dir
         self.assets_dir = self.dist_dir / "site" / "assets"
+
+        # Store assets by date and then type
+        self.db = Db()
         self.__scan()
 
     def toDict(self):
@@ -51,7 +53,7 @@ class TaskList(ImageTask, SiteTask, Cr2Task):
                 continue
 
         if handler is not None:
-            handler(source)
+            self.add_asset(handler(source))
             return
         
         ext = source.suffix.lower()[1:]
@@ -61,7 +63,7 @@ class TaskList(ImageTask, SiteTask, Cr2Task):
             pass
 
         if handler is not None:
-            handler(source)
+            self.add_asset(handler(source))
             return
 
         print(f"Warning: No handler for {source} with tags {tags} and extension '{ext}'")            
@@ -75,3 +77,10 @@ class TaskList(ImageTask, SiteTask, Cr2Task):
         """Handle a symlink by resolving its target."""
         target = source.resolve()
         self.handle(target)
+    
+    def add_asset(self, asset):
+        """Add an asset to the list."""
+        if asset is None:
+            return
+
+        self.db.add_asset(asset.path, asset.type, asset.meta)

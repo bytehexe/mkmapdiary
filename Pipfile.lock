@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "319ca7844269f90b2746f7cb0540f7e38902dbaded137a2abc9a8cd8df162b47"
+            "sha256": "68ce9c8a34494caab1cae52f9c769df278f87d8c585ea86128e39f79b2bbe52d"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -163,6 +163,15 @@
             "index": "pypi",
             "markers": "python_version >= '3.8'",
             "version": "==0.36.0"
+        },
+        "exif": {
+            "hashes": [
+                "sha256:2879830e2d8f0e5f1503110736bceb83a1e9c2121b32c23208c04284be5afbec",
+                "sha256:763599b89b9b67495713060a703f32d1874abf8f0628c9d77711c2c06a5f44c8"
+            ],
+            "index": "pypi",
+            "markers": "python_version >= '3.7'",
+            "version": "==1.6.1"
         },
         "ghp-import": {
             "hashes": [
@@ -561,6 +570,14 @@
             ],
             "markers": "python_version >= '3.9'",
             "version": "==4.4.0"
+        },
+        "plum-py": {
+            "hashes": [
+                "sha256:40a25a70f7fd213f57cdd1decc65874df2d213d19d63478a1addcca748c13c4e",
+                "sha256:d791f059ef159adbe3c3b036557b5b431fa07db226a9de106a74e5e57441741d"
+            ],
+            "markers": "python_version >= '3.6'",
+            "version": "==0.8.7"
         },
         "pygments": {
             "hashes": [
