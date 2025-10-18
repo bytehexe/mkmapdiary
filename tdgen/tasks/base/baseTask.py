@@ -70,3 +70,21 @@ class BaseTask(ABC):
 
         self.__unique_paths[candidate] = source
         return candidate
+    
+    def with_cache(self, key, compute_func, *args, cache_args=None):
+        """Get the value from cache or compute it if not present."""
+
+        assert type(key) is str, "Key must be a string"
+        assert callable(compute_func), "compute_func must be callable"
+        
+        if cache_args is None:
+            full_key = (key, args)
+        else:
+            full_key = (key, cache_args)
+
+        try:
+            return self.cache[full_key]
+        except KeyError:
+            value = compute_func(*args)
+            self.cache[full_key] = value
+            return value
