@@ -67,14 +67,21 @@ class SiteTask(BaseTask):
     def task_build_site(self):
         """Build the mkdocs site."""
 
+        def _generate_file_deps():
+            yield self.build_dir / "mkdocs.yml"
+            yield self.docs_dir / "index.md"
+            yield from self.db.get_all_assets()
+
         return dict(
             actions=["mkdocs build --clean --config-file " + str(self.build_dir / "mkdocs.yml")],
+            file_dep=list(_generate_file_deps()),
             task_dep=[
                 f"create_directory:{self.dist_dir}",
                 "build_static_pages:*"
                 "generate_mkdocs_config",
             ],
-            uptodate=[False],  # Always rebuild the site
-            targets=[],
+            targets=[
+                self.dist_dir / "sitemap.xml",
+            ],
             verbosity=2,
         )
