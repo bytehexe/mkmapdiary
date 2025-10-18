@@ -96,6 +96,11 @@ class GPXTask(BaseTask):
                     continue
                 cluster_coords = coords[labels == label]
                 cluster = GeoCluster(cluster_coords)
+
+                if cluster.radius > 10000:
+                    # Ignore overly large clusters
+                    continue
+
                 mlat, mlon = cluster.mass_point
                 mwpt = gpxpy.gpx.GPXWaypoint(
                     latitude=mlat, longitude=mlon,
