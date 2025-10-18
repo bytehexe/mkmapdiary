@@ -73,6 +73,7 @@ def main(dist_dir, build_dir, params, source_dir, always_execute, num_processes,
     config_data.setdefault("journal_title", _("Journal"))
     config_data.setdefault("days_title", _("Days"))
     config_data.setdefault("grid_title", _("Mosaic"))
+    config_data.setdefault("audio_title", _("Audio"))
     
     # Set locale
     locale.setlocale(locale.LC_TIME, config_data["locale"])

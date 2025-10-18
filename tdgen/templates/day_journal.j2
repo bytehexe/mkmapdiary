@@ -5,7 +5,7 @@
 {% if asset.type == "markdown" %}
 --8<-- "docs/assets/{{ asset.path }}"
 {% elif asset.type == "audio" %}
-### Audio
+### {{ audio_title }}
 
 <div class="audio-section">
 <audio controls>
