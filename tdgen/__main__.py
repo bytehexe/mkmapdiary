@@ -43,7 +43,10 @@ def main(dist_dir, config, build_dir, params, source_dir):
 
     taskList = TaskList(config_data, source_dir, build_dir, dist_dir)
 
-
+    n_assets = taskList.db.count_assets()
+    click.echo(f"Found {n_assets} assets" + (":" if n_assets > 0 else "."))
+    for date, count in taskList.db.count_assets_by_date().items():
+        click.echo(f"  {date}: {count}")
     click.echo("Running tasks ...")
 
     sys.exit(DoitMain(ModuleTaskLoader(taskList.toDict())).run([]))
