@@ -1,7 +1,7 @@
 import datetime
 from collections import namedtuple
 from abc import ABC, abstractmethod
-from jinja2 import Environment, PackageLoader, select_autoescape
+from jinja2 import Environment, PackageLoader, select_autoescape, StrictUndefined
 
 class BaseTask(ABC):
     Asset = namedtuple("Asset", ["path", "type", "meta"])
@@ -12,7 +12,8 @@ class BaseTask(ABC):
 
         self.__template_env = Environment(
             loader=PackageLoader("tdgen"),
-            autoescape=select_autoescape()
+            autoescape=select_autoescape(),
+            undefined=StrictUndefined
         )
 
     @abstractmethod
