@@ -49,3 +49,8 @@ class Db:
             ORDER BY DATE(datetime) ASC
         ''')
         return dict(cursor.fetchall())
+    
+    def dump(self):
+        cursor = self.conn.cursor()
+        cursor.execute('SELECT * FROM assets')
+        return list(cursor.fetchall())

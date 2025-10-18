@@ -1,19 +1,23 @@
 import rawpy
 import imageio.v2 as imageio
-from .baseTask import BaseTask
+from .base.baseTask import BaseTask
+from .base.exifReader import ExifReader
 
-class Cr2Task(BaseTask):
+class Cr2Task(BaseTask, ExifReader):
     def __init__(self):
         super().__init__()
         self.__sources = []
 
     def __generate_intermediate_filename(self, source):
-        return (self.build_dir / source.stem).with_suffix(".jpeg")
+        filename = (self.build_dir / source.stem).with_suffix(".jpeg")
+        return self.make_unique_filename(source, filename)
 
     def handle_ext_cr2(self, source):
         self.__sources.append(source)
         intermediate_file = self.__generate_intermediate_filename(source)
-        self.handle_image(intermediate_file)
+        asset = self.handle_image(intermediate_file)
+        asset.meta.update(self.read_exif(source))
+        return asset
 
     def task_convert_raw(self):
         """Convert a RAW image to JPEG."""

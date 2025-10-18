@@ -14,7 +14,8 @@ identify = "*"
 Pillow = "*"
 rawpy = "*"
 imageio = "*"
-exif = "*"
+pyexiftool = "*"
+tabulate = "*"
 
 [dev-packages]
 

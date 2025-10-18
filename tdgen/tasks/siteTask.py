@@ -1,4 +1,4 @@
-from .baseTask import BaseTask
+from .base.baseTask import BaseTask
 
 class SiteTask(BaseTask):
     def __init__(self):

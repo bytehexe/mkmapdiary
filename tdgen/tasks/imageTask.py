@@ -1,9 +1,8 @@
 from PIL import Image
-from .baseTask import BaseTask
-import exif
-import datetime
+from .base.baseTask import BaseTask
+from .base.exifReader import ExifReader
 
-class ImageTask(BaseTask):
+class ImageTask(BaseTask, ExifReader):
     def __init__(self):
         super().__init__()
         self.__sources = []
@@ -12,14 +11,9 @@ class ImageTask(BaseTask):
         # Create task to convert image to target format
         self.__sources.append(source)
 
-        # Try to extract time from exif data
-        exif_data = exif.Image(source)
 
         meta = {}
-        if exif_data.has_exif and hasattr(exif_data, "datetime_original"):
-            meta["date"] = datetime.datetime.strptime(exif_data.datetime_original, "%Y:%m:%d %H:%M:%S")
-        else:
-            meta["date"] = self.extract_meta_mtime(source)
+        meta.update(self.read_exif(source))
 
         return self.Asset(
             self.__generate_destination_filename(source),
@@ -29,7 +23,8 @@ class ImageTask(BaseTask):
     
     def __generate_destination_filename(self, source):
         format = self.config.get("image_format", "jpg")
-        return (self.assets_dir / source.stem).with_suffix(f".{format}")
+        filename = (self.assets_dir / source.stem).with_suffix(f".{format}")
+        return self.make_unique_filename(source, filename)
 
     def task_convert_image(self):
         """Convert an image to a different format."""
