@@ -9,6 +9,8 @@ from tabulate import tabulate
 import sys
 import bisect
 from mkmapdiary.gpxCreator import GpxCreator
+from pathlib import PosixPath
+from typing import Any, Callable, Dict, Iterator, List, Tuple, Union
 
 
 class GPXTask(BaseTask):
@@ -16,7 +18,7 @@ class GPXTask(BaseTask):
         super().__init__()
         self.__sources = []
 
-    def handle_gpx(self, source):
+    def handle_gpx(self, source: PosixPath) -> List[Any]:
         self.__sources.append(source)
 
         # Do not yield any assets yet; at this point it
@@ -65,7 +67,7 @@ class GPXTask(BaseTask):
             f.write(gpx_out)
 
     @create_after("geo2gpx", target_regex=r".*\.gpx")
-    def task_gpx2gpx(self):
+    def task_gpx2gpx(self) -> Iterator[Dict[str, Any]]:
 
         # Collect all dates in all source files
         dates = set()
@@ -112,7 +114,7 @@ class GPXTask(BaseTask):
             }
 
     @create_after("gpx2gpx")
-    def task_get_gpx_deps(self):
+    def task_get_gpx_deps(self) -> Dict[str, Any]:
         # Explicitely re-introduce dependencies on all gpx files
         # with calc_dep, since file_dep is not computed when used
         # with create_after.
@@ -147,7 +149,7 @@ class GPXTask(BaseTask):
                 if pt.time is not None:
                     coords.append((pt.time, pt.latitude, pt.longitude))
 
-    def task_geo_correlation(self):
+    def task_geo_correlation(self) -> Dict[str, Any]:
         def _update_positions():
             tz = ZoneInfo(self.config["geo_correlation"]["timezone"])
             offset = timedelta(seconds=self.config["geo_correlation"]["time_offset"])

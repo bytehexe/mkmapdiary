@@ -1,5 +1,7 @@
 from .base.baseTask import BaseTask
 import shutil
+from pathlib import PosixPath
+from typing import Callable, Dict, Iterator, List, Tuple, Union, Any
 
 
 class TextTask(BaseTask):
@@ -22,7 +24,7 @@ class TextTask(BaseTask):
         filename = (self.assets_dir / source.stem).with_suffix(f".{format}")
         return self.make_unique_filename(source, filename)
 
-    def task_text2markdown(self):
+    def task_text2markdown(self) -> Iterator[Dict[str, Any]]:
         """Copy text files to the assets directory."""
 
         def _to_md(src, dst):

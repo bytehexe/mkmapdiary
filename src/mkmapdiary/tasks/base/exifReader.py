@@ -1,9 +1,16 @@
 import exiftool
 import datetime
+from pathlib import PosixPath
+from typing import Dict, Optional, Union, Any
+from abc import ABC, abstractmethod
 
 
-class ExifReader:
-    def read_exif(self, source):
+class ExifReader(ABC):
+    @abstractmethod
+    def extract_meta_datetime(self, source: PosixPath) -> Optional[datetime.datetime]:
+        pass
+
+    def read_exif(self, source: PosixPath) -> Dict[str, Any]:
 
         meta = {}
 

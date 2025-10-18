@@ -12,3 +12,7 @@ __about__.py
 # Example files
 /example*/
 /alpha
+
+# MonkeyType
+monkeytype/
+monkeytype.sqlite3

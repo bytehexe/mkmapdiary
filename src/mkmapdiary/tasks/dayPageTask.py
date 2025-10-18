@@ -1,6 +1,8 @@
 from .base.baseTask import BaseTask
 import datetime
 from doit import create_after
+from pathlib import PosixPath
+from typing import Callable, Dict, Iterator, List, Tuple, Union, Any
 
 
 class DayPageTask(BaseTask):
@@ -8,7 +10,7 @@ class DayPageTask(BaseTask):
         super().__init__()
 
     @create_after("gpx2gpx")
-    def task_build_day_page(self):
+    def task_build_day_page(self) -> Iterator[Dict[str, Any]]:
         """Generate day pages for each date with assets."""
 
         def _generate_day_page(date):

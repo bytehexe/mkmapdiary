@@ -11,6 +11,7 @@ from itertools import zip_longest
 from threading import Lock
 import requests
 import time
+from typing import Any, Callable, Dict, Iterator, List, Tuple, Union
 
 coder_lock = Lock()
 
@@ -23,7 +24,7 @@ class GeojsonTask(GeoLookup):
     def handle_ext_geo_json(self, source):
         return self.__handle(source)
 
-    def handle_ext_geo_yaml(self, source):
+    def handle_ext_geo_yaml(self, source: pathlib.PosixPath) -> List[Any]:
         return self.__handle(source)
 
     def __handle(self, source):
@@ -134,7 +135,7 @@ class GeojsonTask(GeoLookup):
             data = loader(f)
         return data
 
-    def task_geo2gpx(self):
+    def task_geo2gpx(self) -> Iterator[Dict[str, Any]]:
         """Convert a geojson or geoyaml file to gpx using gpxpy."""
 
         def _convert(src, dst):

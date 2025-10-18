@@ -5,6 +5,7 @@ import pathlib
 import datetime
 import sass
 import shutil
+from typing import Callable, Dict, Iterator, List, Tuple, Union, Any
 
 
 class SiteTask(HttpRequest):
@@ -31,7 +32,7 @@ class SiteTask(HttpRequest):
             self.templates_dir,
         ]
 
-    def task_create_directory(self):
+    def task_create_directory(self) -> Iterator[Dict[str, Any]]:
         """Create a directory if it doesn't exist."""
 
         def _create_directory(dir):
@@ -47,7 +48,7 @@ class SiteTask(HttpRequest):
                 ],  # Always consider this task up-to-date after the first run
             )
 
-    def task_generate_mkdocs_config(self):
+    def task_generate_mkdocs_config(self) -> Dict[str, Any]:
         """Generate mkdocs config."""
 
         def _generate_mkdocs_config():
@@ -74,7 +75,7 @@ class SiteTask(HttpRequest):
             uptodate=[True],
         )
 
-    def task_build_static_pages(self):
+    def task_build_static_pages(self) -> Iterator[Dict[str, Any]]:
         def _generate_index_page():
             index_path = self.docs_dir / "index.md"
 
@@ -104,7 +105,7 @@ class SiteTask(HttpRequest):
             uptodate=[True],
         )
 
-    def task_compile_css(self):
+    def task_compile_css(self) -> Dict[str, Any]:
         script_dir = pathlib.Path(__file__).parent
         input_sass = script_dir.parent / "extras" / "extra.sass"
         output_css = self.docs_dir / "extra.css"
@@ -142,7 +143,7 @@ class SiteTask(HttpRequest):
 
         return dict(actions=[_generate], file_dep=[input_sass], targets=[output_css])
 
-    def task_copy_simple_asset(self):
+    def task_copy_simple_asset(self) -> Iterator[Dict[str, Any]]:
         simple_assets = self.__simple_assets
 
         script_dir = pathlib.Path(__file__).parent
@@ -161,7 +162,7 @@ class SiteTask(HttpRequest):
                 targets=[output],
             )
 
-    def task_build_site(self):
+    def task_build_site(self) -> Dict[str, Any]:
         """Build the mkdocs site."""
 
         def _generate_file_deps():

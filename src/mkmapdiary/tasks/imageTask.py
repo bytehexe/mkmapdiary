@@ -1,6 +1,8 @@
 from PIL import Image
 from .base.baseTask import BaseTask
 from .base.exifReader import ExifReader
+from pathlib import PosixPath
+from typing import Callable, Dict, Iterator, List, Tuple, Union, Any
 
 
 class ImageTask(BaseTask, ExifReader):
@@ -22,7 +24,7 @@ class ImageTask(BaseTask, ExifReader):
         filename = (self.assets_dir / source.stem).with_suffix(f".{format}")
         return self.make_unique_filename(source, filename)
 
-    def task_convert_image(self):
+    def task_convert_image(self) -> Iterator[Dict[str, Any]]:
         """Convert an image to a different format."""
 
         def _convert(src, dst):
