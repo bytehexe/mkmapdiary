@@ -4,7 +4,7 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   // Initialize map
-  const map = L.map('map').setView([48.1372, 11.5756], 13); // Example: Munich
+  const map = L.map('map');
 
   // Add OpenStreetMap tiles
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -19,12 +19,17 @@ window.addEventListener("DOMContentLoaded", () => {
   photoLayer.add(photo_data).addTo(map);
 
   var combinedBounds = L.latLngBounds([]);
+  combinedBounds.extend(photoLayer.getBounds());
+  if (combinedBounds.isValid()) {
+    map.fitBounds(combinedBounds);
+  }
 
   if (gpx_data) {
     parser = new DOMParser();
     xmlDoc = parser.parseFromString(gpx_data, "text/xml");
     
     const gpx = new L.GPX(gpx_data, {
+      async: true,
       max_point_interval: 15000,
       markers: {
         startIcon: new L.AwesomeMarkers.icon({
@@ -45,38 +50,12 @@ window.addEventListener("DOMContentLoaded", () => {
           })
         }
       }
-    });
-    gpx.addTo(map);
-
-    function addLayerBounds(obj) {
-      for (const layer_id in obj._layers) {
-        layer = obj._layers[layer_id]
-        if (layer._bounds) {
-          console.log("Layer bounds", layer._bounds);
-          combinedBounds.extend(layer._bounds);
-        }
-        if (layer._layers) {
-          addLayerBounds(layer)
-        }
-        if (!layer._bounds && layer._latlng) {
-          console.log("No bounds, but latlng", layer);
-          var bounds = new L.LatLngBounds(layer._latlng, layer._latlng);
-          if(!bounds.isValid()) {
-            console.error("Generated bounds should be valid");
-          }
-          combinedBounds.extend(bounds);
-        }
-      }
-    }
-
-    console.log("GPX",gpx);
-    addLayerBounds(gpx)
-    
-
+    }).on('addpoint', function(e) {
+      console.log('Added ' + e.point_type + ' point:', e);
+    }).on('loaded', function(e) {
+      combinedBounds.extend(e.target.getBounds());
+      map.fitBounds(combinedBounds);
+    }).addTo(map);
   }
-
-  combinedBounds.extend(photoLayer.getBounds());
-  console.log("Combined Bounds", combinedBounds);
-  map.fitBounds(combinedBounds);
 
 });

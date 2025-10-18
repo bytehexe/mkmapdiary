@@ -24,6 +24,7 @@ pydub = "*"
 openai-whisper = "*"
 ollama = "*"
 gpxpy = "*"
+hdbscan = "*"
 
 [dev-packages]
 

@@ -27,6 +27,29 @@ class GeoCluster:
         return copy.deepcopy(self.__midpoint)
     
     @property
+    def mass_point(self):
+        if len(self.__locations) == 0:
+            return (None, None)
+        
+        pts = np.array(self.__locations)
+        lat = np.radians(pts[:, 0])
+        lon = np.radians(pts[:, 1])
+
+        x = np.cos(lat) * np.cos(lon)
+        y = np.cos(lat) * np.sin(lon)
+        z = np.sin(lat)
+
+        x_mean = np.mean(x)
+        y_mean = np.mean(y)
+        z_mean = np.mean(z)
+
+        lon_mean = np.arctan2(y_mean, x_mean)
+        hyp = np.sqrt(x_mean * x_mean + y_mean * y_mean)
+        lat_mean = np.arctan2(z_mean, hyp)
+
+        return (np.degrees(lat_mean), (np.degrees(lon_mean) + 540) % 360 - 180)  # normalize [-180, 180]
+    
+    @property
     def radius(self):
         return self.__distance / 2
     

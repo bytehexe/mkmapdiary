@@ -3,6 +3,9 @@ import gpxpy
 import gpxpy.gpx
 import dateutil.parser
 from datetime import datetime
+import hdbscan
+import numpy as np
+from tdgen.geoCluster import GeoCluster
 
 class GPXTask(BaseTask):
     def __init__(self):
@@ -62,6 +65,8 @@ class GPXTask(BaseTask):
     def __gpx2gpx(self, date, dst):
         gpx_out = gpxpy.gpx.GPX()
 
+        coords = []
+
         for source in self.__sources:    
             with open(source, "r", encoding="utf-8") as f:
                 gpx = gpxpy.parse(f)
@@ -75,6 +80,7 @@ class GPXTask(BaseTask):
                     for pt in seg.points:
                         if pt.time is not None and pt.time.date() == date:
                             new_seg.points.append(pt)
+                            coords.append([pt.latitude, pt.longitude])
                     if len(new_seg.points) > 0:
                         new_trk.segments.append(new_seg)
                 if len(new_trk.segments) > 0:
@@ -86,6 +92,27 @@ class GPXTask(BaseTask):
                         new_rte.points.append(pt)
                 if len(new_rte.points) > 0:
                     gpx_out.routes.append(new_rte)
+
+        if len(coords) > 10:
+            coords = np.array(coords)
+            # Fit HDBSCAN
+            clusterer = hdbscan.HDBSCAN(min_cluster_size=1000, metric='haversine')
+            clusterer.fit(np.radians(coords))
+
+            labels = clusterer.labels_
+            for label in set(labels):
+                if label == -1:
+                    continue
+                cluster_coords = coords[labels == label]
+                cluster = GeoCluster(cluster_coords)
+                lat, lon = cluster.mass_point
+                wpt = gpxpy.gpx.GPXWaypoint(
+                    latitude=lat, longitude=lon,
+                    name=f"Cluster {label}",
+                    description=f"Cluster of {len(cluster_coords)} points and radius {cluster.radius:.1f} m",
+                )
+                gpx_out.waypoints.append(wpt)
+                
 
         with open(dst, "w", encoding="utf-8") as f:
             f.write(gpx_out.to_xml())
