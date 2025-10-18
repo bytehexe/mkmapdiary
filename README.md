@@ -18,6 +18,7 @@ msgfmt tdgen/locale/de/LC_MESSAGES/messages.po -o tdgen/locale/de/LC_MESSAGES/me
 ## Todo
 
 * Add approx tagging for assets using gps data (with adjustable offset)
+* Show journal icons on map
 * Add AI summary to day pages
 * Write documentation
   * General workings
