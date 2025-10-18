@@ -57,17 +57,17 @@ class TaskList(ImageTask, SiteTask, Cr2Task, DayPageTask):
                 continue
 
         if handler is not None:
-            self.add_asset(handler(source))
+            self.add_assets(handler(source))
             return
         
-        ext = source.suffix.lower()[1:]
+        ext = ("_".join(x[1:] for x in source.suffixes)).lower()
         try:
             handler = getattr(self, f"handle_ext_{ext}")
         except AttributeError:
             pass
 
         if handler is not None:
-            self.add_asset(handler(source))
+            self.add_assets(handler(source))
             return
 
         print(f"Warning: No handler for {source} with tags {tags} and extension '{ext}'")            
@@ -82,9 +82,10 @@ class TaskList(ImageTask, SiteTask, Cr2Task, DayPageTask):
         target = source.resolve()
         self.handle(target)
     
-    def add_asset(self, asset):
+    def add_assets(self, assets):
         """Add an asset to the list."""
-        if asset is None:
+        if assets is None:
             return
-
-        self.db.add_asset(asset.path, asset.type, asset.meta)
+        
+        for asset in assets:
+            self.db.add_asset(asset.path, asset.type, asset.meta)

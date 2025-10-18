@@ -15,9 +15,13 @@ class Cr2Task(BaseTask, ExifReader):
     def handle_ext_cr2(self, source):
         self.__sources.append(source)
         intermediate_file = self.__generate_intermediate_filename(source)
-        asset = self.handle_image(intermediate_file)
+        assets = list(self.handle_image(intermediate_file))
+
+        assert len(assets) == 1
+        asset = assets[0]
+        
         asset.meta.update(self.read_exif(source))
-        return asset
+        yield asset
 
     def task_convert_raw(self):
         """Convert a RAW image to JPEG."""
