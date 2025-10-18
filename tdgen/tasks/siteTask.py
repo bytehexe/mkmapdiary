@@ -13,6 +13,7 @@ class SiteTask(BaseTask):
             self.docs_dir,
             self.dist_dir,
             self.files_dir,
+            self.templates_dir,
         ]
 
     def task_create_directory(self):
@@ -39,12 +40,27 @@ class SiteTask(BaseTask):
                 "docs_dir": str(self.docs_dir.absolute()),
                 "site_dir": str(self.dist_dir.absolute()),
                 "use_directory_urls": False,
+                "strict": True,
                 "theme": {
                     "name": self.config.get("theme", "material"),
                 },
                 "plugins": [
                     "search",
                     "offline",
+                    {
+                        "glightbox": {
+                        }
+                    }
+                ],
+                "markdown_extensions": [
+                    {
+                        "pymdownx.snippets": {
+                            "check_paths": True,
+                            "base_path": [self.build_dir],
+                        },
+                    },
+                    "attr_list",
+                    "md_in_html",
                 ]
             }
 

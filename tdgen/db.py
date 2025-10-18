@@ -3,7 +3,7 @@ import sqlite3
 
 class Db:
     def __init__(self):
-        self.conn = sqlite3.connect(':memory:')
+        self.conn = sqlite3.connect(':memory:', check_same_thread=False)
         self.create_tables()
     
     def create_tables(self):
@@ -59,6 +59,11 @@ class Db:
         cursor = self.conn.cursor()
         cursor.execute('SELECT DISTINCT DATE(datetime) as date FROM assets ORDER BY DATE(datetime) ASC')
         return list(row[0] for row in cursor.fetchall())
+
+    def get_assets_by_date(self, date):
+        cursor = self.conn.cursor()
+        cursor.execute('SELECT path FROM assets WHERE DATE(datetime) = ? ORDER BY datetime ASC', (date,))
+        return [row[0] for row in cursor.fetchall()]
 
     def dump(self):
         cursor = self.conn.cursor()
