@@ -17,9 +17,10 @@ msgfmt tdgen/locale/de/LC_MESSAGES/messages.po -o tdgen/locale/de/LC_MESSAGES/me
 
 ## Todo
 
-* Add approx tagging for assets using gps data (with adjustable offset)
-* Show journal icons on map
-* Add AI summary to day pages
+* Add approx tagging for assets using gps data (with timezone and adjustable offset; gobally and per asset type)
+* Show journal icons on map (icon book-solid; marker cluster)
+* Adjust color palette for map data
+* Add AI summary to day pages?
 * Write documentation
   * General workings
   * Asset database
