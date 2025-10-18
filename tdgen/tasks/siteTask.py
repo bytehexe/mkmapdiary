@@ -1,5 +1,8 @@
 from .base.baseTask import BaseTask
 import yaml
+import pathlib
+import textwrap
+import datetime
 
 class SiteTask(BaseTask):
     def __init__(self):
@@ -43,13 +46,19 @@ class SiteTask(BaseTask):
                 "strict": True,
                 "theme": {
                     "name": self.config.get("theme", "material"),
-                    "language": self.config["locale"].split("_")[0]
+                    "language": self.config["locale"].split("_")[0],
+                    "icon": {
+                        "logo": "material/plane-train",
+                    }
                 },
                 "plugins": [
                     "search",
                     "offline",
                     {
                         "glightbox": {
+                            "skip_classes": [
+                                "skip-lightbox"
+                            ]
                         }
                     }
                 ],
@@ -76,10 +85,30 @@ class SiteTask(BaseTask):
         )
     
     def task_build_static_pages(self):
+        def _generate_index_page():
+            index_path = self.docs_dir / 'index.md'
+            with open(index_path, "w") as f:
+                f.write(textwrap.dedent(f"""\
+                ---
+                title: {self.config['home_title']}
+                ---
+                """))
+                for date in self.db.get_all_dates():
+                    formatted_date = datetime.datetime.strptime(date, "%Y-%m-%d").strftime("%x")
+                    first = self.db.get_assets_by_date(date)[0]
+                    basename = pathlib.PosixPath(first).name
+                    f.write(textwrap.dedent(f"""\
+                    <figure markdown="span">
+                    <a href="{date}.html">
+                    ![Image title](assets/{basename}){{ .skip-lightbox style="max-width: 400px; max-height: 400px" }}
+                    <figcaption>{formatted_date}</figcaption>
+                    </figure>
+                    """))
+
         yield dict(
             name="index",
-            actions=[f"touch {self.docs_dir / 'index.md'}"],
-            file_dep=[],
+            actions=[_generate_index_page],
+            file_dep=self.db.get_all_assets(),
             task_dep=[
                 f"create_directory:{self.dist_dir}",
             ],
