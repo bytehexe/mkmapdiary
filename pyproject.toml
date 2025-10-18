@@ -63,9 +63,9 @@ all = [
 mkmapdiary = "mkmapdiary.__main__:main"
 
 [project.urls]
-Documentation = "https://github.com/Janna Hopp/mkmapdiary#readme"
-Issues = "https://github.com/Janna Hopp/mkmapdiary/issues"
-Source = "https://github.com/Janna Hopp/mkmapdiary"
+Documentation = "https://bytehexe.github.io/mkmapdiary/"
+Issues = "https://github.com/bytehexe/mkmapdiary/issues"
+Source = "https://github.com/bytehexe/mkmapdiary"
 
 [tool.hatch.version]
 source = "vcs"
