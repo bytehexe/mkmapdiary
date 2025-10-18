@@ -93,9 +93,8 @@ class GPXTask(BaseTask):
                 "clean": True,
             }
 
-        other_dates = set(self.db.get_geotagged_journals()) - dates
-        for date in other_dates:
-            date = datetime.fromisoformat(date).date()
+        journal_dates = set(datetime.fromisoformat(date).date() for date in self.db.get_geotagged_journals()) - dates
+        for date in journal_dates:
             dst = self.__generate_destination_filename(date)
             yield {
                 "name": date.isoformat(),

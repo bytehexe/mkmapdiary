@@ -34,11 +34,11 @@ window.addEventListener("DOMContentLoaded", () => {
       iconSize: [0, 0]
     });
 
-    const clusterIcon = new L.icon({
-      iconUrl: 'cross-orange.svg',
-      iconSize: [17, 17],
-      iconAnchor: [9, 9],
-      className: 'map-cluster-icon',
+    const clusterIcon = new L.divIcon({
+      html: '<i class="iconoir iconoir-xmark"></i>',
+      className: 'map-simple-icon map-simple-icon-orange map-cluster-icon',
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
     });
 
     const startIcon = new L.divIcon({
@@ -82,6 +82,10 @@ window.addEventListener("DOMContentLoaded", () => {
     const gpx = new L.GPX(gpx_data, {
       async: true,
       max_point_interval: 15000,
+      polyline_options: {
+        color: '#3F51B5',
+        lineCap: 'round'
+      },
       markers: {
         startIcon: invisibleIcon,
         endIcon: invisibleIcon,
@@ -119,7 +123,7 @@ window.addEventListener("DOMContentLoaded", () => {
         var pdop = parseFloat(wpt_data.pdop);
         deferred.push(new L.circle(e.point._latlng, {
           radius: pdop,
-          color: 'orange',
+          color: '#FF9800',
         }));
       }
     }).on('loaded', function(e) {

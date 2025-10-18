@@ -15,6 +15,35 @@
     height: 200px
     position: relative
 
+$gallery-box-size: 200px
+$gallery-box-s-size: 150px
+$gallery-image-max: 198px
+$gallery-image-s-max: 148px
+$index-grid-size: 50px
+$border-color: var(--md-default-fg-color--lightest)
+
+.gallery-item
+    border: .05rem solid $border-color
+    border-radius: .1rem
+    display: block
+    margin: 0
+    padding: .8rem
+    transition: border .25s, box-shadow .25s
+    &.empty
+        background-color: #fafafa
+    &:hover
+        border-color: #0000
+        box-shadow: var(--md-shadow-z2)
+
+.gallery-box
+    width: $gallery-box-size
+    height: $gallery-box-size
+    position: relative
+.gallery-box-s
+    width: $gallery-box-s-size
+    height: $gallery-box-s-size
+    position: relative
+
 body img.gallery-image
     position: absolute
     left: 0
@@ -22,28 +51,8 @@ body img.gallery-image
     top: 0
     bottom: 0
     margin: auto
-    max-width: 198px
-    max-height: 198px
-
-body p.index-grid img.gallery-image
-    width: 50px
-    height: 50px
-    object-fit: cover
-
-body p.index-grid.gallery-box
-    width: 50px
-    height: 50px
-    overflow: hidden
-
-
-.gallery-box-s
-    width: 150px
-    height: 150px
-    position: relative
-
-.gallery-item.empty
-    background-color: #fafafa
-
+    max-width: $gallery-image-max
+    max-height: $gallery-image-max
 body img.gallery-image-s
     position: absolute
     left: 0
@@ -51,22 +60,30 @@ body img.gallery-image-s
     top: 0
     bottom: 0
     margin: auto
-    max-width: 148px
-    max-height: 148px
+    max-width: $gallery-image-s-max
+    max-height: $gallery-image-s-max
+
+body p.index-grid img.gallery-image
+    width: $index-grid-size
+    height: $index-grid-size
+    object-fit: cover
+body p.index-grid.gallery-box
+    width: $index-grid-size
+    height: $index-grid-size
+    overflow: hidden
 
 body div.native-block > pre > code
     font-family: inherit
     white-space: pre-wrap
     background: none
-    padding: 0px;
-    font-size: .8rem;
-    line-height: 1.6;
-
+    padding: 0px
+    font-size: .8rem
+    line-height: 1.6
 body div.native-block > pre
     font-family: inherit
     white-space: pre-wrap
-    font-size: .8rem;
-    line-height: 1.6;
+    font-size: .8rem
+    line-height: 1.6
 
 .clear
     clear: left
@@ -80,16 +97,13 @@ body .gallery-float-grid
     margin-bottom: .4rem
 
 body div.gallery-grid.grid
-    grid-template-columns: repeat(auto-fit, minmax(200px, max-content))
-
+    grid-template-columns: repeat(auto-fit, minmax($gallery-box-size, max-content))
 body div.gallery-grid.grid.index-grid
-    grid-template-columns: repeat(auto-fit, minmax(50px, max-content))
+    grid-template-columns: repeat(auto-fit, minmax($index-grid-size, max-content))
     grid-gap: 0px
-    border: .05rem solid var(--md-default-fg-color--lightest)
-
+    border: .05rem solid $border-color
 body div.gallery-grid.grid.index-grid li
     border: none
-
 
 #map
     width: 100%
@@ -101,41 +115,64 @@ html
 
 .transcript
     text-align: justify
+    .segment
+        cursor: pointer
+        time
+            background-color: var(--md-primary-fg-color--light)
+            color: var(--md-primary-bg-color)
+            border-radius: .3rem
+            padding: 0px 2px
+            font-size: 60%
+            vertical-align: middle
+            line-height: 1
+    .highlight
+        background-color: var(--md-typeset-mark-color)
 
 .audio-section audio
     width: 100%
-
-.transcript .segment
-    cursor: pointer
-
-.transcript .segment time
-    background-color: var(--md-primary-fg-color--light)
-    color: var(--md-primary-bg-color)
-    border-radius: .3rem
-    padding: 0px 2px
-    font-size: 60%
-    vertical-align: middle
-    line-height: 1
 
 .map-simple-icon
     font-size: 20px
     text-align: center
     opacity: 0.9
-
-.map-simple-icon-orange
-    color: orange
-
-.map-simple-icon-blue
-    color: blue
-
-.map-simple-icon-red
-    color: red
-
-.map-simple-icon-green
-    color: green
-
-.transcript .highlight
-    background-color: var(--md-typeset-mark-color)
+    &-red
+        color: #F44336
+    &-pink
+        color: #E91E63
+    &-purple
+        color: #9C27B0
+    &-deep-purple
+        color: #673AB7
+    &-indigo
+        color: #3F51B5
+    &-blue
+        color: #2196F3
+    &-light-blue
+        color: #03A9F4
+    &-cyan
+        color: #00BCD4
+    &-teal
+        color: #009688
+    &-green
+        color: #4CAF50
+    &-light-green
+        color: #8BC34A
+    &-lime
+        color: #CDDC39
+    &-yellow
+        color: #FFEB3B
+    &-amber
+        color: #FFC107
+    &-orange
+        color: #FF9800
+    &-deep-orange
+        color: #FF5722
+    &-brown
+        color: #795548
+    &-grey
+        color: #9E9E9E
+    &-blue-grey
+        color: #607D8B
 
 .md-nav__link .md-ellipsis
     font-family: monospace
