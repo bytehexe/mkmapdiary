@@ -73,6 +73,15 @@ class Db:
             cursor.execute('SELECT path FROM assets WHERE DATE(datetime) = ? ORDER BY datetime ASC', (date,))
             return [row[0] for row in cursor.fetchall()]
 
+    def get_geo_by_name(self, name):
+        with self.lock:
+            cursor = self.conn.cursor()
+            cursor.execute('SELECT path, latitude, longitude FROM assets WHERE path = ? AND latitude IS NOT NULL AND longitude IS NOT NULL', (name,))
+            row = cursor.fetchone()
+            if row:
+                return {'name': row[0], 'latitude': row[1], 'longitude': row[2]}
+            return None
+
     def dump(self):
         with self.lock:
             cursor = self.conn.cursor()

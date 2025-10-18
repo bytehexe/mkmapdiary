@@ -3,6 +3,7 @@ import yaml
 import pathlib
 import datetime
 import sass
+import shutil
 
 class SiteTask(BaseTask):
     def __init__(self):
@@ -106,6 +107,20 @@ class SiteTask(BaseTask):
             file_dep=[input_sass],
             targets=[output_css]
         )
+    
+    def task_compile_js(self):
+        script_dir = pathlib.Path(__file__).parent
+        input_js = script_dir.parent / "extras" / "extra.js"
+        output_js = self.docs_dir / "extra.js"
+
+        def _generate():
+            shutil.copy2(input_js, output_js)
+
+        return dict(
+            actions=[_generate],
+            file_dep=[input_js],
+            targets=[output_js]
+        )
 
 
     def task_build_site(self):
@@ -119,6 +134,7 @@ class SiteTask(BaseTask):
                 yield self.docs_dir / f"{date}.md"
                 yield self.templates_dir / f"{date}_gallery.md"
             yield self.docs_dir / "extra.css"
+            yield self.docs_dir / "extra.js"
 
         return dict(
             actions=["mkdocs build --clean --config-file " + str(self.build_dir / "mkdocs.yml")],
