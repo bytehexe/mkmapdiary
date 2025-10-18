@@ -1,4 +1,4 @@
-# Command reference
+# Dev commands
 
 ## Update locale files
 ```
