@@ -130,3 +130,9 @@ class Db:
                 WHERE id = ?
             ''', (latitude, longitude, approx, asset_id))
             self.conn.commit()
+
+    def get_geotagged_journals(self):
+        with self.lock:
+            cursor = self.conn.cursor()
+            cursor.execute('SELECT DISTINCT DATE(datetime) as date FROM assets WHERE latitude IS NOT NULL AND longitude IS NOT NULL AND type IN ("markdown", "audio")')
+            return list(row[0] for row in cursor.fetchall())

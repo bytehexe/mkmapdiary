@@ -50,8 +50,14 @@ class GPXTask(BaseTask):
         filename = (self.assets_dir / date.strftime("%Y-%m-%d")).with_suffix(".gpx")
         return filename
 
-    def __gpx2gpx(self, date, dst):
-        gc = GpxCreator(date, self.__sources)
+    def __gpx2gpx(self, date, dst, gpx_source):
+
+        if gpx_source:
+            sources = self.__sources
+        else:
+            sources = []
+
+        gc = GpxCreator(date, sources, self.db)
         gpx_out = gc.to_xml()
 
         with open(dst, "w", encoding="utf-8") as f:
@@ -80,8 +86,21 @@ class GPXTask(BaseTask):
 
             yield {
                 "name": date.isoformat(),
-                "actions": [(self.__gpx2gpx, [date, dst])],
+                "actions": [(self.__gpx2gpx, [date, dst, True])],
                 "file_dep": [str(src) for src in self.__sources],
+                "task_dep": ["geo_correlation"],
+                "targets": [str(dst)],
+                "clean": True,
+            }
+
+        other_dates = set(self.db.get_geotagged_journals()) - dates
+        for date in other_dates:
+            date = datetime.fromisoformat(date).date()
+            dst = self.__generate_destination_filename(date)
+            yield {
+                "name": date.isoformat(),
+                "actions": [(self.__gpx2gpx, [date, dst, False])],
+                "task_dep": ["geo_correlation"],
                 "targets": [str(dst)],
                 "clean": True,
             }

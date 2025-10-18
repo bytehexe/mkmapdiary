@@ -32,7 +32,7 @@ window.addEventListener("DOMContentLoaded", () => {
       html: '',          // No HTML content
       className: 'invisible-marker', 
       iconSize: [0, 0]
-    })
+    });
 
     const clusterIcon = new L.icon({
       iconUrl: 'cross-orange.svg',
@@ -46,21 +46,35 @@ window.addEventListener("DOMContentLoaded", () => {
       className: 'map-simple-icon map-simple-icon-blue',
       iconSize: [24, 24],
       iconAnchor: [12, 12],
-    })
+    });
 
     const endIcon = new L.divIcon({
       html: '<i class="iconoir iconoir-pause-solid"></i>',
       className: 'map-simple-icon map-simple-icon-blue',
       iconSize: [24, 24],
       iconAnchor: [12, 12],
-    })
+    });
 
     const starIcon = new L.divIcon({
       html: '<i class="iconoir iconoir-star-solid"></i>',
       className: 'map-simple-icon map-simple-icon-green',
       iconSize: [24, 24],
       iconAnchor: [12, 12],
-    })
+    });
+
+    const markdownIcon = new L.divIcon({
+      html: '<i class="iconoir iconoir-book-solid"></i>',
+      className: 'map-simple-icon map-simple-icon-purple',
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+    });
+
+    const audioIcon = new L.divIcon({
+      html: '<i class="iconoir iconoir-microphone-solid"></i>',
+      className: 'map-simple-icon map-simple-icon-purple',
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+    });
 
     parser = new DOMParser();
     xmlDoc = parser.parseFromString(gpx_data, "text/xml");
@@ -75,11 +89,34 @@ window.addEventListener("DOMContentLoaded", () => {
           '': starIcon,
           'cluster-mass': clusterIcon,
           'cluster-center': invisibleIcon,
+          'markdown-journal-entry': markdownIcon,
+          'audio-journal-entry': audioIcon,
         }
       }
     }).on('addpoint', function(e) {
-      if (e.point_type == "waypoint" && e.element.querySelector("sym") && e.element.querySelector("sym").innerHTML == "cluster-center") {
-        var pdop = parseFloat(e.element.querySelector("pdop").innerHTML);
+      if (e.point_type != "waypoint") {
+        return;
+      }
+
+      var get = function(key) {
+        var el = e.element.querySelector(key);
+        return el ? el.innerHTML : null;
+      }
+
+      // Extract waypoint data
+      var wpt_data = {
+        "sym": get("sym"),
+        "pdop": get("pdop"),
+      };
+
+      // Unbind popup for journal waypoints
+      if (wpt_data.sym == "markdown-journal-entry" || wpt_data.sym == "audio-journal-entry") {
+        e.point.unbindPopup();
+      }
+
+      // Add circle for cluster waypoints
+      if (wpt_data.sym == "cluster-center") {
+        var pdop = parseFloat(wpt_data.pdop);
         deferred.push(new L.circle(e.point._latlng, {
           radius: pdop,
           color: 'orange',
