@@ -12,9 +12,6 @@ from threading import Lock
 import requests
 import time
 
-GPX_NS = "http://www.topografix.com/GPX/1/1"
-NSMAP = {None: GPX_NS}
-
 coder_lock = Lock()
 
 class GeojsonTask(BaseTask, ExifReader):
