@@ -97,8 +97,10 @@ class AudioTask(BaseTask):
 
             output.append("</div>")
 
+            audio_title = self.config["audio_title"]
+
             with open(dst, "w") as f:
-                f.write(f"### {title}\n\n")
+                f.write(f"### {audio_title}: {title}\n\n")
                 f.write("\n".join(output))
 
         for src in self.__sources:
