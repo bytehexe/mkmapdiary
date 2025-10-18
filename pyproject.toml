@@ -1,0 +1,28 @@
+[project]
+
+# refer to https://packaging.python.org/en/latest/tutorials/packaging-projects/
+
+
+dependencies = [
+    "click",
+    "pyyaml",
+    "mkdocs-glightbox",
+    "mkdocs-material",
+    "mkdocs",
+    "doit",
+    "identify",
+    "Pillow",
+    "rawpy",
+    "imageio",
+    "pyexiftool",
+    "tabulate",
+    "libsass",
+    "requests",
+    "jsonschema",
+    "lxml",
+    "pydub",
+    "openai-whisper",
+    "ollama",
+    "gpxpy",
+    "hdbscan",
+]
