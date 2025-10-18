@@ -172,6 +172,7 @@ class SiteTask(HttpRequest):
                 yield self.docs_dir / f"{date}.md"
                 yield self.templates_dir / f"{date}_gallery.md"
                 yield self.templates_dir / f"{date}_journal.md"
+                yield self.templates_dir / f"{date}_tags.md"
             for asset in self.__simple_assets:
                 yield self.docs_dir / asset
 
@@ -183,12 +184,13 @@ class SiteTask(HttpRequest):
             file_dep=list(_generate_file_deps()),
             task_dep=[
                 f"create_directory:{self.dist_dir}",
-                "build_static_pages:*" "generate_mkdocs_config",
+                "build_static_pages",
+                "generate_mkdocs_config",
                 "compile_css",
-                "build_day_page:*",
-                "build_gallery:*",
-                "build_journal:*",
-                "build_tags:*",
+                "build_day_page",
+                "build_gallery",
+                "build_journal",
+                "build_tags",
             ],
             calc_dep=["get_gpx_deps"],
             targets=[

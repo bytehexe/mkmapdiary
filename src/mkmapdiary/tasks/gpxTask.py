@@ -127,7 +127,7 @@ class GPXTask(BaseTask):
             }
 
         return {
-            "task_dep": ["gpx2gpx:*"],
+            "task_dep": ["gpx2gpx"],
             "file_dep": [str(src) for src in self.__sources],
             "actions": [_gpx_deps],
             "verbosity": 2,
