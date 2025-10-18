@@ -151,6 +151,9 @@ class SiteTask(BaseTask):
                 "build_static_pages:*"
                 "generate_mkdocs_config",
                 "compile_css",
+                "build_day_page:*",
+                "build_gallery:*",
+                "build_journal:*",
             ],
             calc_dep=["get_gpx_deps"],
             targets=[

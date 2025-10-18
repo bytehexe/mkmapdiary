@@ -1,11 +1,13 @@
 from .base.baseTask import BaseTask
 import datetime
 import pathlib
+from doit import create_after
 
 class GalleryTask(BaseTask):
     def __init__(self):
         super().__init__()
     
+    @create_after("gpx2gpx")
     def task_build_gallery(self):
         """Generate gallery pages."""
 
