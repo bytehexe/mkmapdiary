@@ -88,10 +88,25 @@ features = []
 [tool.hatch.envs.types]
 extra-dependencies = [
   "mypy>=1.0.0",
-  "MonkeyType",
 ]
+
 [tool.hatch.envs.types.scripts]
 check = "mypy --install-types --non-interactive {args:src/mkmapdiary tests}"
+
+[tool.hatch.envs.format]
+detached = true
+skip-install = true
+
+[tool.hatch.envs.format.scripts]
+check = "black --check -q {args}"
+apply = "black ."
+
+[tool.hatch.envs.yamllint]
+detached = true
+skip-install = true
+
+[tool.hatch.envs.yamllint.scripts]
+check = "yamllint --no-warnings {args}"
 
 [[tool.mypy.overrides]]
 module="exiftool.*"
