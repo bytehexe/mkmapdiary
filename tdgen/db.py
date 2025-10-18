@@ -118,7 +118,7 @@ class Db:
     def get_unpositioned_assets(self):
         with self.lock:
             cursor = self.conn.cursor()
-            cursor.execute('SELECT id, datetime FROM assets WHERE latitude IS NULL OR longitude IS NULL')
+            cursor.execute('SELECT id, datetime FROM assets WHERE latitude IS NULL OR longitude IS NULL AND type != "gpx"')
             return list(row for row in cursor.fetchall())
 
     def update_asset_position(self, asset_id, latitude, longitude, approx):
