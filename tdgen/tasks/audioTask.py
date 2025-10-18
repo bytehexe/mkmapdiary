@@ -93,20 +93,7 @@ class AudioTask(BaseTask):
                 ))
                 text.append(segment["text"].strip())
 
-            title = self.ai(
-                f"Create exactly one title that summarizes the following text in {self.config['locale']}.\n"
-                "The title must be a single phrase, 3–5 words long.\n"
-                "Use only words, phrases, or concepts that appear in the text.\n"
-                "If the text contains multiple topics, combine them in a single title, separated naturally (e.g., with commas or conjunctions).\n"
-                "Focus on the most important topics if all cannot fit in the title.\n"
-                "Do not produce multiple titles, or explanations.\n"
-                "Do not include phrases like 'Here is' or 'Summary'.\n"
-                "Do not invent information not present in the text.\n"
-                "Output only the title, nothing else.\n"
-                "\n"
-                "Text:\n"
-                f" ".join(text)
-            )
+            title = self.ai("generate_title", format=dict(locale=self.config['locale'], text=text))
 
             output.append("</div>")
 

@@ -3,3 +3,23 @@ image_format: jpg
 ollama_ai_model: "llama3:8b"
 
 # Translations are set within the code using gettext; can be overriden in the project config
+
+ai:
+  generate_title:
+    prompt: |
+      Create exactly one title that summarizes the following text in {locale}.
+      The title must be a single phrase, 3–5 words long.
+      Use only words or phrases, or concepts that appear in the text.
+      If the text contains multiple topics, combine them in a single title, separated naturally (e.g., with commas or conjunctions).
+      Focus on the most important topics if all cannot fit in the title.
+      Do not produce multiple titles, or explanations.
+      Do not include phrases like 'Here is' or 'Summary'.
+      Do not invent information not present in the text.
+      Output only the title, nothing else.
+
+      Text:
+      {text}
+    options:
+      temperature: 0.2
+      top_p: 0.8
+      #seed: 42
