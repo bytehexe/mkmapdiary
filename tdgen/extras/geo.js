@@ -128,7 +128,7 @@ window.addEventListener("DOMContentLoaded", () => {
       }
     }).on('loaded', function(e) {
       combinedBounds.extend(e.target.getBounds());
-      map.fitBounds(combinedBounds);
+      map.fitBounds(combinedBounds.pad(0.1));
       for (const layer of deferred) {
         layer.addTo(map);
       }
@@ -148,5 +148,19 @@ window.addEventListener("DOMContentLoaded", () => {
 
     }).addTo(map);
   }
+
+  // Handle location links
+  document.querySelectorAll('.location-link').forEach(link => {
+    link.addEventListener('click', function(event) {
+      event.preventDefault();
+      document.getElementById('map').scrollIntoView({behavior: "smooth", block: "nearest"});
+      const lat = parseFloat(this.getAttribute('data-lat'));
+      const lng = parseFloat(this.getAttribute('data-lng'));
+      if (!isNaN(lat) && !isNaN(lng)) {
+        const zoom = Math.max(map.getZoom(), 13);
+        map.setView([lat, lng], zoom);
+      }
+    });
+  });
 
 });

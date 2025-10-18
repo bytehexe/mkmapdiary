@@ -136,3 +136,16 @@ class Db:
             cursor = self.conn.cursor()
             cursor.execute('SELECT DISTINCT DATE(datetime) as date FROM assets WHERE latitude IS NOT NULL AND longitude IS NOT NULL AND type IN ("markdown", "audio")')
             return list(row[0] for row in cursor.fetchall())
+        
+    def get_metadata(self, asset_path):
+        with self.lock:
+            cursor = self.conn.cursor()
+            cursor.execute('SELECT datetime, latitude, longitude FROM assets WHERE path = ?', (asset_path,))
+            row = cursor.fetchone()
+            if row:
+                return {
+                    'timestamp': row[0],
+                    'latitude': row[1],
+                    'longitude': row[2]
+                }
+            return None
