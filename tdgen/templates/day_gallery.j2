@@ -2,6 +2,11 @@
 ## {{ map_title }}
 
 <div id="map"></div>
+<div id="map-legend" class="map-legend">Show all · Download GPX |
+<span class="text-indigo">▪︎</span> Track ·
+<span class="text-green">▪︎</span> Waypoints ·
+<span class="text-orange">▪︎</span> Activity areas ·
+<span class="text-purple">▪︎</span> Journal entries</div>
 <script>
 photo_data = {{ geo_items | tojson }};
 gpx_data = {{ gpx_data | tojson }};
