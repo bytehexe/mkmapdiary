@@ -17,7 +17,6 @@ msgfmt tdgen/locale/de/LC_MESSAGES/messages.po -o tdgen/locale/de/LC_MESSAGES/me
 
 ## Todo
 
-* Adjust color palette for map data
 * Write documentation
   * General workings
   * Asset database
