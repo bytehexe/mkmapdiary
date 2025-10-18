@@ -3,6 +3,10 @@ from collections import namedtuple
 from abc import ABC, abstractmethod
 from jinja2 import Environment, PackageLoader, select_autoescape, StrictUndefined
 import dateutil.parser
+import ollama
+import threading
+
+ai_lock = threading.Lock()
 
 def debug(func):
     """Decorator to print debug information for a function."""
@@ -71,6 +75,19 @@ class BaseTask(ABC):
         self.__unique_paths[candidate] = source
         return candidate
     
+
+    def ai(self, prompt):
+        """Generate text using an AI model."""
+
+        model = self.config["ollama_ai_model"]
+
+        with ai_lock:
+            response = ollama.chat(model=model, messages=[
+                {"role": "user", "content": prompt}
+            ])
+        
+        return response['message']['content'].strip()
+
     def with_cache(self, key, compute_func, *args, cache_args=None):
         """Get the value from cache or compute it if not present."""
 

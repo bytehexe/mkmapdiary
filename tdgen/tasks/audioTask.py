@@ -79,6 +79,7 @@ class AudioTask(BaseTask):
             )
 
             audio = AudioSegment.from_file(src)
+            text = []
 
             for segment in result["segments"]:
                 if segment["end"] > audio.duration_seconds:
@@ -90,10 +91,27 @@ class AudioTask(BaseTask):
                     end = int(segment["end"]),
                     text = segment["text"].strip(),
                 ))
+                text.append(segment["text"].strip())
+
+            title = self.ai(
+                f"Create exactly one title that summarizes the following text in {self.config['locale']}.\n"
+                "The title must be a single phrase, 3–5 words long.\n"
+                "Use only words, phrases, or concepts that appear in the text.\n"
+                "If the text contains multiple topics, combine them in a single title, separated naturally (e.g., with commas or conjunctions).\n"
+                "Focus on the most important topics if all cannot fit in the title.\n"
+                "Do not produce multiple titles, or explanations.\n"
+                "Do not include phrases like 'Here is' or 'Summary'.\n"
+                "Do not invent information not present in the text.\n"
+                "Output only the title, nothing else.\n"
+                "\n"
+                "Text:\n"
+                f" ".join(text)
+            )
 
             output.append("</div>")
 
             with open(dst, "w") as f:
+                f.write(f"### {title}\n\n")
                 f.write("\n".join(output))
 
         for src in self.__sources:
