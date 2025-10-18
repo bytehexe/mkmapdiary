@@ -36,6 +36,7 @@ extra_css:
   - https://unpkg.com/@lychee-org/leaflet.photo@1.0.0/Leaflet.Photo.css
   - https://unpkg.com/leaflet.awesome-markers@2.0.5/dist/leaflet.awesome-markers.css
   - https://cdn.jsdelivr.net/gh/iconoir-icons/iconoir@main/css/iconoir.css
+  - https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css
 
 
 extra_javascript:
@@ -44,5 +45,8 @@ extra_javascript:
   - path: https://unpkg.com/@lychee-org/leaflet.photo@1.0.0/Leaflet.Photo.js
   - path: https://unpkg.com/leaflet.awesome-markers@2.0.5/dist/leaflet.awesome-markers.min.js
   - path: https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/2.2.0/gpx.min.js
+  - path: https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js
+  - path: https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js
   - path: geo.js
   - path: audio.js
+  - path: gallery.js
