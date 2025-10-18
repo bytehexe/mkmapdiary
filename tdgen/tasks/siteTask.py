@@ -96,7 +96,7 @@ class SiteTask(BaseTask):
             yield from self.db.get_all_assets()
             for date in self.db.get_all_dates():
                 yield self.docs_dir / f"{date}.md"
-                #yield self.templates_dir / f"{date}_gallery.md"
+                yield self.templates_dir / f"{date}_gallery.md"
 
         return dict(
             actions=["mkdocs build --clean --config-file " + str(self.build_dir / "mkdocs.yml")],
