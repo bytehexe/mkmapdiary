@@ -17,7 +17,6 @@ msgfmt tdgen/locale/de/LC_MESSAGES/messages.po -o tdgen/locale/de/LC_MESSAGES/me
 
 ## Todo
 
-* Show journal icons on map (icon book-solid/microphone-solid; marker cluster: keyframes-couple-solid, over 10: keyframes-solid)
 * Adjust color palette for map data
 * Write documentation
   * General workings

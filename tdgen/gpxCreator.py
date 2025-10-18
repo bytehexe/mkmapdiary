@@ -5,11 +5,12 @@ from tdgen.geoCluster import GeoCluster
 import warnings
 
 class GpxCreator:
-    def __init__(self, date, sources):
+    def __init__(self, date, sources, db):
         self.__coords = []
         self.__gpx_out = gpxpy.gpx.GPX()
         self.__sources = sources
         self.__date = date
+        self.__db = db
 
         self.__init()
 
@@ -17,6 +18,7 @@ class GpxCreator:
         for source in self.__sources:
             self.__load_source(source)
         self.__compute_clusters()
+        self.__add_journal_markers()
 
     def __load_source(self, source):
         with open(source, "r", encoding="utf-8") as f:
@@ -85,6 +87,19 @@ class GpxCreator:
                 position_dilution=cluster.radius
             )
             self.__gpx_out.waypoints.append(cwpt)
+
+    def __add_journal_markers(self):
+        for asset, asset_type in self.__db.get_assets_by_date(self.__date, ("markdown", "audio")):
+            geo = self.__db.get_geo_by_name(asset)
+            if geo is None:
+                continue
+            wpt = gpxpy.gpx.GPXWaypoint(
+                latitude=geo['latitude'],
+                longitude=geo['longitude'],
+                name="Journal Entry",
+                symbol=f"{asset_type}-journal-entry"
+            )
+            self.__gpx_out.waypoints.append(wpt)
 
     def to_xml(self):
         return self.__gpx_out.to_xml()
