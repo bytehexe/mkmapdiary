@@ -10,7 +10,7 @@ A travel journal generator.
 ## Installation
 
 ```console
-pip install mkmapdiary[all]
+pipx install mkmapdiary[all]
 ```
 
 ## License
@@ -18,13 +18,3 @@ pip install mkmapdiary[all]
 `mkmapdiary` is distributed under the terms of the [PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0/) license.
 
 > Required Notice: Copyright Janna Hopp (https://github.com/bytehexe)
-
-## Todo
-
-* Write documentation
-  * Data protection
-  * General workings
-  * Asset database
-  * Deferred task for gpx
-  * All supported file types
-* POI lookup using pbf files
