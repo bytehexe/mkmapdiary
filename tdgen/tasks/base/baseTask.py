@@ -35,6 +35,46 @@ class BaseTask(ABC):
         """Handle a source file or directory based on its tags."""
         pass
 
+    @abstractmethod
+    def config(self):
+        """Property to access the configuration."""
+    
+    @abstractmethod
+    def db(self):
+        """Property to access the database."""
+    
+    @abstractmethod
+    def source_dir(self):
+        """Property to access the source directory."""
+    
+    @abstractmethod
+    def build_dir(self):
+        """Property to access the build directory."""
+    
+    @abstractmethod
+    def files_dir(self):
+        """Property to access the files directory."""
+    
+    @abstractmethod
+    def docs_dir(self):
+        """Property to access the docs directory."""
+    
+    @abstractmethod
+    def templates_dir(self):
+        """Property to access the templates directory."""
+    
+    @abstractmethod
+    def assets_dir(self):
+        """Property to access the assets directory."""
+    
+    @abstractmethod
+    def dist_dir(self):
+        """Property to access the distribution directory."""
+    
+    @abstractmethod
+    def cache(self):
+        """Property to access the cache."""
+
     def extract_meta_datetime(self, source):
         """Extract metadata from the file's modification time."""
         
