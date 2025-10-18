@@ -6,6 +6,7 @@ from .taskList import TaskList
 from doit.api import run_tasks
 from doit.doit_cmd import DoitMain
 from doit.cmd_base import ModuleTaskLoader
+from pydantic.utils import deep_update
 from tabulate import tabulate
 from .cache import Cache
 import os
@@ -104,12 +105,12 @@ def main(
     locale_file = script_dir / f"defaults_{lc}.yaml"
     if locale_file.exists():
         with open(locale_file, "r") as f:
-            config_data.update(yaml.safe_load(f))
+            config_data = deep_update(config_data, yaml.safe_load(f))
 
     # Load configuration file if provided
     config_file = source_dir / "config.yaml"
     if config_file.is_file():
-        config_data.update(yaml.safe_load(config_file.read_text()))
+        config_data = deep_update(config_data, yaml.safe_load(config_file.read_text()))
 
     # Override config with params
     for param in params:
@@ -142,6 +143,24 @@ def main(
 
     # Set locale
     locale.setlocale(locale.LC_TIME, config_data["locale"])
+
+    # Feature checks
+    features = config_data["features"]
+    if features["transcription"] == "auto":
+        try:
+            import whisper
+
+            features["transcription"] = True
+        except ImportError:
+            features["transcription"] = False
+    elif features["transcription"] is True:
+        try:
+            import whisper
+        except ImportError:
+            click.echo(
+                "Error: Transcription feature requires the 'whisper' package to be installed."
+            )
+            sys.exit(1)
 
     click.echo("Generating tasks ...")
 

@@ -2,7 +2,6 @@ from PIL import Image
 from .base.baseTask import BaseTask
 from .base.exifReader import ExifReader
 from pydub import AudioSegment
-import whisper
 import hashlib
 from pathlib import PosixPath
 from typing import Callable, Dict, Iterator, List, Tuple, Union, Any
@@ -57,6 +56,8 @@ class AudioTask(BaseTask):
         return hash_md5.hexdigest()
 
     def __transcribe_audio(self, src):
+        import whisper
+
         model = whisper.load_model("turbo")
         result = model.transcribe(str(src))
         return result
@@ -65,6 +66,13 @@ class AudioTask(BaseTask):
         """Transcribe audio to text."""
 
         def _transcribe(src, dst):
+
+            audio_title = self.config["audio_title"]
+
+            if not self.config["features"]["transcription"]:
+                with open(dst, "w") as f:
+                    f.write(f"### {audio_title}\n\n")
+                return
 
             output = []
             output.append("<div class='transcript'>")
@@ -98,8 +106,6 @@ class AudioTask(BaseTask):
             )
 
             output.append("</div>")
-
-            audio_title = self.config["audio_title"]
 
             with open(dst, "w") as f:
                 f.write(f"### {audio_title}: {title}\n\n")

@@ -6,6 +6,9 @@ ollama_ai_model: "llama3:8b"
 geo_lookup:
   high_precision: false
 
+features:
+  transcription: "auto"
+
 geo_correlation:
   timezone: "UTC"
   time_offset: 0  # in seconds
@@ -23,6 +26,7 @@ ai:
       Focus on the most important topics if all cannot fit in the title.
       Do not produce multiple titles, or explanations.
       Do not include phrases like 'Here is' or 'Summary'.
+      If the text is empty or does not contain any useful information, leave your response empty.
       Do not invent information not present in the text.
       Output only the title, nothing else.
 
@@ -40,6 +44,7 @@ ai:
       Produce a single list of tags, separated by commas.
       Do not include explanations or additional text.
       Output only the list of tags, nothing else.
+      If the text is empty or does not contain any useful information, leave your response empty.
       Do not include phrases like 'Tags:' or 'The tags are'.
 
       Text:
