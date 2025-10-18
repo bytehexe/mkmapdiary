@@ -58,7 +58,7 @@ class GalleryTask(BaseTask):
             yield dict(
                 name=str(date),
                 actions=[(_generate_gallery, [date])],
-                targets=[self.docs_dir / "templates" / f"{date}_gallery.md"],
+                targets=[self.templates_dir / f"{date}_gallery.md"],
                 file_dep=self.db.get_all_assets(),
                 task_dep=[f"create_directory:{self.templates_dir}"],
                 uptodate=[True],

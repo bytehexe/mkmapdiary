@@ -32,7 +32,7 @@ class ImageTask(BaseTask, ExifReader):
         
         def _convert(src, dst):
             with Image.open(src) as img:
-                img.convert("RGB").save(dst)
+                img.convert("RGB").save(dst, **self.config.get("image_options", {}))
 
         for src in self.__sources:
             dst = self.__generate_destination_filename(src)
