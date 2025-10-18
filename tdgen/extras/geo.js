@@ -79,7 +79,6 @@ window.addEventListener("DOMContentLoaded", () => {
       }
     }).on('addpoint', function(e) {
       if (e.point_type == "waypoint" && e.element.querySelector("sym") && e.element.querySelector("sym").innerHTML == "cluster-center") {
-        console.log('Added cluster ' + e.point_type + ' point:', e);
         var pdop = parseFloat(e.element.querySelector("pdop").innerHTML);
         deferred.push(new L.circle(e.point._latlng, {
           radius: pdop,
@@ -96,7 +95,6 @@ window.addEventListener("DOMContentLoaded", () => {
       map.on('zoomend', function() {
         const currentZoom = map.getZoom();
         elements = document.querySelectorAll('.map-cluster-icon');
-        console.log(`Current zoom level: ${currentZoom}, found ${elements.length} cluster icons.`);
         elements.forEach((el) => {
           if (currentZoom < 15) {
             el.style.display = 'none';
