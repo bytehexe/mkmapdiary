@@ -5,9 +5,10 @@ from .tasks import ImageTask
 from .tasks import SiteTask
 from .tasks import Cr2Task
 from .tasks import DayPageTask
+from .tasks import GeojsonTask
 from .db import Db
 
-class TaskList(ImageTask, SiteTask, Cr2Task, DayPageTask):
+class TaskList(ImageTask, SiteTask, Cr2Task, DayPageTask, GeojsonTask):
     """
     Generates task lists based on source directory and configuration.
     
@@ -41,6 +42,10 @@ class TaskList(ImageTask, SiteTask, Cr2Task, DayPageTask):
 
     def handle(self, source):
         """Handle a source file or directory based on its tags."""
+
+        if source.is_file() and source.name == "config.yaml":
+            return
+
         tags = identify.tags_from_path(source)
         print(f"> Processing {source} [{" ".join(tags)}]")
 

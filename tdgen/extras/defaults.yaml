@@ -1,4 +1,5 @@
 locale: "en_US.utf8"
+image_format: jpg
 
 # Translated options if not set explicitly
 # site_name: "Travel Diary"

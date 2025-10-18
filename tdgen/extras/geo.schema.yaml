@@ -55,36 +55,75 @@ definitions:
       
   Waypoint:
     title: Waypoint
-    properties:
-      geometry:
-        type: object
-        properties:
-          type:
-            const: Point
-          coordinates:
-            $ref: '#/definitions/Coordinates'
-        unevaluatedProperties: false
-      properties:
-        $ref: '#/definitions/PropertyBase'
-        unevaluatedProperties: false
+    allOf:
+      - properties:
+          geometry:
+            type: object
+            properties:
+              type:
+                const: Point
+              coordinates:
+                $ref: '#/definitions/Coordinates'
+          properties:
+            allOf:
+              - $ref: '#/definitions/PropertyBase'
+              - $ref: '#/definitions/WaypointProperties'
+            unevaluatedProperties: false
 
   Track:
     title: Track
+    allOf:
+      - properties:
+          geometry:
+            type: object
+            properties:
+              type:
+                const: LineString
+              coordinates:
+                type: array
+                items:
+                  $ref: '#/definitions/Coordinates'
+          properties:
+            allOf:
+              - $ref: '#/definitions/PropertyBase'
+              - $ref: '#/definitions/TrackProperties'    
+            unevaluatedProperties: false
+
+  WaypointProperties:
+    title: WaypointProperties
     properties:
-      geometry:
-        type: object
-        properties:
-          type:
-            const: LineString
-          coordinates:
-            type: array
-            items:
-              $ref: '#/definitions/Coordinates'
-        unevaluatedProperties: false
-      properties:
-        $ref: '#/definitions/PropertyBase'
-        unevaluatedProperties: false
-    
+      timestamp:
+        type: string
+        format: date-time
+      name:
+        type: string
+      type:
+        type: string
+      symbol:
+        type: string
+    required: []
+
+  TrackProperties:
+    title: TrackProperties
+    properties:
+      timestamps:
+        type: array
+        items:
+          type: string
+          format: date-time
+      names:
+        type: array
+        items:
+          type: string
+      types:
+        type: array
+        items:
+          type: string
+      symbols:
+        type: array
+        items:
+          type: string
+    required: []
 
   LookupFeature:
     title: Lookup
@@ -102,7 +141,29 @@ definitions:
                     items:
                       $ref: '#/definitions/LookupItem'
                   - $ref: '#/definitions/LookupItem'
-        unevaluatedProperties: false
+          - if:
+              properties:
+                lookup:
+                  type: array
+            then:
+              allOf:
+                - $ref: '#/definitions/PropertyBase'
+                - properties:
+                    lookup: {}
+                - $ref: '#/definitions/TrackProperties'
+              unevaluatedProperties: false
+          - if:
+              properties:
+                lookup:
+                  not:
+                    type: array
+            then:
+              allOf:
+                - $ref: '#/definitions/PropertyBase'
+                - properties:
+                    lookup: {}
+                - $ref: '#/definitions/WaypointProperties'
+              unevaluatedProperties: false
   
   PropertyBase:
     title: PropertyBase
@@ -111,13 +172,6 @@ definitions:
     properties:
       name:
         type: string
-      timestamps:
-        type: array
-        items:
-          anyOf:
-            - type: string
-              format: date-time
-            - type: "null"
     required:
       - name
 
