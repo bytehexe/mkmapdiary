@@ -31,7 +31,7 @@ def validate_param(ctx, param, value):
     multiple=True,
     callback=validate_param,
     type=str,
-    help="Additional parameters",
+    help="Add additional configuration parameter. Format: key=value. Nested keys can be specified using dot notation, e.g., 'features.transcription=False'",
 )
 @click.option(
     "-b",
@@ -59,7 +59,7 @@ def validate_param(ctx, param, value):
     help="Number of parallel processes to use",
 )
 @click.option("-v", "--verbose", is_flag=True, help="Enable verbose output")
-@click.option("--no-cache", is_flag=True, help="Disable caching mechanism")
+@click.option("--no-cache", is_flag=True, help="Disable cache in the home directory (not recommended)")
 @click.argument(
     "source_dir",
     type=click.Path(path_type=pathlib.Path),
