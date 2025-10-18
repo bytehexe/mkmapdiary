@@ -97,7 +97,7 @@ class GeojsonTask(BaseTask, ExifReader):
                 "format": "json",
                 "limit": 1
             }, headers={
-                "User-Agent": "tdgen travel-diary generator"
+                "User-Agent": "tdgen/0.1 travel-diary generator"
             }, timeout=4)
             r.raise_for_status()
             results = r.json()
