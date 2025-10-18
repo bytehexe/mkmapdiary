@@ -1,5 +1,6 @@
 locale: "en_US.utf8"
 image_format: jpg
+image_options: {}
 ollama_ai_model: "llama3:8b"
 
 geo_lookup:

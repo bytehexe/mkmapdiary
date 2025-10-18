@@ -151,6 +151,11 @@ class SiteTask(BaseTask):
                 f"create_directory:{self.dist_dir}",
                 "build_static_pages:*"
                 "generate_mkdocs_config",
+                "build_gallery:*",
+                "build_day_page:*",
+                "build_journal:*",
+                "compile_css",
+                "copy_simple_asset:*",
             ],
             targets=[
                 self.dist_dir / "sitemap.xml",

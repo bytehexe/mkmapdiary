@@ -1,10 +1,12 @@
 from .base.baseTask import BaseTask
 import pathlib
+from doit import create_after
 
 class JournalTask(BaseTask):
     def __init__(self):
         super().__init__()
     
+    @create_after("gpx2gpx")
     def task_build_journal(self):
         """Generate journal pages."""
 
