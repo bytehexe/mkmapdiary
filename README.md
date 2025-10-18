@@ -30,6 +30,14 @@ You may open `index.html` with your browser to see the results.
 
 For the full reference of commandline options run `mkmapdiary --help`.
 
+## Running the dev version
+
+Within the project root, run:
+
+```
+hatch run mkmapdiary --help
+```
+
 ## Documentation
 
 See https://bytehexe.github.io/mkmapdiary/
