@@ -1,0 +1,10 @@
+site_name: Docs test
+theme:
+  name: material
+  palette:
+    primary: green
+    accent: green
+
+dev_addr: 127.0.0.1:8001
+
+strict: true
