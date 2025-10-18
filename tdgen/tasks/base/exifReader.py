@@ -1,11 +1,12 @@
 import exiftool
 import datetime
 
+
 class ExifReader:
     def read_exif(self, source):
 
         meta = {}
-        
+
         # Try to extract time from exif data
         with exiftool.ExifToolHelper() as et:
             try:
@@ -17,7 +18,7 @@ class ExifReader:
         if not exif_data:
             meta["date"] = self.extract_meta_datetime(source)
             return meta
-        
+
         try:
             create_date = exif_data["EXIF:CreateDate"]
             meta["date"] = datetime.datetime.strptime(create_date, "%Y:%m:%d %H:%M:%S")

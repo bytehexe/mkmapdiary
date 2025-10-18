@@ -20,16 +20,12 @@ class AudioTask(BaseTask):
         }
 
         yield self.Asset(
-            self.__generate_destination_filename(source, ".mp3"),
-            "audio",
-            meta
+            self.__generate_destination_filename(source, ".mp3"), "audio", meta
         )
         yield self.Asset(
-            self.__generate_destination_filename(source, ".mp3.md"),
-            "transcript",
-            meta
+            self.__generate_destination_filename(source, ".mp3.md"), "transcript", meta
         )
-    
+
     def __generate_destination_filename(self, source, suffix):
         filename = (self.assets_dir / source.stem).with_suffix(suffix)
         return self.make_unique_filename(source, filename)
@@ -44,13 +40,13 @@ class AudioTask(BaseTask):
         for src in self.__sources:
             dst = self.__generate_destination_filename(src, ".mp3")
             yield dict(
-                    name=dst,
-                    actions=[(_convert, (src, dst))],
-                    file_dep=[src],
-                    task_dep=[f"create_directory:{dst.parent}"],
-                    targets=[dst],
-                )
-            
+                name=dst,
+                actions=[(_convert, (src, dst))],
+                file_dep=[src],
+                task_dep=[f"create_directory:{dst.parent}"],
+                targets=[dst],
+            )
+
     def __file_md5(self, path):
         hash_md5 = hashlib.md5()
         with open(path, "rb") as f:
@@ -75,7 +71,7 @@ class AudioTask(BaseTask):
                 "whisper",
                 self.__transcribe_audio,
                 src,
-                cache_args=(self.__file_md5(src),)
+                cache_args=(self.__file_md5(src),),
             )
 
             audio = AudioSegment.from_file(src)
@@ -85,15 +81,19 @@ class AudioTask(BaseTask):
                 if segment["end"] > audio.duration_seconds:
                     break
 
-                output.append(self.template(
-                    "transcript_segment.j2",
-                    start = int(segment["start"]),
-                    end = int(segment["end"]),
-                    text = segment["text"].strip(),
-                ))
+                output.append(
+                    self.template(
+                        "transcript_segment.j2",
+                        start=int(segment["start"]),
+                        end=int(segment["end"]),
+                        text=segment["text"].strip(),
+                    )
+                )
                 text.append(segment["text"].strip())
 
-            title = self.ai("generate_title", format=dict(locale=self.config['locale'], text=text))
+            title = self.ai(
+                "generate_title", format=dict(locale=self.config["locale"], text=text)
+            )
 
             output.append("</div>")
 
@@ -106,9 +106,9 @@ class AudioTask(BaseTask):
         for src in self.__sources:
             dst = self.__generate_destination_filename(src, ".mp3.md")
             yield dict(
-                    name=dst,
-                    actions=[(_transcribe, (src, dst))],
-                    file_dep=[src],
-                    task_dep=[f"create_directory:{dst.parent}"],
-                    targets=[dst],
-                )
+                name=dst,
+                actions=[(_transcribe, (src, dst))],
+                file_dep=[src],
+                task_dep=[f"create_directory:{dst.parent}"],
+                targets=[dst],
+            )

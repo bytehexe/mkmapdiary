@@ -14,23 +14,73 @@ import gettext
 
 import sys
 
+
 def validate_param(ctx, param, value):
     for val in value:
         if "=" not in val:
             raise click.BadParameter("Parameters must be in the format key=value")
     return value
 
+
 @click.command()
-@click.option('-d', '--dist-dir', default="dist", type=click.Path(path_type=pathlib.Path), help='Path to distribution directory')
-@click.option('-x', '--params', multiple=True, callback=validate_param, type=str, help='Additional parameters')
-@click.option('-b', '--build-dir', default="build", type=click.Path(path_type=pathlib.Path), help='Path to build directory')
-@click.option('-s', '--source-dir', default="src", type=click.Path(path_type=pathlib.Path), help='Path to source directory')
-@click.option('-a', '--always-execute', is_flag=True, help='Always execute tasks, even if up-to-date')
-@click.option('-n', '--num-processes', default=os.cpu_count(), type=int, help='Number of parallel processes to use')
-@click.option('-v', '--verbose', is_flag=True, help='Enable verbose output')
-@click.option('--no-cache', is_flag=True, help='Disable caching mechanism')
-@click.option('-c', '--clean', is_flag=True, help='Remove build directory before building')
-def main(dist_dir, build_dir, params, source_dir, always_execute, num_processes, verbose, no_cache, clean):
+@click.option(
+    "-d",
+    "--dist-dir",
+    default="dist",
+    type=click.Path(path_type=pathlib.Path),
+    help="Path to distribution directory",
+)
+@click.option(
+    "-x",
+    "--params",
+    multiple=True,
+    callback=validate_param,
+    type=str,
+    help="Additional parameters",
+)
+@click.option(
+    "-b",
+    "--build-dir",
+    default="build",
+    type=click.Path(path_type=pathlib.Path),
+    help="Path to build directory",
+)
+@click.option(
+    "-s",
+    "--source-dir",
+    default="src",
+    type=click.Path(path_type=pathlib.Path),
+    help="Path to source directory",
+)
+@click.option(
+    "-a",
+    "--always-execute",
+    is_flag=True,
+    help="Always execute tasks, even if up-to-date",
+)
+@click.option(
+    "-n",
+    "--num-processes",
+    default=os.cpu_count(),
+    type=int,
+    help="Number of parallel processes to use",
+)
+@click.option("-v", "--verbose", is_flag=True, help="Enable verbose output")
+@click.option("--no-cache", is_flag=True, help="Disable caching mechanism")
+@click.option(
+    "-c", "--clean", is_flag=True, help="Remove build directory before building"
+)
+def main(
+    dist_dir,
+    build_dir,
+    params,
+    source_dir,
+    always_execute,
+    num_processes,
+    verbose,
+    no_cache,
+    clean,
+):
     click.echo("Generating configuration ...")
 
     script_dir = pathlib.Path(__file__).parent
@@ -61,7 +111,12 @@ def main(dist_dir, build_dir, params, source_dir, always_execute, num_processes,
 
     # Load gettext
     localedir = script_dir / "locale"
-    lang = gettext.translation("messages", localedir=str(localedir), languages=[config_data["locale"].split("_")[0]], fallback=True)
+    lang = gettext.translation(
+        "messages",
+        localedir=str(localedir),
+        languages=[config_data["locale"].split("_")[0]],
+        fallback=True,
+    )
     lang.install()
     _ = lang.gettext
 
@@ -74,7 +129,7 @@ def main(dist_dir, build_dir, params, source_dir, always_execute, num_processes,
     config_data.setdefault("days_title", _("Days"))
     config_data.setdefault("grid_title", _("Mosaic"))
     config_data.setdefault("audio_title", _("Audio"))
-    
+
     # Set locale
     locale.setlocale(locale.LC_TIME, config_data["locale"])
 
@@ -87,6 +142,7 @@ def main(dist_dir, build_dir, params, source_dir, always_execute, num_processes,
 
     if clean and build_dir.is_dir() and (build_dir / "mkdocs.yml").is_file():
         import shutil
+
         shutil.rmtree(build_dir)
 
     taskList = TaskList(config_data, source_dir, build_dir, dist_dir, cache)
@@ -109,6 +165,7 @@ def main(dist_dir, build_dir, params, source_dir, always_execute, num_processes,
     exitcode = DoitMain(ModuleTaskLoader(taskList.toDict())).run(proccess_args)
     click.echo("Done.")
     sys.exit(exitcode)
+
 
 if __name__ == "__main__":
     main()

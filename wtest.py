@@ -1,4 +1,3 @@
-
 src = "/home/janna/projekte/travel-diary/build/docs/assets/2025-08-25-02-48-40.mp3"
 
 model = whisper.load_model("turbo")
