@@ -60,7 +60,7 @@ class TagsTask(BaseTask):
                 calc_dep=["get_gpx_deps"],
                 task_dep=[
                     f"create_directory:{self.templates_dir}",
-                    "transcribe_audio:*",
+                    "transcribe_audio",
                 ],
                 uptodate=[True],
             )
