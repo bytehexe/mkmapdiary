@@ -59,7 +59,11 @@ def validate_param(ctx, param, value):
     help="Number of parallel processes to use",
 )
 @click.option("-v", "--verbose", is_flag=True, help="Enable verbose output")
-@click.option("--no-cache", is_flag=True, help="Disable cache in the home directory (not recommended)")
+@click.option(
+    "--no-cache",
+    is_flag=True,
+    help="Disable cache in the home directory (not recommended)",
+)
 @click.argument(
     "source_dir",
     type=click.Path(path_type=pathlib.Path),
