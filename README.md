@@ -5,6 +5,7 @@
 
 -----
 
+A travel journal generator.
 
 ## Installation
 
@@ -18,15 +19,12 @@ pip install mkmapdiary
 
 > Required Notice: Copyright Janna Hopp (https://github.com/bytehexe)
 
-## Update locale files
-```
-msgfmt src/mkmapdiary/locale/de/LC_MESSAGES/messages.po -o src/mkmapdiary/locale/de/LC_MESSAGES/messages.mo
-```
-
 ## Todo
 
 * Write documentation
+  * Data protection
   * General workings
   * Asset database
   * Deferred task for gpx
   * All supported file types
+* POI lookup using pbf files
