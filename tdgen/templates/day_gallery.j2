@@ -15,9 +15,11 @@
   { .gallery-box }
 
 {% endfor %}
+
+</div>
+
 <script>
 photo_data = {{ geo_items | tojson }};
 </script>
 
-</div>
 {% endif %}
