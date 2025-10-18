@@ -2,6 +2,7 @@ import datetime
 from collections import namedtuple
 from abc import ABC, abstractmethod
 from jinja2 import Environment, PackageLoader, select_autoescape, StrictUndefined
+import dateutil.parser
 
 class BaseTask(ABC):
     Asset = namedtuple("Asset", ["path", "type", "meta"])
@@ -21,12 +22,22 @@ class BaseTask(ABC):
         """Handle a source file or directory based on its tags."""
         pass
 
-    def extract_meta_mtime(self, source):
+    def extract_meta_datetime(self, source):
         """Extract metadata from the file's modification time."""
+        
+        # If the file does not exist, return None
         try:
             stat = source.stat()
         except FileNotFoundError:
             return None
+        
+        # Try to extract timestamp from filename
+        try:
+            return dateutil.parser.parse(source.name, fuzzy=True)
+        except dateutil.parser.ParserError:
+            pass # Ignore and fallback to mtime
+
+        # Fallback: Use the file's modification time
         return datetime.datetime.fromtimestamp(stat.st_mtime)
     
     def template(self, template, **params):
