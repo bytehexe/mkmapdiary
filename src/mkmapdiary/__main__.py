@@ -101,16 +101,18 @@ def main(
     with open(script_dir / "extras" / "defaults.yaml", "r") as f:
         config_data = yaml.safe_load(f)
 
-    lc = locale.getlocale()[0].split("_")[0]
-    locale_file = script_dir / f"defaults_{lc}.yaml"
-    if locale_file.exists():
-        with open(locale_file, "r") as f:
+    # Load local user configuration
+    user_config_file = pathlib.Path.home() / f".mkmapdiary/config.yaml"
+    if user_config_file.exists():
+        with open(user_config_file, "r") as f:
             config_data = deep_update(config_data, yaml.safe_load(f))
 
-    # Load configuration file if provided
-    config_file = source_dir / "config.yaml"
-    if config_file.is_file():
-        config_data = deep_update(config_data, yaml.safe_load(config_file.read_text()))
+    # Load project configuration file if provided
+    project_config_file = source_dir / "config.yaml"
+    if project_config_file.is_file():
+        config_data = deep_update(
+            config_data, yaml.safe_load(project_config_file.read_text())
+        )
 
     # Override config with params
     for param in params:
