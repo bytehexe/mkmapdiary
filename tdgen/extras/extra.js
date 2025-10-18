@@ -20,7 +20,8 @@ window.addEventListener("DOMContentLoaded", () => {
 `;
 
 const photoLayer = L.photo.cluster().on('click', function(evt) {
-  evt.layer.bindPopup(L.Util.template(template, evt.layer.photo)).openPopup();
+  //evt.layer.bindPopup(L.Util.template(template, evt.layer.photo)).openPopup();
+  GLightbox().openAt(evt.layer.photo.index);
 });
 
 photoLayer.add(photo_data).addTo(map);
