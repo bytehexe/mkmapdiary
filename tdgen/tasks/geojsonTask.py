@@ -2,20 +2,24 @@ from PIL import Image
 from .base.baseTask import BaseTask
 from .base.exifReader import ExifReader
 
-class ImageTask(BaseTask, ExifReader):
+class GeojsonTask(BaseTask, ExifReader):
     def __init__(self):
         super().__init__()
         self.__sources = []
 
-    def handle_image(self, source):
-        # Create task to convert image to target format
-        self.__sources.append(source)
+    def handle_ext_geo_json(self, source):
+        self.__handle(source)
 
+    def handle_ext_geo_yaml(self, source):
+        self.__handle(source)
+    
+    def __handle(self, source):
+        self.__sources.append(source)
 
         meta = {}
         meta.update(self.read_exif(source))
 
-        yield self.Asset(
+        return self.Asset(
             self.__generate_destination_filename(source),
             "image",
             meta
