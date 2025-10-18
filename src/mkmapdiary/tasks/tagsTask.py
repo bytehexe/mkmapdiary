@@ -1,5 +1,7 @@
 from .base.baseTask import BaseTask
 from doit import create_after
+from pathlib import PosixPath
+from typing import Callable, Dict, Iterator, List, Tuple, Union, Any
 
 
 class TagsTask(BaseTask):
@@ -7,7 +9,7 @@ class TagsTask(BaseTask):
         super().__init__()
 
     @create_after("gpx2gpx")
-    def task_build_tags(self):
+    def task_build_tags(self) -> Iterator[Dict[str, Any]]:
         """Generate tags list."""
 
         def _generate_tags(date):

@@ -73,9 +73,34 @@ version-file = "src/mkmapdiary/__about__.py"
 [tool.hatch.envs.types]
 extra-dependencies = [
   "mypy>=1.0.0",
+  "MonkeyType",
 ]
 [tool.hatch.envs.types.scripts]
 check = "mypy --install-types --non-interactive {args:src/mkmapdiary tests}"
+
+[[tool.mypy.overrides]]
+module="exiftool.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module="doit.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module="hdbscan.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module="whisper.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module="rawpy.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module="pydub.*"
+ignore_missing_imports = true
 
 [tool.coverage.run]
 source_pkgs = ["mkmapdiary", "tests"]

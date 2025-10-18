@@ -1,4 +1,6 @@
 from .base.baseTask import BaseTask
+from pathlib import PosixPath
+from typing import Any, Dict, Iterator, List, Union
 
 
 class QstarzTask(BaseTask):
@@ -6,13 +8,13 @@ class QstarzTask(BaseTask):
         super().__init__()
         self.__sources = []
 
-    def handle_ext_bin(self, source):
+    def handle_ext_bin(self, source: PosixPath) -> List[Any]:
         return self.__handle(source)
 
-    def handle_ext_poi(self, source):
+    def handle_ext_poi(self, source: PosixPath) -> List[Any]:
         return self.__handle(source)
 
-    def handle_ext_dat(self, source):
+    def handle_ext_dat(self, source: PosixPath) -> List[Any]:
         # Ignore .dat files, as they are not directly supported by gpsbabel
         return []
 
@@ -29,7 +31,7 @@ class QstarzTask(BaseTask):
         )
         return self.make_unique_filename(source, filename)
 
-    def task_qstarz2gpx(self):
+    def task_qstarz2gpx(self) -> Iterator[Dict[str, Any]]:
         for source in self.__sources:
             dst = self.__generate_destination_filename(source)
             yield {

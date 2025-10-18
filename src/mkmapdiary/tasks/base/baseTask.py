@@ -5,6 +5,8 @@ from jinja2 import Environment, PackageLoader, select_autoescape, StrictUndefine
 import dateutil.parser
 import ollama
 import threading
+from pathlib import PosixPath
+from typing import Optional
 
 ai_lock = threading.Lock()
 
@@ -41,47 +43,57 @@ class BaseTask(ABC):
         """Handle a source file or directory based on its tags."""
         pass
 
+    @property
     @abstractmethod
     def config(self):
         """Property to access the configuration."""
 
+    @property
     @abstractmethod
     def db(self):
         """Property to access the database."""
 
+    @property
     @abstractmethod
     def source_dir(self):
         """Property to access the source directory."""
 
+    @property
     @abstractmethod
     def build_dir(self):
         """Property to access the build directory."""
 
+    @property
     @abstractmethod
     def files_dir(self):
         """Property to access the files directory."""
 
+    @property
     @abstractmethod
     def docs_dir(self):
         """Property to access the docs directory."""
 
+    @property
     @abstractmethod
     def templates_dir(self):
         """Property to access the templates directory."""
 
+    @property
     @abstractmethod
     def assets_dir(self):
         """Property to access the assets directory."""
 
+    @property
     @abstractmethod
     def dist_dir(self):
         """Property to access the distribution directory."""
 
+    @property
     @abstractmethod
     def cache(self):
         """Property to access the cache."""
 
-    def extract_meta_datetime(self, source):
+    def extract_meta_datetime(self, source: PosixPath) -> Optional[datetime.datetime]:
         """Extract metadata from the file's modification time."""
 
         # If the file does not exist, return None
@@ -104,7 +116,9 @@ class BaseTask(ABC):
         template = self.__template_env.get_template(template)
         return template.render(**params)
 
-    def make_unique_filename(self, source, destination):
+    def make_unique_filename(
+        self, source: PosixPath, destination: PosixPath
+    ) -> PosixPath:
         """Generate a unique filename by appending a counter if necessary."""
         candidate = destination
 

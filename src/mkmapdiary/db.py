@@ -1,6 +1,8 @@
 import sqlite3
 import threading
 import datetime
+from pathlib import PosixPath
+from typing import Dict, List, Tuple, Union, Any
 
 
 class Db:
@@ -26,7 +28,7 @@ class Db:
         )
         self.conn.commit()
 
-    def add_asset(self, path, type, meta):
+    def add_asset(self, path: Union[str, PosixPath], type: str, meta: Dict[str, Any]):
         assert (
             "date" not in meta
             or meta["date"] is None
@@ -51,7 +53,7 @@ class Db:
 
             self.conn.commit()
 
-    def count_assets(self):
+    def count_assets(self) -> int:
         with self.lock:
             cursor = self.conn.cursor()
             cursor.execute("SELECT COUNT(*) FROM assets")
@@ -70,13 +72,13 @@ class Db:
             )
             return dict(cursor.fetchall())
 
-    def get_all_assets(self):
+    def get_all_assets(self) -> List[str]:
         with self.lock:
             cursor = self.conn.cursor()
             cursor.execute("SELECT path FROM assets ORDER BY datetime ASC")
             return list(row[0] for row in cursor.fetchall())
 
-    def get_all_dates(self):
+    def get_all_dates(self) -> List[str]:
         with self.lock:
             cursor = self.conn.cursor()
             cursor.execute(
@@ -126,7 +128,7 @@ class Db:
                 return {"name": row[0], "latitude": row[1], "longitude": row[2]}
             return None
 
-    def dump(self, asset_type=None):
+    def dump(self, asset_type: None = None) -> Tuple[List[Any], List[str]]:
         headers = ["ID", "Path", "Type", "DateTime", "Latitude", "Longitude", "approx"]
         with self.lock:
             cursor = self.conn.cursor()
@@ -158,7 +160,7 @@ class Db:
             )
             self.conn.commit()
 
-    def get_geotagged_journals(self):
+    def get_geotagged_journals(self) -> List[str]:
         with self.lock:
             cursor = self.conn.cursor()
             cursor.execute(

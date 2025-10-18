@@ -4,6 +4,8 @@ from .base.exifReader import ExifReader
 from pydub import AudioSegment
 import whisper
 import hashlib
+from pathlib import PosixPath
+from typing import Callable, Dict, Iterator, List, Tuple, Union, Any
 
 
 class AudioTask(BaseTask):
@@ -30,7 +32,7 @@ class AudioTask(BaseTask):
         filename = (self.assets_dir / source.stem).with_suffix(suffix)
         return self.make_unique_filename(source, filename)
 
-    def task_convert_audio(self):
+    def task_convert_audio(self) -> Iterator[Dict[str, Any]]:
         """Convert an image to a different format."""
 
         def _convert(src, dst):
@@ -59,7 +61,7 @@ class AudioTask(BaseTask):
         result = model.transcribe(str(src))
         return result
 
-    def task_transcribe_audio(self):
+    def task_transcribe_audio(self) -> Iterator[Dict[str, Any]]:
         """Transcribe audio to text."""
 
         def _transcribe(src, dst):

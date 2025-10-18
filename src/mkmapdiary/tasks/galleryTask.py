@@ -2,6 +2,7 @@ from .base.baseTask import BaseTask
 import datetime
 import pathlib
 from doit import create_after
+from typing import Callable, Dict, Iterator, List, Tuple, Union, Any
 
 
 class GalleryTask(BaseTask):
@@ -9,7 +10,7 @@ class GalleryTask(BaseTask):
         super().__init__()
 
     @create_after("gpx2gpx")
-    def task_build_gallery(self):
+    def task_build_gallery(self) -> Iterator[Dict[str, Any]]:
         """Generate gallery pages."""
 
         def _generate_gallery(date):

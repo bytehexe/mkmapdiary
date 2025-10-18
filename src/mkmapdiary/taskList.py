@@ -16,6 +16,10 @@ from .tasks import QstarzTask
 from .tasks import TagsTask
 
 from .db import Db
+from mkmapdiary.cache import Cache
+from mkmapdiary.db import Db
+from pathlib import PosixPath
+from typing import Dict, List, Union, Any
 
 tasks = [
     ImageTask,
@@ -34,7 +38,7 @@ tasks = [
 ]
 
 
-class TaskList(*tasks):
+class TaskList(*tasks):  # type: ignore
     """
     Generates task lists based on source directory and configuration.
 
@@ -42,7 +46,14 @@ class TaskList(*tasks):
     them accordingly.
     """
 
-    def __init__(self, config, source_dir, build_dir, dist_dir, cache):
+    def __init__(
+        self,
+        config: Dict[str, Any],
+        source_dir: PosixPath,
+        build_dir: PosixPath,
+        dist_dir: PosixPath,
+        cache: Cache,
+    ):
         super().__init__()
 
         self.__config = config
@@ -60,52 +71,52 @@ class TaskList(*tasks):
         self.__scan()
 
     @property
-    def config(self):
+    def config(self) -> Dict[str, Any]:
         """Property to access the configuration."""
         return self.__config
 
     @property
-    def db(self):
+    def db(self) -> Db:
         """Property to access the database."""
         return self.__db
 
     @property
-    def source_dir(self):
+    def source_dir(self) -> PosixPath:
         """Property to access the source directory."""
         return self.__source_dir
 
     @property
-    def build_dir(self):
+    def build_dir(self) -> PosixPath:
         """Property to access the build directory."""
         return self.__build_dir
 
     @property
-    def files_dir(self):
+    def files_dir(self) -> PosixPath:
         """Property to access the files directory."""
         return self.__files_dir
 
     @property
-    def docs_dir(self):
+    def docs_dir(self) -> PosixPath:
         """Property to access the docs directory."""
         return self.__docs_dir
 
     @property
-    def templates_dir(self):
+    def templates_dir(self) -> PosixPath:
         """Property to access the templates directory."""
         return self.__templates_dir
 
     @property
-    def assets_dir(self):
+    def assets_dir(self) -> PosixPath:
         """Property to access the assets directory."""
         return self.__assets_dir
 
     @property
-    def dist_dir(self):
+    def dist_dir(self) -> PosixPath:
         """Property to access the distribution directory."""
         return self.__dist_dir
 
     @property
-    def cache(self):
+    def cache(self) -> Cache:
         """Property to access the cache."""
         return self.__cache
 
@@ -117,13 +128,13 @@ class TaskList(*tasks):
         """Scan the source directory and identify files and directories."""
         self.handle(self.source_dir)
 
-    def handle(self, source):
+    def handle(self, source: PosixPath):
         """Handle a source file or directory based on its tags."""
 
         if source.is_file() and source.name == "config.yaml":
             return
 
-        tags = identify.tags_from_path(source)
+        tags = identify.tags_from_path(str(source))
         print(f"> Processing {source} [{" ".join(tags)}]")
 
         if not tags:
@@ -156,7 +167,7 @@ class TaskList(*tasks):
             f"Warning: No handler for {source} with tags {tags} and extension '{ext}'"
         )
 
-    def handle_directory(self, source):
+    def handle_directory(self, source: PosixPath):
         """Handle a directory by processing its contents."""
         for item in source.iterdir():
             self.handle(item)
@@ -166,7 +177,7 @@ class TaskList(*tasks):
         target = source.resolve()
         self.handle(target)
 
-    def add_assets(self, assets):
+    def add_assets(self, assets: None):
         """Add an asset to the list."""
         if assets is None:
             return

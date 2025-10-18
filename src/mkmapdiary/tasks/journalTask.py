@@ -2,6 +2,7 @@ from .base.baseTask import BaseTask
 import pathlib
 from doit import create_after
 from datetime import datetime
+from typing import Callable, Dict, Iterator, List, Tuple, Union, Any
 
 
 class JournalTask(BaseTask):
@@ -9,7 +10,7 @@ class JournalTask(BaseTask):
         super().__init__()
 
     @create_after("gpx2gpx")
-    def task_build_journal(self):
+    def task_build_journal(self) -> Iterator[Dict[str, Any]]:
         """Generate journal pages."""
 
         def _generate_journal(date):

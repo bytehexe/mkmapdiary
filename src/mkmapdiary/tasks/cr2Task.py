@@ -2,6 +2,8 @@ import rawpy
 import imageio.v2 as imageio
 from .base.baseTask import BaseTask
 from .base.exifReader import ExifReader
+from pathlib import PosixPath
+from typing import Callable, Dict, Iterator, List, Tuple, Union, Any
 
 
 class Cr2Task(BaseTask, ExifReader):
@@ -24,7 +26,7 @@ class Cr2Task(BaseTask, ExifReader):
         asset.meta.update(self.read_exif(source))
         yield asset
 
-    def task_convert_raw(self):
+    def task_convert_raw(self) -> Iterator[Dict[str, Any]]:
         """Convert a RAW image to JPEG."""
 
         def _convert(src, dst):
