@@ -2,10 +2,10 @@ import click
 import pathlib
 import yaml
 
-from .generator import Generator
+from .taskList import TaskList
 from doit.api import run_tasks
 from doit.doit_cmd import DoitMain
-from doit.cmd_base import TaskLoader2
+from doit.cmd_base import ModuleTaskLoader
 
 import sys
 
@@ -14,20 +14,6 @@ def validate_param(ctx, param, value):
         if "=" not in val:
             raise click.BadParameter("Parameters must be in the format key=value")
     return value
-
-class TaskLoader(TaskLoader2):
-    def __init__(self, tasks):
-        self.tasks = tasks
-        super().__init__()
-
-    def setup(self, opt_values):
-        pass
-
-    def load_doit_config(self):
-        return {}
-
-    def load_tasks(self, cmd, pos_args):
-        return self.tasks
 
 @click.command()
 @click.option('-d', '--dist-dir', default="dist", type=click.Path(path_type=pathlib.Path), help='Path to distribution directory')
@@ -55,14 +41,12 @@ def main(dist_dir, config, build_dir, params, source_dir):
 
     click.echo("Generating tasks ...")
 
-    generator = Generator(config_data, source_dir, build_dir, dist_dir)
-    tasks = list(generator())
-    for task in tasks:
-        click.echo(f"Task: {task.name}")
+    taskList = TaskList(config_data, source_dir, build_dir, dist_dir)
+
 
     click.echo("Running tasks ...")
 
-    sys.exit(DoitMain(TaskLoader(tasks)).run([]))
+    sys.exit(DoitMain(ModuleTaskLoader(taskList.toDict())).run([]))
 
 if __name__ == "__main__":
     main()
