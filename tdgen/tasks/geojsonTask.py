@@ -39,7 +39,7 @@ class GeojsonTask(GeoLookup):
         # Extract dates
         dates = self.__extract_dates(data)
 
-        assets = list(self.handle_gpx(intermediate_file, additional_dates=dates))
+        assets = list(self.handle_gpx(intermediate_file))
         return assets
 
     def __extract_dates(self, data):

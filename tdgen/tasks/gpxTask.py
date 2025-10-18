@@ -1,40 +1,28 @@
 from .base.baseTask import BaseTask
 import gpxpy
 import gpxpy.gpx
-import dateutil.parser
 from datetime import datetime
 import hdbscan
 import numpy as np
 from tdgen.geoCluster import GeoCluster
+from doit import create_after
+from tabulate import tabulate
+import warnings
+import sys
 
 class GPXTask(BaseTask):
     def __init__(self):
         super().__init__()
-        self.__sources = {}
-        self.__dates = set()
+        self.__sources = []
 
-    def handle_gpx(self, source, additional_dates=None):
-        if source.is_file():
-            dates = self.__get_contained_dates(source)
-        else:
-            dates = set()
+    def handle_gpx(self, source):
+        self.__sources.append(source)
 
-        if additional_dates:
-            dates.update(additional_dates)
-
-        self.__sources[source] = dates
-
-        missing_dates = dates - self.__dates
-        for date in missing_dates:
-            yield self.Asset(
-                self.__generate_destination_filename(date),
-                "gpx",
-                {
-                    "date": datetime.combine(date, datetime.min.time())
-                }
-            )
-
-        self.__dates.update(dates)
+        # Do not yield any assets yet; at this point it
+        # is difficult to determine which dates are contained,
+        # due to asset splitting.
+        # Instead we will resort to delayed task creation.
+        return []
 
     def __get_contained_dates(self, source):
         # Collect all dates in the gpx file
@@ -95,9 +83,12 @@ class GPXTask(BaseTask):
 
         if len(coords) > 10:
             coords = np.array(coords)
+
             # Fit HDBSCAN
             clusterer = hdbscan.HDBSCAN(min_cluster_size=1000, metric='haversine')
-            clusterer.fit(np.radians(coords))
+            with warnings.catch_warnings():
+                warnings.simplefilter(action='ignore', category=FutureWarning)
+                clusterer.fit(np.radians(coords))
 
             labels = clusterer.labels_
             for label in set(labels):
@@ -126,9 +117,35 @@ class GPXTask(BaseTask):
         with open(dst, "w", encoding="utf-8") as f:
             f.write(gpx_out.to_xml())
 
+    @create_after("geo2gpx", target_regex=r'.*\.gpx')
     def task_gpx2gpx(self):
-        for date in self.__dates:
+
+        # Collect all dates in all source files
+        dates = set()
+        for source in self.__sources:
+            if not source.exists():
+                raise FileNotFoundError(f"Source file not found: {source}")
+            dates.update(self.__get_contained_dates(source))
+
+        if len(dates) > 0:
+            yield {
+                "name": "debug",
+                "actions": [self.__debug_dump_gpx],
+                "uptodate": [False],
+                "verbosity": 2,
+            }
+
+        for date in dates:
             dst = self.__generate_destination_filename(date)
+
+            self.db.add_asset(
+                str(dst),
+                "gpx",
+                {
+                    "date": datetime.combine(date, datetime.min.time()),
+                }
+            )
+
             yield {
                 "name": date.isoformat(),
                 "actions": [(self.__gpx2gpx, [date, dst])],
@@ -136,3 +153,8 @@ class GPXTask(BaseTask):
                 "targets": [str(dst)],
                 "clean": True,
             }
+        
+    def __debug_dump_gpx(self):
+        sys.stderr.write(tabulate(self.db.dump("gpx"), headers=["ID", "Path", "Type", "DateTime", "Latitude", "Longitude"]))
+        sys.stderr.write("\n")
+        sys.stderr.flush()
