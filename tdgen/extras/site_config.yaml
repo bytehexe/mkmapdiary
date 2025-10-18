@@ -20,7 +20,7 @@ exclude_docs: |
   /assets/*.md
   /assets/*.txt
 
-markdown_extensions: 
+markdown_extensions:
   - pymdownx.snippets:
       check_paths: True
   - attr_list
