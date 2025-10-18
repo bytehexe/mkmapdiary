@@ -3,10 +3,15 @@
 
 {% for asset in assets %}
 {% if asset.type == "markdown" %}
---8<-- "docs/assets/{{ asset.path }}"
+--8<-- "docs/assets/{{ asset.path }}:1:1"
 {% elif asset.type == "audio" %}
 --8<-- "docs/assets/{{ asset.path }}.md:1:1"
-
+{% endif %}
+<div class="metadata"><i class="iconoir iconoir-clock"></i> {{ asset.time }}
+{% if asset.location %}· <i class="iconoir iconoir-map-pin"></i> <a href="#" class="location-link" data-lat="{{ asset.latitude }}" data-lng="{{ asset.longitude }}">{{ asset.location }}</a>{% endif %}</div>
+{% if asset.type == "markdown" %}
+--8<-- "docs/assets/{{ asset.path }}:2"
+{% elif asset.type == "audio" %}
 <div class="audio-section">
 <audio controls>
   <source src="assets/{{ asset.path }}" type="audio/mpeg">

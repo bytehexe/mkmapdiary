@@ -1,6 +1,7 @@
 from .base.baseTask import BaseTask
 import pathlib
 from doit import create_after
+from datetime import datetime
 
 class JournalTask(BaseTask):
     def __init__(self):
@@ -16,9 +17,22 @@ class JournalTask(BaseTask):
             assets = []
             
             for asset, asset_type in self.db.get_assets_by_date(date, ("markdown","audio")):
+                metadata = self.db.get_metadata(asset)
+
+                if metadata["latitude"] is not None and metadata["longitude"] is not None:
+                    north_south = "N" if metadata["latitude"] >= 0 else "S"
+                    east_west = "E" if metadata["longitude"] >= 0 else "W"
+                    location = f"{abs(metadata['latitude']):.4f}° {north_south}, {abs(metadata['longitude']):.4f}° {east_west}"
+                else:
+                    location = None
+
                 item = dict(
                     type = asset_type,
                     path = pathlib.PosixPath(asset).name,
+                    time = datetime.fromisoformat(metadata["timestamp"]).strftime("%X"),
+                    latitude = metadata["latitude"],
+                    longitude = metadata["longitude"],
+                    location = location,
                 )
                 assets.append(item)
 
