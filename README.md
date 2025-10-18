@@ -22,3 +22,4 @@ msgfmt tdgen/locale/de/LC_MESSAGES/messages.po -o tdgen/locale/de/LC_MESSAGES/me
   * same for journal entries
 * Add AI summary to day pages
 * Add metadata to journal entries (datetime and place, if available)
+* Or, remove all lookup functions for improved data protection?
