@@ -4,20 +4,28 @@ repos:
       - id: yamllint
         name: Yaml files must be well-formatted
         language: system
-        entry: yamllint --no-warnings
+        entry: hatch run yamllint:check
         types: [yaml]
   - repo: local
     hooks:
       - id: black
         name: Python files must be formatted with black
         language: system
-        entry: black --check
+        entry: hatch run format:check
         types: [python]
   - repo: local
     hooks:
-      - id: pypy
-        name: Python files must be type-checked with pypy
+      - id: mypy
+        name: Python files must be type-checked with mypy
         language: system
         entry: hatch run types:check
         pass_filenames: false
         types: [python]
+  - repo: local
+    hooks:
+      - id: run-tests
+        name: Run unit tests
+        language: system
+        entry: hatch test
+        types: [python]
+        pass_filenames: false
