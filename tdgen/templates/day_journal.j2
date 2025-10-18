@@ -1,10 +1,12 @@
 ## {{ journal_title }}
 
-{% for item in text_assets %}
+{% for asset in assets %}
 
-### {{ item.title}}
+### {{ asset.title}}
 
+{% if asset.type == "text" %}
 ```text {.native-block}
-{{ item.text }}
+{{ asset.text }}
 ```
+{% endif %}
 {% endfor %}

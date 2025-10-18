@@ -66,7 +66,7 @@ class SiteTask(BaseTask):
             date_items = []
             for date in self.db.get_all_dates():
                 try:
-                    first = self.db.get_assets_by_date(date, "image")[0]
+                    first, _ = self.db.get_assets_by_date(date, "image")[0]
                 except IndexError:
                     first = None
                 item = dict(

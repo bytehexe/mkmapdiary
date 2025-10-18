@@ -15,7 +15,7 @@ class GalleryTask(BaseTask):
             gallery_items = []
             geo_items = []
 
-            for i, asset in enumerate(self.db.get_assets_by_date(date, "image")):
+            for i, (asset, _) in enumerate(self.db.get_assets_by_date(date, "image")):
                 item = dict(
                     basename = pathlib.PosixPath(asset).name,
                 )
