@@ -98,8 +98,8 @@ def main(
     script_dir = pathlib.Path(__file__).parent
 
     # Load config defaults
-    with open(script_dir / "extras" / "defaults.yaml", "r") as f:
-        config_data = yaml.safe_load(f)
+    default_config = script_dir / "extras" / "defaults.yaml"
+    config_data = yaml.safe_load(default_config.read_text())
 
     # Load local user configuration
     user_config_file = pathlib.Path.home() / f".mkmapdiary/config.yaml"
