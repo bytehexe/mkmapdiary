@@ -148,6 +148,13 @@ class GPXTask(BaseTask):
 
     @create_after("gpx2gpx")
     def task_get_gpx_deps(self):
+        # Explicitely re-introduce dependencies on all gpx files
+        # with calc_dep, since file_dep is not computed when used
+        # with create_after.
+        # See:
+        # - https://pydoit.org/task-creation.html#delayed-task-creation
+        # - https://pydoit.org/dependencies.html#calculated-dependencies
+
         def _gpx_deps():
             self.__debug_dump_gpx()
             return {
