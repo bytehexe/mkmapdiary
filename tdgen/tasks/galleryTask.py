@@ -1,13 +1,11 @@
 from .base.baseTask import BaseTask
 import datetime
 import pathlib
-from doit import create_after
 
 class GalleryTask(BaseTask):
     def __init__(self):
         super().__init__()
     
-    @create_after("gpx2gpx")
     def task_build_gallery(self):
         """Generate gallery pages."""
 
@@ -60,6 +58,7 @@ class GalleryTask(BaseTask):
                 actions=[(_generate_gallery, [date])],
                 targets=[self.templates_dir / f"{date}_gallery.md"],
                 file_dep=self.db.get_all_assets(),
+                calc_dep=["get_gpx_deps"],
                 task_dep=[f"create_directory:{self.templates_dir}"],
                 uptodate=[True],
             )

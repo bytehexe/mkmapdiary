@@ -1,12 +1,10 @@
 from .base.baseTask import BaseTask
 import pathlib
-from doit import create_after
 
 class JournalTask(BaseTask):
     def __init__(self):
         super().__init__()
     
-    @create_after("gpx2gpx")
     def task_build_journal(self):
         """Generate journal pages."""
 
@@ -36,6 +34,7 @@ class JournalTask(BaseTask):
                 actions=[(_generate_journal, [date])],
                 targets=[self.docs_dir / "templates" / f"{date}_journal.md"],
                 file_dep=self.db.get_all_assets(),
+                calc_dep=["get_gpx_deps"],
                 task_dep=[f"create_directory:{self.templates_dir}"],
                 uptodate=[True],
             )
