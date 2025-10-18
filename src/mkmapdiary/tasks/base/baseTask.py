@@ -31,7 +31,7 @@ class BaseTask(ABC):
         self.__unique_paths = {}
 
         self.__template_env = Environment(
-            loader=PackageLoader("tdgen"),
+            loader=PackageLoader("mkmapdiary"),
             autoescape=select_autoescape(),
             undefined=StrictUndefined,
         )
