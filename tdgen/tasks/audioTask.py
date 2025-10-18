@@ -1,0 +1,89 @@
+from PIL import Image
+from .base.baseTask import BaseTask
+from .base.exifReader import ExifReader
+from pydub import AudioSegment
+import whisper
+
+class AudioTask(BaseTask):
+    def __init__(self):
+        super().__init__()
+        self.__sources = []
+
+    def handle_audio(self, source):
+        # Create task to convert image to target format
+        self.__sources.append(source)
+
+        meta = {
+            "date": self.extract_meta_datetime(source),
+        }
+
+        yield self.Asset(
+            self.__generate_destination_filename(source, ".mp3"),
+            "audio",
+            meta
+        )
+        yield self.Asset(
+            self.__generate_destination_filename(source, ".mp3.md"),
+            "transcript",
+            meta
+        )
+    
+    def __generate_destination_filename(self, source, suffix):
+        filename = (self.assets_dir / source.stem).with_suffix(suffix)
+        return self.make_unique_filename(source, filename)
+
+    def task_convert_audio(self):
+        """Convert an image to a different format."""
+
+        def _convert(src, dst):
+            audio = AudioSegment.from_file(src)
+            audio.export(dst, format="mp3")
+
+        for src in self.__sources:
+            dst = self.__generate_destination_filename(src, ".mp3")
+            yield dict(
+                    name=dst,
+                    actions=[(_convert, (src, dst))],
+                    file_dep=[src],
+                    task_dep=[f"create_directory:{dst.parent}"],
+                    targets=[dst],
+                )
+            
+    def task_transcribe_audio(self):
+        """Transcribe audio to text."""
+
+        def _transcribe(src, dst):
+
+            output = []
+            output.append("<div class='transcript'>")
+
+            model = whisper.load_model("turbo")
+            audio = AudioSegment.from_file(src)
+
+            result = model.transcribe(str(src))
+
+            for segment in result["segments"]:
+                if segment["end"] > audio.duration_seconds:
+                    break
+
+                output.append(self.template(
+                    "transcript_segment.j2",
+                    start = int(segment["start"]),
+                    end = int(segment["end"]),
+                    text = segment["text"].strip(),
+                ))
+
+            output.append("</div>")
+
+            with open(dst, "w") as f:
+                f.write("\n".join(output))
+
+        for src in self.__sources:
+            dst = self.__generate_destination_filename(src, ".mp3.md")
+            yield dict(
+                    name=dst,
+                    actions=[(_transcribe, (src, dst))],
+                    file_dep=[src],
+                    task_dep=[f"create_directory:{dst.parent}"],
+                    targets=[dst],
+                )

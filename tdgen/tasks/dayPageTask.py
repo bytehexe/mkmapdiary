@@ -21,6 +21,9 @@ class DayPageTask(BaseTask):
                 ))
         
         for date in self.db.get_all_dates():
+            if date is None:
+                continue
+
             yield dict(
                 name=str(date),
                 actions=[(_generate_day_page, (date,))],

@@ -1,6 +1,7 @@
 
 import sqlite3
 import threading
+import datetime
 
 class Db:
     def __init__(self):
@@ -23,6 +24,9 @@ class Db:
         self.conn.commit()
 
     def add_asset(self, path, type, meta):
+        assert 'date' not in meta or meta['date'] is None or isinstance(meta['date'], datetime.datetime), "Meta 'date' must be a datetime object or None"
+        print (f"DB: Adding asset {path} of type {type} with meta {meta}")
+
         with self.lock:
             cursor = self.conn.cursor()
             cursor.execute('''

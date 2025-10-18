@@ -33,7 +33,7 @@ class BaseTask(ABC):
         
         # Try to extract timestamp from filename
         try:
-            return dateutil.parser.parse(source.name, fuzzy=True)
+            return dateutil.parser.parse(source.name, fuzzy=True, ignoretz=True)
         except dateutil.parser.ParserError:
             pass # Ignore and fallback to mtime
 
