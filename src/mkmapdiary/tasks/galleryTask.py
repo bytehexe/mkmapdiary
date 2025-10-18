@@ -54,6 +54,7 @@ class GalleryTask(BaseTask):
                         gallery_items=gallery_items,
                         geo_items=geo_items,
                         gpx_data=gpx_data,
+                        gpx_file=gpx[0][0].split("/")[-1] if gpx else None,
                     )
                 )
 

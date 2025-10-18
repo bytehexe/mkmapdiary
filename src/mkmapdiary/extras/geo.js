@@ -26,6 +26,13 @@ window.addEventListener("DOMContentLoaded", () => {
     map.fitBounds(combinedBounds);
   }
 
+  document.getElementById("showall_link").addEventListener("click", function(event) {
+    event.preventDefault();
+    if (combinedBounds.isValid()) {
+      map.fitBounds(combinedBounds.pad(0.1));
+    }
+  });
+
   if (gpx_data) {
 
     const invisibleIcon = new L.divIcon({
