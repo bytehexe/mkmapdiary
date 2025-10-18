@@ -17,11 +17,7 @@ window.addEventListener("DOMContentLoaded", () => {
         rowHeight: rowHeight,
         margins: 3,
         lastRow: 'center',
+        cssAnimation: false,
+        imagesAnimationDuration: 50,
     });
-
-    window.addEventListener('resize', () => {
-        var rowHeight = Math.min(avgAspectRatio * rem2px(base_height_rem), rem2px(2*base_height_rem));
-        $("#photo_gallery p").justifiedGallery('option', {rowHeight: rowHeight});
-    });
-
 });
