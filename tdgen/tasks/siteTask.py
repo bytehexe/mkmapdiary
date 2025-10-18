@@ -4,7 +4,6 @@ import pathlib
 import datetime
 import sass
 import shutil
-from doit import create_after
 
 class SiteTask(BaseTask):
     def __init__(self):
@@ -87,6 +86,7 @@ class SiteTask(BaseTask):
             name="index",
             actions=[_generate_index_page],
             file_dep=self.db.get_all_assets(),
+            calc_dep=["get_gpx_deps"],
             task_dep=[
                 f"create_directory:{self.dist_dir}",
             ],
@@ -129,8 +129,6 @@ class SiteTask(BaseTask):
                 targets=[output]
             )
 
-
-    @create_after("build_day_page")
     def task_build_site(self):
         """Build the mkdocs site."""
 
@@ -141,6 +139,7 @@ class SiteTask(BaseTask):
             for date in self.db.get_all_dates():
                 yield self.docs_dir / f"{date}.md"
                 yield self.templates_dir / f"{date}_gallery.md"
+                yield self.templates_dir / f"{date}_journal.md"
             for asset in self.__simple_assets:
                 yield self.docs_dir / asset
 
@@ -151,12 +150,9 @@ class SiteTask(BaseTask):
                 f"create_directory:{self.dist_dir}",
                 "build_static_pages:*"
                 "generate_mkdocs_config",
-                "build_gallery:*",
-                "build_day_page:*",
-                "build_journal:*",
                 "compile_css",
-                "copy_simple_asset:*",
             ],
+            calc_dep=["get_gpx_deps"],
             targets=[
                 self.dist_dir / "sitemap.xml",
             ],

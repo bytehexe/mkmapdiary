@@ -127,14 +127,6 @@ class GPXTask(BaseTask):
                 raise FileNotFoundError(f"Source file not found: {source}")
             dates.update(self.__get_contained_dates(source))
 
-        if len(dates) > 0:
-            yield {
-                "name": "debug",
-                "actions": [self.__debug_dump_gpx],
-                "uptodate": [False],
-                "verbosity": 2,
-            }
-
         for date in dates:
             dst = self.__generate_destination_filename(date)
 
@@ -153,6 +145,21 @@ class GPXTask(BaseTask):
                 "targets": [str(dst)],
                 "clean": True,
             }
+
+    @create_after("gpx2gpx")
+    def task_get_gpx_deps(self):
+        def _gpx_deps():
+            self.__debug_dump_gpx()
+            return {
+                "file_dep": [x[0] for x in self.db.get_assets_by_type("gpx")],
+            }
+
+        return {
+            "task_dep": ["gpx2gpx:*"],
+            "file_dep": [str(src) for src in self.__sources],
+            "actions": [_gpx_deps],
+            "verbosity": 2,
+        }
         
     def __debug_dump_gpx(self):
         sys.stderr.write(tabulate(self.db.dump("gpx"), headers=["ID", "Path", "Type", "DateTime", "Latitude", "Longitude"]))
