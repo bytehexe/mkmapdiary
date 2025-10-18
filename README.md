@@ -4,6 +4,9 @@
 ![PyPI - License](https://img.shields.io/pypi/l/mkmapdiary)
 ![PyPI - Status](https://img.shields.io/pypi/status/mkmapdiary)
 
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/mkmapdiary)
+
+
 -----
 
 A travel journal generator.
