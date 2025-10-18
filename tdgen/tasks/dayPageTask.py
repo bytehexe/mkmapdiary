@@ -1,10 +1,12 @@
 from .base.baseTask import BaseTask
 import datetime
+from doit import create_after
 
 class DayPageTask(BaseTask):
     def __init__(self):
         super().__init__()
-    
+
+    @create_after("gpx2gpx")
     def task_build_day_page(self):
         """Generate day pages for each date with assets."""
         
