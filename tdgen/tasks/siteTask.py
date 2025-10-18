@@ -39,44 +39,15 @@ class SiteTask(BaseTask):
 
         def _generate_mkdocs_config():
 
-            config = {
-                "site_name": self.config["site_name"],
-                "docs_dir": str(self.docs_dir.absolute()),
-                "site_dir": str(self.dist_dir.absolute()),
-                "use_directory_urls": False,
-                "strict": True,
-                "theme": {
-                    "name": self.config.get("theme", "material"),
-                    "language": self.config["locale"].split("_")[0],
-                    "icon": {
-                        "logo": "material/plane-train",
-                    }
-                },
-                "plugins": [
-                    "search",
-                    "offline",
-                    {
-                        "glightbox": {
-                            "skip_classes": [
-                                "skip-lightbox"
-                            ]
-                        }
-                    }
-                ],
-                "markdown_extensions": [
-                    {
-                        "pymdownx.snippets": {
-                            "check_paths": True,
-                            "base_path": [self.build_dir],
-                        },
-                    },
-                    "attr_list",
-                    "md_in_html",
-                ],
-                "extra_css": [
-                    "extra.css"
-                ]
-            }
+            script_dir = pathlib.Path(__file__).parent
+            with open(script_dir / "site_config.yaml") as f:
+                config = yaml.safe_load(f)
+
+            config["site_name"] = self.config["site_name"]
+            config["docs_dir"] = str(self.docs_dir.absolute())
+            config["site_dir"] = str(self.dist_dir.absolute())
+            config["theme"]["language"] = self.config["locale"].split("_")[0]
+            config["markdown_extensions"][0]["pymdownx.snippets"]["base_path"] = [self.build_dir]
 
             with open(self.build_dir / "mkdocs.yml", "w") as f:
                 yaml.dump(config, f, sort_keys=False)

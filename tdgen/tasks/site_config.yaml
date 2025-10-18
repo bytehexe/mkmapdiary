@@ -1,0 +1,19 @@
+use_directory_urls: False
+strict: True
+theme:
+  name: material
+  icon:
+    logo: "material/plane-train"
+plugins:
+  - search
+  - offline
+  - glightbox:
+      skip_classes:
+        - skip-lightbox
+markdown_extensions: 
+  - pymdownx.snippets:
+      check_paths: True
+  - attr_list
+  - md_in_html
+extra_css:
+  - extra.css
