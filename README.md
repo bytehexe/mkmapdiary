@@ -23,3 +23,8 @@ msgfmt tdgen/locale/de/LC_MESSAGES/messages.po -o tdgen/locale/de/LC_MESSAGES/me
 * Add AI summary to day pages
 * Add metadata to journal entries (datetime and place, if available)
 * Or, remove all lookup functions for improved data protection?
+* Write documentation
+  * General workings
+  * Asset database
+  * Deferred task for gpx
+  * All supported file types
