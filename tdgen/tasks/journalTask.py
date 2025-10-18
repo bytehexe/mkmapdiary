@@ -11,9 +11,9 @@ class JournalTask(BaseTask):
         def _generate_journal(date):
             gallery_path = self.docs_dir / "templates" / f"{date}_journal.md"
 
-            text_assets = []
+            assets = []
             
-            for asset in self.db.get_assets_by_date(date, "text"):
+            for asset, asset_type in self.db.get_assets_by_date(date, ("text", "markdown", "audio")):
                 with open(asset, "r") as f:
                     text = f.read()
 
@@ -21,16 +21,17 @@ class JournalTask(BaseTask):
                     continue
 
                 item = dict(
+                    type = asset_type,
                     title = text.splitlines()[0],
                     text = "\n".join(text.splitlines()[1:]).strip(),
                 )
-                text_assets.append(item)
+                assets.append(item)
 
             with open(gallery_path, "w") as f:
                 f.write(self.template(
                     "day_journal.j2",
                     journal_title = self.config["journal_title"],
-                    text_assets = text_assets,
+                    assets = assets,
                 ))
 
         for date in self.db.get_all_dates():
