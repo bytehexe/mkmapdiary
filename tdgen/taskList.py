@@ -13,6 +13,7 @@ from .tasks import MarkdownTask
 from .tasks import AudioTask
 from .tasks import GPXTask
 from .tasks import QstarzTask
+from .tasks import TagsTask
 
 from .db import Db
 
@@ -29,6 +30,7 @@ tasks = [
     AudioTask,
     GPXTask,
     QstarzTask,
+    TagsTask,
 ]
 
 class TaskList(*tasks):

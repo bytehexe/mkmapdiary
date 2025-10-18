@@ -10,3 +10,4 @@ from .markdownTask import MarkdownTask
 from .audioTask import AudioTask
 from .gpxTask import GPXTask
 from .qstarzTask import QstarzTask
+from .tagsTask import TagsTask
