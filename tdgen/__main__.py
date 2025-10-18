@@ -7,6 +7,7 @@ from doit.api import run_tasks
 from doit.doit_cmd import DoitMain
 from doit.cmd_base import ModuleTaskLoader
 from tabulate import tabulate
+import locale
 import os
 
 import sys
@@ -28,11 +29,19 @@ def validate_param(ctx, param, value):
 def main(dist_dir, config, build_dir, params, source_dir, always_execute, num_processes):
     click.echo("Generating configuration ...")
 
+    # Load config defaults
+    with open(pathlib.Path(__file__).parent / "defaults.yaml", "r") as f:
+        config_data = yaml.safe_load(f)
+
+    lc = locale.getlocale()[0].split("_")[0]
+    locale_file = pathlib.Path(__file__).parent / f"defaults_{lc}.yaml"
+    if locale_file.exists():
+        with open(locale_file, "r") as f:
+            config_data.update(yaml.safe_load(f))
+
     # Load configuration file if provided
     if config:
-        config_data = yaml.safe_load(config.read_text())
-    else:
-        config_data = {}
+        config_data.update(yaml.safe_load(config.read_text()))
 
     # Override config with params
     for param in params:

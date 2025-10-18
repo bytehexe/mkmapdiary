@@ -54,6 +54,12 @@ class Db:
         cursor = self.conn.cursor()
         cursor.execute('SELECT path FROM assets ORDER BY datetime ASC')
         return list(row[0] for row in cursor.fetchall())
+    
+    def get_all_dates(self):
+        cursor = self.conn.cursor()
+        cursor.execute('SELECT DISTINCT DATE(datetime) as date FROM assets ORDER BY DATE(datetime) ASC')
+        return list(row[0] for row in cursor.fetchall())
+
     def dump(self):
         cursor = self.conn.cursor()
         cursor.execute('SELECT * FROM assets')

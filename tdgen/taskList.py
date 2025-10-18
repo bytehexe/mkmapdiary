@@ -4,9 +4,10 @@ from collections import namedtuple, defaultdict
 from .tasks import ImageTask
 from .tasks import SiteTask
 from .tasks import Cr2Task
+from .tasks import DayPageTask
 from .db import Db
 
-class TaskList(ImageTask, SiteTask, Cr2Task):
+class TaskList(ImageTask, SiteTask, Cr2Task, DayPageTask):
     """
     Generates task lists based on source directory and configuration.
     
@@ -22,6 +23,7 @@ class TaskList(ImageTask, SiteTask, Cr2Task):
         self.build_dir = build_dir
         self.files_dir = self.build_dir / "files"
         self.docs_dir = self.build_dir / "docs"
+        self.templates_dir = self.docs_dir / "templates"
         self.assets_dir = self.docs_dir / "assets"
         self.dist_dir = dist_dir
 
