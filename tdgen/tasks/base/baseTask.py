@@ -1,6 +1,7 @@
 import datetime
 from collections import namedtuple
 from abc import ABC, abstractmethod
+from jinja2 import Environment, PackageLoader, select_autoescape
 
 class BaseTask(ABC):
     Asset = namedtuple("Asset", ["path", "type", "meta"])
@@ -8,6 +9,11 @@ class BaseTask(ABC):
     def __init__(self):
         super().__init__()
         self.__unique_paths = {}
+
+        self.__template_env = Environment(
+            loader=PackageLoader("tdgen"),
+            autoescape=select_autoescape()
+        )
 
     @abstractmethod
     def handle(self, source):
@@ -21,6 +27,10 @@ class BaseTask(ABC):
         except FileNotFoundError:
             return None
         return datetime.datetime.fromtimestamp(stat.st_mtime)
+    
+    def template(self, template, **params):
+        template = self.__template_env.get_template(template)
+        return template.render(**params)
     
     def make_unique_filename(self, source, destination):
         """Generate a unique filename by appending a counter if necessary."""
