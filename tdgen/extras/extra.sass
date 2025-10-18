@@ -25,6 +25,17 @@ body img.gallery-image
     max-width: 198px
     max-height: 198px
 
+body p.index-grid img.gallery-image
+    width: 50px
+    height: 50px
+    object-fit: cover
+
+body p.index-grid.gallery-box
+    width: 50px
+    height: 50px
+    overflow: hidden
+
+
 .gallery-box-s
     width: 150px
     height: 150px
@@ -70,6 +81,14 @@ body .gallery-float-grid
 
 body div.gallery-grid.grid
     grid-template-columns: repeat(auto-fit, minmax(200px, max-content))
+
+body div.gallery-grid.grid.index-grid
+    grid-template-columns: repeat(auto-fit, minmax(50px, max-content))
+    grid-gap: 0px
+
+body div.gallery-grid.grid.index-grid li
+    border: none
+
 
 #map
     width: 100%

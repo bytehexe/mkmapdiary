@@ -1,17 +1,15 @@
 # {{ home_title }}
 
-## {{ days_title }}
+## {{ grid_title }}
 
-{% for item in date_items %}
-<figure markdown="span" class="gallery-float-grid">
-<a href="{{ item.date }}.html">
-<div class="gallery-item gallery-box-s{% if not item.basename %} empty{% endif %}" markdown>
-{% if item.basename %}
-![Image title](assets/{{ item.basename }}){ .skip-lightbox .gallery-image-s }
-{% endif %}
-</div>
-<figcaption>{{ item.formatted_date }}</figcaption>
-</figure>
+<div class="grid cards gallery-grid index-grid" markdown>
+
+{% for item in grid_items %}
+- ![](assets/{{ item.name }}){ .gallery-image }
+  { .gallery-box .index-grid }
+
 {% endfor %}
+
+</div>
 
 <div class="clear"></div>

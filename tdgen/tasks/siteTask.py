@@ -63,25 +63,14 @@ class SiteTask(BaseTask):
         def _generate_index_page():
             index_path = self.docs_dir / 'index.md'
 
-            date_items = []
-            for date in self.db.get_all_dates():
-                try:
-                    first, _ = self.db.get_assets_by_date(date, "image")[0]
-                except IndexError:
-                    first = None
-                item = dict(
-                    date = date,
-                    formatted_date = datetime.datetime.strptime(date, "%Y-%m-%d").strftime("%x"),
-                    basename = pathlib.PosixPath(first).name if first else None,
-                )
-                date_items.append(item)
+            images = [pathlib.PosixPath(x[0]) for x in self.db.get_assets_by_type("image")]
 
             with open(index_path, "w") as f:
                 f.write(self.template(
                     "index.j2",
-                    date_items = date_items,
                     home_title = self.config["home_title"],
-                    days_title = self.config["days_title"],
+                    grid_title = self.config["grid_title"],
+                    grid_items = images,
                 ))
 
         yield dict(

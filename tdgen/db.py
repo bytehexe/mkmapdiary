@@ -67,6 +67,18 @@ class Db:
             cursor.execute('SELECT DISTINCT DATE(datetime) as date FROM assets ORDER BY DATE(datetime) ASC')
             return list(row[0] for row in cursor.fetchall())
 
+    def get_assets_by_type(self, asset_type):
+        if type(asset_type) in (list, tuple):
+            asset_placeholder = ','.join('?' for _ in asset_type)
+        else:
+            asset_type = [asset_type]
+            asset_placeholder = '?'
+
+        with self.lock:
+            cursor = self.conn.cursor()
+            cursor.execute(f'SELECT path, type FROM assets WHERE type IN ({asset_placeholder}) ORDER BY datetime ASC', tuple(asset_type))
+            return list(cursor.fetchall())
+
     def get_assets_by_date(self, date, asset_type):
         if type(asset_type) in (list, tuple):
             asset_placeholder = ','.join('?' for _ in asset_type)
