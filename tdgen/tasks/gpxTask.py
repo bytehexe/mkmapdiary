@@ -221,6 +221,7 @@ class GPXTask(BaseTask):
         return {
             "actions": [_update_positions],
             "file_dep": [str(src) for src in self.__sources],
+            "uptodate": False,
             "verbosity": 2,
         }
         
