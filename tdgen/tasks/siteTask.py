@@ -62,27 +62,24 @@ class SiteTask(BaseTask):
     def task_build_static_pages(self):
         def _generate_index_page():
             index_path = self.docs_dir / 'index.md'
-            with open(index_path, "w") as f:
-                f.write(textwrap.dedent(f"""\
-                # {self.config['home_title']}
 
-                ## { self.config['days_title'] }
-
-                """))
-                for date in self.db.get_all_dates():
-                    formatted_date = datetime.datetime.strptime(date, "%Y-%m-%d").strftime("%x")
-                    first = self.db.get_assets_by_date(date)[0]
+            date_items = []
+            for date in self.db.get_all_dates():
+                first = self.db.get_assets_by_date(date)[0]
+                item = dict(
+                    date = date,
+                    formatted_date = datetime.datetime.strptime(date, "%Y-%m-%d").strftime("%x"),
                     basename = pathlib.PosixPath(first).name
-                    f.write(textwrap.dedent(f"""\
-                    <figure markdown="span" class="gallery-float-grid">
-                    <a href="{date}.html">
-                    <div class="gallery-item gallery-box-s" markdown>
-                    ![Image title](assets/{basename}){{ .skip-lightbox .gallery-image-s }}
-                    </div>
-                    <figcaption>{formatted_date}</figcaption>
-                    </figure>
-                    """))
-                f.write('<div class="clear"></div>')
+                )
+                date_items.append(item)
+
+            with open(index_path, "w") as f:
+                f.write(self.template(
+                    "index.j2",
+                    date_items = date_items,
+                    home_title = self.config["home_title"],
+                    days_title = self.config["days_title"],
+                ))
 
         yield dict(
             name="index",
