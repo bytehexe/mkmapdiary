@@ -4,14 +4,14 @@ repos:
       - id: yamllint
         name: Yaml files must be well-formatted
         language: system
-        entry: hatch run yamllint:check
+        entry: yamllint --no-warnings
         types: [yaml]
   - repo: local
     hooks:
       - id: black
         name: Python files must be formatted with black
         language: system
-        entry: hatch run format:check
+        entry: black --check
         types: [python]
   - repo: local
     hooks:
