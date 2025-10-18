@@ -115,7 +115,20 @@ window.addEventListener("DOMContentLoaded", () => {
 
       // Unbind popup for journal waypoints
       if (wpt_data.sym == "markdown-journal-entry" || wpt_data.sym == "audio-journal-entry") {
-        e.point.unbindPopup();
+        var comment = get("cmt");
+        e.point.unbindPopup().on('click', function() {
+          console.log("Clicked waypoint with comment: " + comment);
+          if (comment) {
+            var entry = document.getElementById("asset-" + comment);
+            if (entry) {
+              entry.scrollIntoView({behavior: "smooth"});
+              entry.classList.add("active-highlight");
+              setTimeout(() => {
+                entry.classList.remove("active-highlight");
+              }, 1000);
+            }
+          }
+        });
       }
 
       // Add circle for cluster waypoints

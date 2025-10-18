@@ -140,12 +140,13 @@ class Db:
     def get_metadata(self, asset_path):
         with self.lock:
             cursor = self.conn.cursor()
-            cursor.execute('SELECT datetime, latitude, longitude FROM assets WHERE path = ?', (asset_path,))
+            cursor.execute('SELECT id, datetime, latitude, longitude FROM assets WHERE path = ?', (asset_path,))
             row = cursor.fetchone()
             if row:
                 return {
-                    'timestamp': row[0],
-                    'latitude': row[1],
-                    'longitude': row[2]
+                    'id': row[0],
+                    'timestamp': row[1],
+                    'latitude': row[2],
+                    'longitude': row[3]
                 }
             return None

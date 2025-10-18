@@ -93,10 +93,12 @@ class GpxCreator:
             geo = self.__db.get_geo_by_name(asset)
             if geo is None:
                 continue
+            metadata = self.__db.get_metadata(asset)
             wpt = gpxpy.gpx.GPXWaypoint(
                 latitude=geo['latitude'],
                 longitude=geo['longitude'],
                 name="Journal Entry",
+                comment=f"{metadata['id']}",
                 symbol=f"{asset_type}-journal-entry"
             )
             self.__gpx_out.waypoints.append(wpt)
