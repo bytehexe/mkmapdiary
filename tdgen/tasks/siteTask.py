@@ -3,6 +3,7 @@ import yaml
 import pathlib
 import textwrap
 import datetime
+import sass
 
 class SiteTask(BaseTask):
     def __init__(self):
@@ -71,6 +72,9 @@ class SiteTask(BaseTask):
                     },
                     "attr_list",
                     "md_in_html",
+                ],
+                "extra_css": [
+                    "extra.css"
                 ]
             }
 
@@ -89,21 +93,25 @@ class SiteTask(BaseTask):
             index_path = self.docs_dir / 'index.md'
             with open(index_path, "w") as f:
                 f.write(textwrap.dedent(f"""\
-                ---
-                title: {self.config['home_title']}
-                ---
+                # {self.config['home_title']}
+
+                ## { self.config['days_title'] }
+
                 """))
                 for date in self.db.get_all_dates():
                     formatted_date = datetime.datetime.strptime(date, "%Y-%m-%d").strftime("%x")
                     first = self.db.get_assets_by_date(date)[0]
                     basename = pathlib.PosixPath(first).name
                     f.write(textwrap.dedent(f"""\
-                    <figure markdown="span">
+                    <figure markdown="span" class="gallery-float-grid">
                     <a href="{date}.html">
-                    ![Image title](assets/{basename}){{ .skip-lightbox style="max-width: 400px; max-height: 400px" }}
+                    <div class="gallery-item gallery-box-s" markdown>
+                    ![Image title](assets/{basename}){{ .skip-lightbox .gallery-image-s }}
+                    </div>
                     <figcaption>{formatted_date}</figcaption>
                     </figure>
                     """))
+                f.write('<div class="clear"></div>')
 
         yield dict(
             name="index",
@@ -116,6 +124,23 @@ class SiteTask(BaseTask):
             uptodate=[True],
         )
 
+    def task_compile_css(self):
+        script_dir = pathlib.Path(__file__).parent
+        input_sass = script_dir.parent / "extras" / "extra.sass"
+        output_css = self.docs_dir / "extra.css"
+
+        def _generate():
+            css = sass.compile(filename=str(input_sass), output_style='compressed')
+            with open(str(output_css), "w") as f:
+                f.write(css)
+
+        return dict(
+            actions=[_generate],
+            file_dep=[input_sass],
+            targets=[output_css]
+        )
+
+
     def task_build_site(self):
         """Build the mkdocs site."""
 
@@ -126,6 +151,7 @@ class SiteTask(BaseTask):
             for date in self.db.get_all_dates():
                 yield self.docs_dir / f"{date}.md"
                 yield self.templates_dir / f"{date}_gallery.md"
+            yield self.docs_dir / "extra.css"
 
         return dict(
             actions=["mkdocs build --clean --config-file " + str(self.build_dir / "mkdocs.yml")],

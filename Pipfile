@@ -16,6 +16,7 @@ rawpy = "*"
 imageio = "*"
 pyexiftool = "*"
 tabulate = "*"
+libsass = "*"
 
 [dev-packages]
 

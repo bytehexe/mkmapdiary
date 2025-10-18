@@ -67,10 +67,10 @@ def main(dist_dir, config, build_dir, params, source_dir, always_execute, num_pr
     config_data.setdefault("gallery_title", _("Gallery"))
     config_data.setdefault("map_title", _("Map"))
     config_data.setdefault("journal_title", _("Journal"))
+    config_data.setdefault("days_title", _("Days"))
 
     # Set locale
     locale.setlocale(locale.LC_TIME, config_data["locale"])
-
 
     click.echo("Generating tasks ...")
 

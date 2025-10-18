@@ -1,0 +1,52 @@
+.gallery-item
+    border: .05rem solid var(--md-default-fg-color--lightest)
+    border-radius: .1rem
+    display: block
+    margin: 0
+    padding: .8rem
+    transition: border .25s, box-shadow .25s
+
+.gallery-item:hover
+    border-color: #0000
+    box-shadow: var(--md-shadow-z2)
+
+.gallery-box
+    width: 200px
+    height: 200px
+    position: relative
+
+body img.gallery-image
+    position: absolute
+    left: 0
+    right: 0
+    top: 0
+    bottom: 0
+    margin: auto
+    max-width: 198px
+    max-height: 198px
+
+.gallery-box-s
+    width: 150px
+    height: 150px
+    position: relative
+
+body img.gallery-image-s
+    position: absolute
+    left: 0
+    right: 0
+    top: 0
+    bottom: 0
+    margin: auto
+    max-width: 148px
+    max-height: 148px
+
+.clear
+    clear: left
+
+body .gallery-float-grid
+    float: left
+    margin-right: .4rem
+    margin-bottom: .4rem
+
+body div.gallery-grid.grid
+    grid-template-columns: repeat(auto-fit, minmax(200px, max-content))
