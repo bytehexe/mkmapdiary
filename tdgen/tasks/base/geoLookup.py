@@ -21,9 +21,18 @@ class GeoLookup(HttpRequest):
             }
             return self.httpRequest(url, params, headers)
 
-    @staticmethod
-    def __decimals_for_zoom(zoom):
-        return max(0, min(6, round(0.33 * zoom - 1.5)))
+    def __decimals_for_zoom(self, zoom):
+        if self.config["geo_lookup"]["high_precision"]:
+            offset = 1
+        else:
+            offset = 0
+
+        if zoom <= 4:
+            return 0 + offset
+        elif zoom <= 9:
+            return 1 + offset
+        else:
+            return 2 + offset
 
     @staticmethod
     def __round_coord(coord, zoom):
@@ -31,6 +40,8 @@ class GeoLookup(HttpRequest):
         return round(coord, d)
 
     def geoReverse(self, lat, lon, zoom):
+        zoom = max(1, min(zoom, 10))  # Clamp zoom
+
         with lock:
             time.sleep(1)  # respect rate limit
 
