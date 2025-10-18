@@ -10,6 +10,7 @@ import sys
 import bisect
 from tdgen.gpxCreator import GpxCreator
 
+
 class GPXTask(BaseTask):
     def __init__(self):
         super().__init__()
@@ -30,7 +31,7 @@ class GPXTask(BaseTask):
         with open(source, "r", encoding="utf-8") as f:
             gpx = gpxpy.parse(f)
         for wpt in gpx.waypoints:
-                dates.add(wpt.time.date() if wpt.time is not None else None)
+            dates.add(wpt.time.date() if wpt.time is not None else None)
         for trk in gpx.tracks:
             for seg in trk.segments:
                 for pt in seg.points:
@@ -38,7 +39,7 @@ class GPXTask(BaseTask):
         for rte in gpx.routes:
             for pt in rte.points:
                 dates.add(pt.time.date() if pt.time is not None else None)
-            
+
         try:
             dates.remove(None)
         except KeyError:
@@ -63,7 +64,7 @@ class GPXTask(BaseTask):
         with open(dst, "w", encoding="utf-8") as f:
             f.write(gpx_out)
 
-    @create_after("geo2gpx", target_regex=r'.*\.gpx')
+    @create_after("geo2gpx", target_regex=r".*\.gpx")
     def task_gpx2gpx(self):
 
         # Collect all dates in all source files
@@ -81,7 +82,7 @@ class GPXTask(BaseTask):
                 "gpx",
                 {
                     "date": datetime.combine(date, datetime.min.time()),
-                }
+                },
             )
 
             yield {
@@ -93,7 +94,13 @@ class GPXTask(BaseTask):
                 "clean": True,
             }
 
-        journal_dates = set(datetime.fromisoformat(date).date() for date in self.db.get_geotagged_journals()) - dates
+        journal_dates = (
+            set(
+                datetime.fromisoformat(date).date()
+                for date in self.db.get_geotagged_journals()
+            )
+            - dates
+        )
         for date in journal_dates:
             dst = self.__generate_destination_filename(date)
             yield {
@@ -125,7 +132,7 @@ class GPXTask(BaseTask):
             "actions": [_gpx_deps],
             "verbosity": 2,
         }
-    
+
     def __get_timed_coords(self, gpx, coords):
         for wpt in gpx.waypoints:
             if wpt.time is not None:
@@ -153,18 +160,22 @@ class GPXTask(BaseTask):
             coords.sort(key=lambda x: x[0])
             for asset_id, asset_time in self.db.get_unpositioned_assets():
                 # Find closest coordinate by time
-                asset_time = datetime.fromisoformat(asset_time).replace(tzinfo=tz) + offset
+                asset_time = (
+                    datetime.fromisoformat(asset_time).replace(tzinfo=tz) + offset
+                )
                 candidates = []
                 pos = bisect.bisect_left(coords, asset_time, key=lambda x: x[0])
                 if pos > 0:
-                    candidates.append(coords[pos-1])
+                    candidates.append(coords[pos - 1])
                 if pos < len(coords):
                     candidates.append(coords[pos])
                 if candidates:
                     closest = min(candidates, key=lambda x: abs(x[0] - asset_time))
                     diff = (closest[0] - asset_time).total_seconds()
                     if abs(diff) < self.config["geo_correlation"]["max_time_diff"]:
-                        self.db.update_asset_position(asset_id, closest[1], closest[2], int(diff))
+                        self.db.update_asset_position(
+                            asset_id, closest[1], closest[2], int(diff)
+                        )
             sys.stderr.write(tabulate(*self.db.dump()))
             sys.stderr.write("\n")
             sys.stderr.flush()
@@ -175,7 +186,7 @@ class GPXTask(BaseTask):
             "uptodate": [False],
             "verbosity": 2,
         }
-        
+
     def __debug_dump_gpx(self):
         sys.stderr.write(tabulate(*self.db.dump("gpx")))
         sys.stderr.write("\n")

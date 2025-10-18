@@ -1,5 +1,6 @@
 from .base.baseTask import BaseTask
 
+
 class QstarzTask(BaseTask):
     def __init__(self):
         super().__init__()
@@ -21,11 +22,13 @@ class QstarzTask(BaseTask):
 
         assets = list(self.handle_gpx(intermediate_file))
         return assets
-    
+
     def __generate_destination_filename(self, source):
-        filename = (self.files_dir / source.stem).with_suffix(f"{source.suffix[0:2]}.gpx")
+        filename = (self.files_dir / source.stem).with_suffix(
+            f"{source.suffix[0:2]}.gpx"
+        )
         return self.make_unique_filename(source, filename)
-    
+
     def task_qstarz2gpx(self):
         for source in self.__sources:
             dst = self.__generate_destination_filename(source)
@@ -33,6 +36,8 @@ class QstarzTask(BaseTask):
                 "name": f"{source}",
                 "file_dep": [source],
                 "targets": [dst],
-                "actions": ["gpsbabel -t -w -r -i qstarz_bl-1000 -f %(dependencies)s -o gpx -F %(targets)s"],
+                "actions": [
+                    "gpsbabel -t -w -r -i qstarz_bl-1000 -f %(dependencies)s -o gpx -F %(targets)s"
+                ],
                 "clean": True,
             }

@@ -33,10 +33,11 @@ tasks = [
     TagsTask,
 ]
 
+
 class TaskList(*tasks):
     """
     Generates task lists based on source directory and configuration.
-    
+
     The TaskList identifies files and directories based on tags and lists
     them accordingly.
     """
@@ -62,47 +63,47 @@ class TaskList(*tasks):
     def config(self):
         """Property to access the configuration."""
         return self.__config
-    
+
     @property
     def db(self):
         """Property to access the database."""
         return self.__db
-    
+
     @property
     def source_dir(self):
         """Property to access the source directory."""
         return self.__source_dir
-    
+
     @property
     def build_dir(self):
         """Property to access the build directory."""
         return self.__build_dir
-    
+
     @property
     def files_dir(self):
         """Property to access the files directory."""
         return self.__files_dir
-    
+
     @property
     def docs_dir(self):
         """Property to access the docs directory."""
         return self.__docs_dir
-    
+
     @property
     def templates_dir(self):
         """Property to access the templates directory."""
         return self.__templates_dir
-    
+
     @property
     def assets_dir(self):
         """Property to access the assets directory."""
         return self.__assets_dir
-    
+
     @property
     def dist_dir(self):
         """Property to access the distribution directory."""
         return self.__dist_dir
-    
+
     @property
     def cache(self):
         """Property to access the cache."""
@@ -114,7 +115,7 @@ class TaskList(*tasks):
 
     def __scan(self):
         """Scan the source directory and identify files and directories."""
-        self.handle(self.source_dir)            
+        self.handle(self.source_dir)
 
     def handle(self, source):
         """Handle a source file or directory based on its tags."""
@@ -140,7 +141,7 @@ class TaskList(*tasks):
         if handler is not None:
             self.add_assets(handler(source))
             return
-        
+
         ext = ("_".join(x[1:] for x in source.suffixes)).lower()
         try:
             handler = getattr(self, f"handle_ext_{ext}")
@@ -151,22 +152,24 @@ class TaskList(*tasks):
             self.add_assets(handler(source))
             return
 
-        print(f"Warning: No handler for {source} with tags {tags} and extension '{ext}'")            
+        print(
+            f"Warning: No handler for {source} with tags {tags} and extension '{ext}'"
+        )
 
     def handle_directory(self, source):
         """Handle a directory by processing its contents."""
         for item in source.iterdir():
             self.handle(item)
-    
+
     def handle_symlink(self, source):
         """Handle a symlink by resolving its target."""
         target = source.resolve()
         self.handle(target)
-    
+
     def add_assets(self, assets):
         """Add an asset to the list."""
         if assets is None:
             return
-        
+
         for asset in assets:
             self.db.add_asset(asset.path, asset.type, asset.meta)

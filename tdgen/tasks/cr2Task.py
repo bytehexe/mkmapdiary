@@ -3,6 +3,7 @@ import imageio.v2 as imageio
 from .base.baseTask import BaseTask
 from .base.exifReader import ExifReader
 
+
 class Cr2Task(BaseTask, ExifReader):
     def __init__(self):
         super().__init__()
@@ -19,27 +20,28 @@ class Cr2Task(BaseTask, ExifReader):
 
         assert len(assets) == 1
         asset = assets[0]
-        
+
         asset.meta.update(self.read_exif(source))
         yield asset
 
     def task_convert_raw(self):
         """Convert a RAW image to JPEG."""
+
         def _convert(src, dst):
             with rawpy.imread(str(src)) as raw:
                 rgb = raw.postprocess(
-                    use_camera_wb=True,      # Kamera-Weißabgleich
-                    no_auto_bright=True,     # keine automatische Helligkeit
-                    output_bps=8             # 8-bit pro Kanal (statt 16)
-            )
+                    use_camera_wb=True,  # Kamera-Weißabgleich
+                    no_auto_bright=True,  # keine automatische Helligkeit
+                    output_bps=8,  # 8-bit pro Kanal (statt 16)
+                )
             imageio.imwrite(dst, rgb)
 
         for src in self.__sources:
             dst = self.__generate_intermediate_filename(src)
             yield dict(
-                    name=dst,
-                    actions=[(_convert, (src, dst))],
-                    file_dep=[src],
-                    targets=[dst],
-                    task_dep=[f"create_directory:{dst.parent}"],
-                )
+                name=dst,
+                actions=[(_convert, (src, dst))],
+                file_dep=[src],
+                targets=[dst],
+                task_dep=[f"create_directory:{dst.parent}"],
+            )

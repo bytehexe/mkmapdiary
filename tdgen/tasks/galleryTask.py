@@ -3,10 +3,11 @@ import datetime
 import pathlib
 from doit import create_after
 
+
 class GalleryTask(BaseTask):
     def __init__(self):
         super().__init__()
-    
+
     @create_after("gpx2gpx")
     def task_build_gallery(self):
         """Generate gallery pages."""
@@ -19,7 +20,7 @@ class GalleryTask(BaseTask):
 
             for i, (asset, _) in enumerate(self.db.get_assets_by_date(date, "image")):
                 item = dict(
-                    basename = pathlib.PosixPath(asset).name,
+                    basename=pathlib.PosixPath(asset).name,
                 )
 
                 gallery_items.append(item)
@@ -28,11 +29,11 @@ class GalleryTask(BaseTask):
                 if geo_data_item:
 
                     geo_item = dict(
-                        photo = "assets/" + asset.split('/')[-1],
-                        thumbnail = "assets/" + asset.split('/')[-1],
-                        lat = geo_data_item["latitude"],
-                        lng = geo_data_item["longitude"],
-                        index = i,
+                        photo="assets/" + asset.split("/")[-1],
+                        thumbnail="assets/" + asset.split("/")[-1],
+                        lat=geo_data_item["latitude"],
+                        lng=geo_data_item["longitude"],
+                        index=i,
                     )
                     geo_items.append(geo_item)
 
@@ -45,14 +46,16 @@ class GalleryTask(BaseTask):
                 gpx_data = None
 
             with open(gallery_path, "w") as f:
-                f.write(self.template(
-                    "day_gallery.j2",
-                    map_title = self.config["map_title"],
-                    gallery_title = self.config["gallery_title"],
-                    gallery_items = gallery_items,
-                    geo_items = geo_items,
-                    gpx_data = gpx_data,
-                ))
+                f.write(
+                    self.template(
+                        "day_gallery.j2",
+                        map_title=self.config["map_title"],
+                        gallery_title=self.config["gallery_title"],
+                        gallery_items=gallery_items,
+                        geo_items=geo_items,
+                        gpx_data=gpx_data,
+                    )
+                )
 
         for date in self.db.get_all_dates():
             yield dict(
