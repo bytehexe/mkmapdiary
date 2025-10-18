@@ -1,4 +1,11 @@
+{% if geo_items %}
+## {{ map_title }}
+
+<div id="map" style="width:100%; height: 500px; z-index: 0"></div>
+
+{% endif %}
 {% if gallery_items %}
+
 ## {{ gallery_title }}
 
 <div class="grid cards gallery-grid" markdown>
