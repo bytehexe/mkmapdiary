@@ -70,9 +70,9 @@ class GPXTask(BaseTask):
         for source in self.__sources:    
             with open(source, "r", encoding="utf-8") as f:
                 gpx = gpxpy.parse(f)
-            for wpt in gpx.waypoints:
-                if wpt.time is not None and wpt.time.date() == date:
-                    gpx_out.waypoints.append(wpt)
+            for mwpt in gpx.waypoints:
+                if mwpt.time is not None and mwpt.time.date() == date:
+                    gpx_out.waypoints.append(mwpt)
             for trk in gpx.tracks:
                 new_trk = gpxpy.gpx.GPXTrack(name=trk.name, description=trk.description)
                 for seg in trk.segments:
@@ -105,14 +105,23 @@ class GPXTask(BaseTask):
                     continue
                 cluster_coords = coords[labels == label]
                 cluster = GeoCluster(cluster_coords)
-                lat, lon = cluster.mass_point
-                wpt = gpxpy.gpx.GPXWaypoint(
-                    latitude=lat, longitude=lon,
+                mlat, mlon = cluster.mass_point
+                mwpt = gpxpy.gpx.GPXWaypoint(
+                    latitude=mlat, longitude=mlon,
                     name=f"Cluster {label}",
                     description=f"Cluster of {len(cluster_coords)} points and radius {cluster.radius:.1f} m",
+                    symbol="cluster-mass"
                 )
-                gpx_out.waypoints.append(wpt)
-                
+                gpx_out.waypoints.append(mwpt)
+                clat, clon = cluster.midpoint
+                cwpt = gpxpy.gpx.GPXWaypoint(                
+                    latitude=clat, longitude=clon,
+                    name=f"Cluster {label} Center",
+                    description=f"Center of cluster {label}",
+                    symbol="cluster-center",
+                    position_dilution=cluster.radius
+                )
+                gpx_out.waypoints.append(cwpt)
 
         with open(dst, "w", encoding="utf-8") as f:
             f.write(gpx_out.to_xml())
