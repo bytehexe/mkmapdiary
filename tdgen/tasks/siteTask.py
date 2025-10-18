@@ -17,8 +17,6 @@ class SiteTask(BaseTask):
             "cross-orange.svg",
             "logo-blue.svg",
             "logo-white.svg",
-            "logo-blue-s.svg",
-            "logo-white-s.svg",
         ]
 
     @property
