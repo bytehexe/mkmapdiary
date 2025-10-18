@@ -23,6 +23,7 @@ lxml = "*"
 pydub = "*"
 openai-whisper = "*"
 ollama = "*"
+gpxpy = "*"
 
 [dev-packages]
 
