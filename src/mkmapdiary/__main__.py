@@ -104,8 +104,9 @@ def main(
     # Load local user configuration
     user_config_file = pathlib.Path.home() / f".mkmapdiary/config.yaml"
     if user_config_file.exists():
-        with open(user_config_file, "r") as f:
-            config_data = deep_update(config_data, yaml.safe_load(f))
+        config_data = deep_update(
+            config_data, yaml.safe_load(user_config_file.read_text())
+        )
 
     # Load project configuration file if provided
     project_config_file = source_dir / "config.yaml"
