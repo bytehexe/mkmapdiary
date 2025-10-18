@@ -5,6 +5,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // Initialize map
   const map = L.map('map');
+  window.theMap = map;
+  var deferred = [];
 
   // Add OpenStreetMap tiles
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -25,6 +27,41 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   if (gpx_data) {
+
+    const invisibleIcon = new L.divIcon({
+      html: '',          // No HTML content
+      className: 'invisible-marker', 
+      iconSize: [0, 0]
+    })
+
+    const clusterIcon = new L.divIcon({
+      html: '<i class="iconoir iconoir-component"></i>',
+      className: 'map-simple-icon map-simple-icon-orange',
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+    })
+
+    const startIcon = new L.divIcon({
+      html: '<i class="iconoir iconoir-play-solid"></i>',
+      className: 'map-simple-icon map-simple-icon-blue',
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+    })
+
+    const endIcon = new L.divIcon({
+      html: '<i class="iconoir iconoir-pause-solid"></i>',
+      className: 'map-simple-icon map-simple-icon-blue',
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+    })
+
+    const starIcon = new L.divIcon({
+      html: '<i class="iconoir iconoir-star-solid"></i>',
+      className: 'map-simple-icon map-simple-icon-red',
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+    })
+
     parser = new DOMParser();
     xmlDoc = parser.parseFromString(gpx_data, "text/xml");
     
@@ -32,29 +69,29 @@ window.addEventListener("DOMContentLoaded", () => {
       async: true,
       max_point_interval: 15000,
       markers: {
-        startIcon: new L.AwesomeMarkers.icon({
-          icon: 'play-solid',
-          prefix: 'iconoir',
-        }),
-        endIcon: new L.AwesomeMarkers.icon({
-          icon: 'pause-solid',
-          prefix: 'iconoir',
-
-        }),
+        startIcon: startIcon,
+        endIcon: endIcon,
         wptIcons: {
-          '': new L.AwesomeMarkers.icon({
-            icon: 'star-solid',
-            markerColor: 'red',
-            iconColor: 'white',
-            prefix: 'iconoir',
-          })
+          '': starIcon,
+          'cluster-mass': clusterIcon,
+          'cluster-center': invisibleIcon,
         }
       }
     }).on('addpoint', function(e) {
-      console.log('Added ' + e.point_type + ' point:', e);
+      if (e.point_type == "waypoint" && e.element.querySelector("sym").innerHTML == "cluster-center") {
+        console.log('Added cluster ' + e.point_type + ' point:', e);
+        var pdop = parseFloat(e.element.querySelector("pdop").innerHTML);
+        deferred.push(new L.circle(e.point._latlng, {
+          radius: pdop,
+          color: 'orange',
+        }));
+      }
     }).on('loaded', function(e) {
       combinedBounds.extend(e.target.getBounds());
       map.fitBounds(combinedBounds);
+      for (const layer of deferred) {
+        layer.addTo(map);
+      }
     }).addTo(map);
   }
 
