@@ -1,0 +1,11 @@
+## {{ gallery_title }}
+
+<div class="grid cards gallery-grid" markdown>
+
+{% for item in gallery_items %}
+- ![](assets/{{ item.basename }}){ .gallery-image }
+  { .gallery-box }
+
+{% endfor %}
+
+</div>

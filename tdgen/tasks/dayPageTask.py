@@ -1,6 +1,5 @@
 from .base.baseTask import BaseTask
 import datetime
-import textwrap
 import pathlib
 
 class DayPageTask(BaseTask):
@@ -15,7 +14,7 @@ class DayPageTask(BaseTask):
             with open(day_page_path, "w") as f:
                 formatted_date = datetime.datetime.strptime(date, "%Y-%m-%d").strftime("%x")
                 f.write(self.template(
-                    "date_base.j2",
+                    "day_base.j2",
                     formatted_date = formatted_date,
                     map_title = self.config["map_title"],
                     journal_title = self.config["journal_title"],
@@ -36,15 +35,20 @@ class DayPageTask(BaseTask):
         # This is a placeholder for actual gallery generation logic
         def _generate_gallery(date):
             gallery_path = self.docs_dir / "templates" / f"{date}_gallery.md"
+
+            gallery_items = []
+            for asset in self.db.get_assets_by_date(date):
+                item = dict(
+                    basename = pathlib.PosixPath(asset).name,
+                )
+                gallery_items.append(item)
+
             with open(gallery_path, "w") as f:
-                f.write(f"## { self.config['gallery_title'] }\n\n")
-                f.write('<div class="grid cards gallery-grid" markdown>\n')
-                for asset in self.db.get_assets_by_date(date):
-                    basename = pathlib.PosixPath(asset).name
-                    f.write(f"- ![](assets/{basename}){{ .gallery-image }}\n")
-                    f.write('  { .gallery-box }')
-                    f.write('\n')
-                f.write('</div>')
+                f.write(self.template(
+                    "day_gallery.j2",
+                    gallery_title = self.config["gallery_title"],
+                    gallery_items = gallery_items,
+                ))
 
         for date in self.db.get_all_dates():
             yield dict(
