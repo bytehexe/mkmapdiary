@@ -1,4 +1,5 @@
 from .base.baseTask import BaseTask
+import yaml
 
 class SiteTask(BaseTask):
     def __init__(self):
@@ -25,4 +26,55 @@ class SiteTask(BaseTask):
                     name=dir,
                     actions=[(_create_directory, (dir,))],
                     targets=[dir],
+                    uptodate=[True],  # Always consider this task up-to-date after the first run
                 )
+            
+    def task_generate_mkdocs_config(self):
+        """Generate mkdocs config."""
+
+        def _generate_mkdocs_config():
+
+            config = {
+                "site_name": self.config.get("site_name", "Travel Diary"),
+                "docs_dir": str(self.docs_dir.absolute()),
+                "site_dir": str(self.dist_dir.absolute()),
+                "use_directory_urls": False,
+                "theme": {
+                    "name": self.config.get("theme", "material"),
+                },
+            }
+
+            with open(self.build_dir / "mkdocs.yml", "w") as f:
+                yaml.dump(config, f, sort_keys=False)
+
+        return dict(
+            actions=[(_generate_mkdocs_config, ())],
+            targets=[self.build_dir / "mkdocs.yml"],
+            task_dep=[f"create_directory:{self.build_dir}"],
+        )
+    
+    def task_build_static_pages(self):
+        yield dict(
+            name="index",
+            actions=[f"touch {self.docs_dir / 'index.md'}"],
+            file_dep=[],
+            task_dep=[
+                f"create_directory:{self.dist_dir}",
+            ],
+            targets=[self.docs_dir / "index.md"],
+        )
+
+    def task_build_site(self):
+        """Build the mkdocs site."""
+
+        return dict(
+            actions=["mkdocs build --clean --config-file " + str(self.build_dir / "mkdocs.yml")],
+            task_dep=[
+                f"create_directory:{self.dist_dir}",
+                "build_static_pages:*"
+                "generate_mkdocs_config",
+            ],
+            uptodate=[False],  # Always rebuild the site
+            targets=[],
+            verbosity=2,
+        )
