@@ -25,7 +25,6 @@ class Db:
 
     def add_asset(self, path, type, meta):
         assert 'date' not in meta or meta['date'] is None or isinstance(meta['date'], datetime.datetime), "Meta 'date' must be a datetime object or None"
-        print (f"DB: Adding asset {path} of type {type} with meta {meta}")
 
         with self.lock:
             cursor = self.conn.cursor()
@@ -104,8 +103,11 @@ class Db:
                 return {'name': row[0], 'latitude': row[1], 'longitude': row[2]}
             return None
 
-    def dump(self):
+    def dump(self, asset_type=None):
         with self.lock:
             cursor = self.conn.cursor()
-            cursor.execute('SELECT * FROM assets')
+            if asset_type:
+                cursor.execute('SELECT * FROM assets WHERE type = ?', (asset_type,))
+            else:
+                cursor.execute('SELECT * FROM assets')
             return list(cursor.fetchall())

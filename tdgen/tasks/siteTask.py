@@ -4,6 +4,7 @@ import pathlib
 import datetime
 import sass
 import shutil
+from doit import create_after
 
 class SiteTask(BaseTask):
     def __init__(self):
@@ -127,6 +128,7 @@ class SiteTask(BaseTask):
             )
 
 
+    @create_after("gpx2gpx")
     def task_build_site(self):
         """Build the mkdocs site."""
 
