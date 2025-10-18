@@ -89,6 +89,7 @@ features = []
 extra-dependencies = [
   "mypy>=1.0.0",
 ]
+features = []
 
 [tool.hatch.envs.types.scripts]
 check = "mypy --install-types --non-interactive {args:src/mkmapdiary tests}"
