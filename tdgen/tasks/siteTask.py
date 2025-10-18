@@ -103,7 +103,8 @@ class SiteTask(BaseTask):
     def task_copy_js(self):
         scripts = [
             "geo.js",
-            "audio.js"
+            "audio.js",
+            "gpx.js",
         ]
 
         script_dir = pathlib.Path(__file__).parent

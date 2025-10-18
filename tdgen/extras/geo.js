@@ -21,17 +21,48 @@ window.addEventListener("DOMContentLoaded", () => {
   parser = new DOMParser();
   xmlDoc = parser.parseFromString(gpx_data, "text/xml");
   
-  const gpx = new L.GPX().parseGPX(xmlDoc, {});
+  const gpx = new L.GPX(gpx_data, {
+    max_point_interval: 15000,
+    markers: {
+      startIcon: new L.AwesomeMarkers.icon({
+        icon: 'play-solid',
+        prefix: 'iconoir',
+      }),
+      endIcon: new L.AwesomeMarkers.icon({
+        icon: 'pause-solid',
+        prefix: 'iconoir',
+
+      }),
+      wptIcons: {
+        '': new L.AwesomeMarkers.icon({
+          icon: 'star-solid',
+          markerColor: 'red',
+          iconColor: 'white',
+          prefix: 'iconoir',
+        })
+      }
+    }
+  });
   gpx.addTo(map);
 
   photoLayer.add(photo_data).addTo(map);
 
   var combinedBounds = L.latLngBounds([]);
 
-  // Get GPX layers
-  for (const layer in gpx._layers) {
-    combinedBounds.extend(gpx._layers[layer]._bounds);
+
+  function addLayerBounds(obj) {
+    for (const layer_id in obj._layers) {
+      layer = obj._layers[layer_id]
+      if (layer._bounds) {
+        combinedBounds.extend(layer._bounds);
+      }
+      if (layer._layers) {
+        addLayerBounds(layer)
+      }
+    }
   }
+
+  addLayerBounds(gpx)
 
   combinedBounds.extend(photoLayer.getBounds());
   map.fitBounds(combinedBounds);
