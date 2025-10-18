@@ -8,3 +8,4 @@ from .journalTask import JournalTask
 from .textTask import TextTask
 from .markdownTask import MarkdownTask
 from .audioTask import AudioTask
+from .gpxTask import GPXTask

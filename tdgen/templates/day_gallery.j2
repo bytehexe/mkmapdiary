@@ -1,7 +1,11 @@
-{% if geo_items %}
+{% if geo_items or gpx_data %}
 ## {{ map_title }}
 
 <div id="map"></div>
+<script>
+photo_data = {{ geo_items | tojson }};
+gpx_data = {{ gpx_data | tojson }};
+</script>
 
 {% endif %}
 {% if gallery_items %}
@@ -17,9 +21,4 @@
 {% endfor %}
 
 </div>
-
-<script>
-photo_data = {{ geo_items | tojson }};
-</script>
-
 {% endif %}
