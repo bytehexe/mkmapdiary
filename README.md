@@ -17,12 +17,8 @@ msgfmt tdgen/locale/de/LC_MESSAGES/messages.po -o tdgen/locale/de/LC_MESSAGES/me
 
 ## Todo
 
-* Refactor clusters: move them out of the GPX file
-* Add approx tagging for photos using gps data (with adjustable offset)
-  * same for journal entries
+* Add approx tagging for assets using gps data (with adjustable offset)
 * Add AI summary to day pages
-* Add metadata to journal entries (datetime and place, if available)
-* Or, remove all lookup functions for improved data protection?
 * Write documentation
   * General workings
   * Asset database
