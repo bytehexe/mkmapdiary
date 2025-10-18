@@ -87,7 +87,7 @@ class SiteTask(HttpRequest):
                     self.template(
                         "index.j2",
                         home_title=self.config["home_title"],
-                        grid_title=self.config["grid_title"],
+                        gallery_title=self.config["gallery_title"],
                         grid_items=images,
                     )
                 )

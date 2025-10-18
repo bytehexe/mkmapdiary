@@ -138,7 +138,6 @@ def main(
     config_data.setdefault("map_title", _("Map"))
     config_data.setdefault("journal_title", _("Journal"))
     config_data.setdefault("days_title", _("Days"))
-    config_data.setdefault("grid_title", _("Mosaic"))
     config_data.setdefault("audio_title", _("Audio"))
 
     # Set locale

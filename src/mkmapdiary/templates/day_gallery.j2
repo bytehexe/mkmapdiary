@@ -17,13 +17,9 @@ gpx_data = {{ gpx_data | tojson }};
 
 ## {{ gallery_title }}
 
-<div class="grid cards gallery-grid" markdown>
-
-{% for item in gallery_items %}
-- ![](assets/{{ item.basename }}){ .gallery-image }
-  { .gallery-box }
-
-{% endfor %}
-
+<div id="photo_gallery" markdown>
+{%- for item in gallery_items -%}
+![](assets/{{ item.basename }}){ height="200" width="200" }
+{%- endfor -%}
 </div>
 {% endif %}
