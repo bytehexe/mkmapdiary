@@ -1,6 +1,6 @@
 from PIL import Image
 from .base.baseTask import BaseTask
-from .base.exifReader import ExifReader
+from .base.geoLookup import GeoLookup
 import json, yaml
 from jsonschema import validate
 import pathlib
@@ -14,7 +14,7 @@ import time
 
 coder_lock = Lock()
 
-class GeojsonTask(BaseTask, ExifReader):
+class GeojsonTask(GeoLookup):
     def __init__(self):
         super().__init__()
         self.__sources = []
@@ -85,32 +85,13 @@ class GeojsonTask(BaseTask, ExifReader):
         gpx.tracks.append(trk)
         return trkseg
     
-    def __nominatim_query(self, location):
-        # get geocoder lock
-        with coder_lock:
-            print(f"Looking up location: {location}")
-            time.sleep(1)  # respect rate limit
-
-            print("Querying Nominatim...")
-            r = requests.get("https://nominatim.openstreetmap.org/", params={
-                "q": location,
-                "format": "json",
-                "limit": 1
-            }, headers={
-                "User-Agent": "tdgen/0.1 travel-diary generator"
-            }, timeout=4)
-            r.raise_for_status()
-            results = r.json()
-            return results
-
 
     def __lookup(self, lookup):
         # lookup can be coordinates
         if isinstance(lookup, list) and len(lookup) in (2, 3):
             return lookup
         
-
-        data = self.with_cache("nominatim", self.__nominatim_query, lookup)
+        data = self.geoSearch(lookup)
 
         location = data[0] if data else None
 
