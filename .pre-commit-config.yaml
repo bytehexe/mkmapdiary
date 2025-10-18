@@ -13,3 +13,11 @@ repos:
         language: system
         entry: black --check
         types: [python]
+  - repo: local
+    hooks:
+      - id: pypy
+        name: Python files must be type-checked with pypy
+        language: system
+        entry: hatch run types:check
+        pass_filenames: false
+        types: [python]
