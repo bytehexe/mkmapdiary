@@ -3,8 +3,8 @@ strict: True
 
 theme:
   name: material
-  icon:
-    logo: "material/plane-train"
+  logo: "logo-white-s.svg"
+  favicon: "logo-blue-s.svg"
 
 plugins:
   - search
