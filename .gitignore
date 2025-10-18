@@ -1,6 +1,7 @@
 /src*/
 /dist/
 /build/
+/alpha/
 
 # Python
 __pycache__/
