@@ -33,6 +33,7 @@ class JournalTask(BaseTask):
                     latitude = metadata["latitude"],
                     longitude = metadata["longitude"],
                     location = location,
+                    id = metadata["id"],
                 )
                 assets.append(item)
 

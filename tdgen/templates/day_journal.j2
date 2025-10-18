@@ -2,6 +2,7 @@
 ## {{ journal_title }}
 
 {% for asset in assets %}
+<div class="journal-entry" id="asset-{{ asset.id }}" markdown>
 {% if asset.type == "markdown" %}
 --8<-- "docs/assets/{{ asset.path }}:1:1"
 {% elif asset.type == "audio" %}
@@ -20,5 +21,6 @@
 --8<-- "docs/assets/{{ asset.path }}.md:2"
 </div>
 {% endif %}
+</div>
 {% endfor %}
 {% endif %}
