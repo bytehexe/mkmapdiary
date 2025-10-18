@@ -73,7 +73,8 @@ class GeojsonTask(GeoLookup):
                 time=cls.__parseDate(properties.get("timestamp")),
                 name=properties.get("name"),
                 type=properties.get("type"),
-                symbol=properties.get("symbol")
+                symbol=properties.get("symbol"),
+                position_dilution=properties.get("pdop"),
             )
             gpx.waypoints.append(wpt)
             return wpt
@@ -84,7 +85,9 @@ class GeojsonTask(GeoLookup):
                 elevation=coordinates[2] if len(coordinates) > 2 and coordinates[2] is not None else None,
                 time=cls.__parseDate(properties.get("timestamp")),
                 name=properties.get("name"),
-                symbol=properties.get("symbol")
+                symbol=properties.get("symbol"),
+                position_dilution=properties.get("pdop"),
+                
             )
             return pt
 

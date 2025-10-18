@@ -8,7 +8,14 @@ import shutil
 class SiteTask(BaseTask):
     def __init__(self):
         super().__init__()
-    
+
+        self.__simple_assets = [
+            "geo.js",
+            "audio.js",
+            "gpx.js",
+            "cross-orange.svg",
+        ]
+
     @property
     def __site_dirs(self):
         return [
@@ -100,27 +107,23 @@ class SiteTask(BaseTask):
             targets=[output_css]
         )
     
-    def task_copy_js(self):
-        scripts = [
-            "geo.js",
-            "audio.js",
-            "gpx.js",
-        ]
+    def task_copy_simple_asset(self):
+        simple_assets = self.__simple_assets
 
         script_dir = pathlib.Path(__file__).parent
 
         def _generate(input_js, output_js):
             shutil.copy2(input_js, output_js)
 
-        for script in scripts:
-            input_js = script_dir.parent / "extras" / script
-            output_js = self.docs_dir / script
+        for asset in simple_assets:
+            input = script_dir.parent / "extras" / asset
+            output = self.docs_dir / asset
 
             yield dict(
-                name=script,
-                actions=[(_generate, (input_js, output_js))],
-                file_dep=[input_js],
-                targets=[output_js]
+                name=asset,
+                actions=[(_generate, (input, output))],
+                file_dep=[input],
+                targets=[output]
             )
 
 
@@ -134,9 +137,8 @@ class SiteTask(BaseTask):
             for date in self.db.get_all_dates():
                 yield self.docs_dir / f"{date}.md"
                 yield self.templates_dir / f"{date}_gallery.md"
-            yield self.docs_dir / "extra.css"
-            yield self.docs_dir / "geo.js"
-            yield self.docs_dir / "audio.js"
+            for asset in self.__simple_assets:
+                yield self.docs_dir / asset
 
         return dict(
             actions=["mkdocs build --clean --config-file " + str(self.build_dir / "mkdocs.yml")],
