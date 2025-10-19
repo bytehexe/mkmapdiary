@@ -29,10 +29,14 @@ class TextTask(BaseTask):
 
         def _to_md(src, dst):
             with open(src, "r") as f_src, open(dst, "w") as f_dst:
-                content = f_src.readlines()
+                content = f_src.read()
+                text = content.strip()
 
-                title = content[0].strip() if content else "No Title"
-                text = "".join(content[1:]).strip() if len(content) > 1 else ""
+                title = "Text: "
+                title += self.ai(
+                    "generate_title",
+                    format=dict(locale=self.config["locale"], text=text),
+                )
 
                 markdown = self.template(
                     "md_text.j2",
