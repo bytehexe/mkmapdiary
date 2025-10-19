@@ -138,6 +138,10 @@ ignore_missing_imports = true
 module="pytest.*"
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module="pyrosm.*"
+ignore_missing_imports = true
+
 [tool.coverage.run]
 source_pkgs = ["mkmapdiary", "tests"]
 branch = true
