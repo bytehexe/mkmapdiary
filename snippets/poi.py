@@ -13,6 +13,8 @@ print("Applying custom filter for POI extraction...")
 with open("snippets/filter_config.yaml", "r") as f:
     filter_config = yaml.safe_load(f)
 
+# Pre-filtering to reduce data size
+
 custom_filter = {}
 
 for entry in filter_config:
@@ -83,5 +85,5 @@ for entry in filter_config:
 #    Apply filter, then reduce the dataset to the inverse of the filter
 # 3. Save POIs to binary json
 #
-# Storage: [(lat, lon), ...], [(id, name, entry_id), ...], entry=[(symbol, description), ...]
+# Storage: [(lat, lon), ...], [(id, name, entry_id, kv_parameters), ...], entry=[(symbol, description), ...]
 # Two separate indexes: one for places, one for POIs
