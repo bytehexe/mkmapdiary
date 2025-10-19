@@ -46,6 +46,7 @@ dependencies = [
     "ollama",
     "gpxpy",
     "hdbscan",
+    "pyrosm",
 ]
 
 [project.optional-dependencies]
@@ -83,6 +84,11 @@ features = ["all"]
 
 [tool.hatch.envs.min]
 features = []
+
+[tool.hatch.envs.licenses]
+extra-dependencies = [
+  "pip-licenses",
+]
 
 [tool.hatch.envs.types]
 extra-dependencies = [

@@ -1,0 +1,54 @@
+# list=OR, items in list=AND
+# default index: POI
+
+# == Places ==
+- symbol: "city"
+  description: "City or large town"
+  index: place
+  filters:
+    - place: city
+- symbol: "town"
+  description: "Town"
+  index: place
+  filters:
+    - place: town
+- symbol: "village"
+  description: "Village"
+  index: place
+  filters:
+    - place: village
+    - place: hamlet
+
+# == Tourism ==
+- symbol: "information"
+  description: "Tourist information office"
+  filters:
+    - tourism: information
+      information: office
+#- symbol: "tourism"
+#  filters:
+#    - tourism: True
+
+# == Public Transport ==
+- symbol: "train_station"
+  description: "Train station"
+  filters:
+    - public_transport: station
+      train: True
+    - railway: station
+- symbol: "bus_stop"
+  description: "Bus stop"
+  filters:
+    - public_transport: stop_position
+      bus: True
+    - highway: bus_stop
+    - amenity: bus_station
+
+
+# == Natural Features ==
+#- symbol: "waves"
+#  filters:
+#    - natural: beach
+#- symbol: "forest"
+#  filters:
+#    - natural: True
