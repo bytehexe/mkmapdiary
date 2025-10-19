@@ -32,7 +32,7 @@ class TextTask(BaseTask):
                 content = f_src.read()
                 text = content.strip()
 
-                title = "Text: "
+                title = f"{self.config['strings']['text_title']}: "
                 title += self.ai(
                     "generate_title",
                     format=dict(locale=self.config["locale"], text=text),

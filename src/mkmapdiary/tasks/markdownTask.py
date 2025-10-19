@@ -36,9 +36,11 @@ class MarkdownTask(BaseTask):
                     return
 
                 if content[0].startswith("#"):
-                    content[0] = "# Text: " + content[0][1:]
+                    content[0] = (
+                        f"# {self.config['strings']['text_title']}: {content[0][1:]}"
+                    )
                 else:
-                    content.insert(0, f"# Text\n")
+                    content.insert(0, f"# {self.config['strings']['text_title']}\n")
                     content.insert(1, "\n")
 
                 for i, line in enumerate(content):

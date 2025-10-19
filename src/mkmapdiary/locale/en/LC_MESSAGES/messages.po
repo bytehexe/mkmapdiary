@@ -18,3 +18,6 @@ msgstr "Days"
 
 msgid "audio_title"
 msgstr "Audio"
+
+msgid "text_title"
+msgstr "Text"
