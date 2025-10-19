@@ -56,7 +56,7 @@ def validate_param(ctx, param, value):
     help="Disable cache in the home directory (not recommended)",
 )
 @click.option(
-    "-G",
+    "-T",
     "--generate-demo-data",
     is_flag=True,
     help="Generate demo data in the source directory; for testing purposes only; directory must be empty",

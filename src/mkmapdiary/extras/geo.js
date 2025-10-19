@@ -1,10 +1,10 @@
 window.addEventListener("DOMContentLoaded", () => {
-  if (document.getElementById("map") === null) {
+  if (document.getElementById("map_box") === null) {
       return; // No map element found
   }
 
   // Initialize map
-  const map = L.map('map');
+  const map = L.map('map_box');
   window.theMap = map;
   var deferred = [];
 
@@ -173,7 +173,7 @@ window.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll('.location-link').forEach(link => {
     link.addEventListener('click', function(event) {
       event.preventDefault();
-      document.getElementById('map').scrollIntoView({behavior: "smooth", block: "nearest"});
+      document.getElementById('map_box').scrollIntoView({behavior: "smooth", block: "nearest"});
       const lat = parseFloat(this.getAttribute('data-lat'));
       const lng = parseFloat(this.getAttribute('data-lng'));
       if (!isNaN(lat) && !isNaN(lng)) {

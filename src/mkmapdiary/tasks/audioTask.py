@@ -5,6 +5,9 @@ from pydub import AudioSegment
 import hashlib
 from pathlib import PosixPath
 from typing import Callable, Dict, Iterator, List, Tuple, Union, Any
+import threading
+
+whisper_lock = threading.Lock()
 
 
 class AudioTask(BaseTask):
@@ -58,8 +61,9 @@ class AudioTask(BaseTask):
     def __transcribe_audio(self, src):
         import whisper
 
-        model = whisper.load_model("turbo")
-        result = model.transcribe(str(src))
+        with whisper_lock:
+            model = whisper.load_model("turbo")
+            result = model.transcribe(str(src))
         return result
 
     def task_transcribe_audio(self) -> Iterator[Dict[str, Any]]:
@@ -67,7 +71,7 @@ class AudioTask(BaseTask):
 
         def _transcribe(src, dst):
 
-            audio_title = self.config["audio_title"]
+            audio_title = self.config["strings"]["audio_title"]
 
             if not self.config["features"]["transcription"]:
                 with open(dst, "w") as f:

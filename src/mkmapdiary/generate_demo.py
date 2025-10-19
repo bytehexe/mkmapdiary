@@ -5,6 +5,8 @@ import random
 import datetime
 import sys
 import ollama
+import subprocess
+import requests
 
 
 def generate_demo_data(demo_data_dir: pathlib.Path):
@@ -18,11 +20,17 @@ def generate_demo_data(demo_data_dir: pathlib.Path):
 
     click.echo(f"Generating demo data in '{demo_data_dir}' ...")
 
+    click.echo("  Creating text files...")
     create_demo_text_files(demo_data_dir)
+    click.echo("  Creating markdown files...")
     create_demo_markdown_files(demo_data_dir)
-    # create_demo_audio_files(demo_data_dir)
-    # create_demo_image_files(demo_data_dir)
-    # create_demo_map_files(demo_data_dir)
+    click.echo("  Creating audio files...")
+    create_demo_audio_files(demo_data_dir)
+    click.echo("  Creating image files...")
+    create_demo_image_files(demo_data_dir)
+    click.echo("  Creating map files...")
+    create_demo_map_files(demo_data_dir)
+    click.echo("Demo data generation complete.")
 
 
 def create_demo_text_files(demo_data_dir: pathlib.Path):
@@ -44,6 +52,72 @@ def create_demo_markdown_files(demo_data_dir: pathlib.Path):
                     additional_instructions="Your text should start with a level one heading.",
                 )
             )
+
+
+def create_demo_audio_files(demo_data_dir: pathlib.Path):
+    for _ in range(0, random.randint(3, 6)):
+        timestamp = random_datetime().strftime("%Y%m%d_%H%M%S")
+        file_path = demo_data_dir / f"note_{timestamp}.wav"
+        text = random_text()
+        subprocess.run(
+            ["pico2wave", "--lang", "en-US", "--wave", str(file_path), text],
+            check=True,
+        )
+
+
+def create_demo_image_files(demo_data_dir: pathlib.Path):
+    for _ in range(0, random.randint(3, 6)):
+        timestamp = random_datetime().strftime("%Y%m%d_%H%M%S")
+        file_path = demo_data_dir / f"photo_{timestamp}.jpg"
+
+        width = random.randint(300, 600)
+        height = random.randint(300, 600)
+
+        request_url = f"https://picsum.photos/{width}/{height}"
+        response = requests.get(request_url, allow_redirects=True)
+        response.raise_for_status()
+        with open(file_path, "wb") as f:
+            f.write(response.content)
+
+
+def create_demo_map_files(demo_data_dir: pathlib.Path):
+    timestamp = random_datetime()
+    file_path = demo_data_dir / f"map.gpx"
+
+    location = random_coords()
+
+    trackpoints = []
+    for _ in range(random.randint(5, 15)):
+        trackpoints.append(
+            '<trkpt lat="{0}" lon="{1}"><time>{2}</time></trkpt>'.format(
+                location[0] + random.uniform(-0.1, 0.1),
+                location[1] + random.uniform(-0.1, 0.1),
+                timestamp.isoformat() + "Z",
+            )
+        )
+
+    gpx_content = f"""<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="mkmapdiary - https://github.com/jannakl/mkmapdiary">
+<wpt lat="{location[0]}" lon="{location[1]}">
+<name>Random Point</name>
+<time>{timestamp.isoformat()}Z</time>
+</wpt>
+<trk>
+<name>Random Track</name>
+<trkseg>
+    {'\n'.join(trackpoints)}
+</trkseg>
+</trk>
+</gpx>
+"""
+    with open(file_path, "w") as f:
+        f.write(gpx_content)
+
+
+def random_coords():
+    lat = random.uniform(-90.0, 90.0)
+    lon = random.uniform(-180.0, 180.0)
+    return (lat, lon)
 
 
 def random_text(format="plain text", additional_instructions=""):
