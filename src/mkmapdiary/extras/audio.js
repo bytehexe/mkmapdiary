@@ -2,7 +2,7 @@ class AudioSection {
     constructor(audioSectionElement) {
         this.audioSectionElement = audioSectionElement;
         this.audioElement = this.audioSectionElement.querySelector('audio');
-        this.segments = document.querySelectorAll('.segment');
+        this.segments = this.audioSectionElement.querySelectorAll('.segment');
 
         if (!this.audioElement) return;
 
