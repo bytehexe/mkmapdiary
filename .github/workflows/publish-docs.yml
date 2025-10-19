@@ -17,7 +17,7 @@ jobs:
         with:
           python-version: 3.x
       - run: pip install mkdocs mkdocs-material
-      - run: mkdocs build
+      - run: env PYTHONPATH=docs/ mkdocs build
       - name: Upload static files as artifact
         id: upload-pages
         uses: actions/upload-pages-artifact@v3 # or specific "vX.X.X" version tag for this action

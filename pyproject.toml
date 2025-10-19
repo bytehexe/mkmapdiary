@@ -93,6 +93,17 @@ features = []
 [tool.hatch.envs.types.scripts]
 check = "mypy --install-types --non-interactive {args:src/mkmapdiary tests}"
 
+[tool.hatch.envs.mkdocs]
+skip-install = true
+detached = true
+dependencies = [
+    "mkdocs-material",
+]
+
+[tool.hatch.envs.mkdocs.scripts]
+
+serve = "PYTHONPATH=docs/ mkdocs serve --livereload"
+
 [[tool.mypy.overrides]]
 module="exiftool.*"
 ignore_missing_imports = true

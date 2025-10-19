@@ -24,3 +24,7 @@ venv/
 env/
 .venv/
 .env/
+
+# vim swap files
+*.swp
+*~

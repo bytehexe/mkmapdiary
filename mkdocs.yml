@@ -4,6 +4,58 @@ theme:
   palette:
     primary: green
     accent: green
+  icon:
+    tag:
+      time: material/clock-time-one-outline
+      journal: material/book-outline
+      map: material/map-outline
+      extension: material/file-outline
+      identify: material/code-brackets
+      search: material/magnify-scan
+      coords: material/map-marker-outline
+      image: material/image-outline
+
+
+plugins:
+  - tags:
+      listings: true
+      tags_sort_by: !!python/name:util.tags_sort
+
+extra:
+  tags:
+    # identify vs extension
+    identify: search
+    extension: search
+
+    # journal vs map
+    journal entry: journal
+    map feature: map
+    gallery image: image
+
+    # metadata
+    time by filename/mtime: time
+    time by content: time
+    time by metadata: time
+    coords by content: coords
+    coords by metadata: coords
+    coords by correlation: coords
+
+    # extensions, file types, meta
+    plain-text: identify
+    markdown: identify
+    gpx: identify
+    audio: identify
+    image: identify
+    .cr2: extension
+    .poi: extension
+    .bin: extension
+
+markdown_extensions:
+  - tables
+  - attr_list
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
 dev_addr: 127.0.0.1:8001
 
