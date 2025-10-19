@@ -35,8 +35,10 @@ class MarkdownTask(BaseTask):
                     f_dst.write("")
                     return
 
-                if not content[0].startswith("#"):
-                    content.insert(0, f"# No Title\n")
+                if content[0].startswith("#"):
+                    content[0] = "# Text: " + content[0][1:]
+                else:
+                    content.insert(0, f"# Text\n")
                     content.insert(1, "\n")
 
                 for i, line in enumerate(content):

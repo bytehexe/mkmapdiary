@@ -57,10 +57,14 @@ class SiteTask(HttpRequest):
             with open(script_dir.parent / "extras" / "site_config.yaml") as f:
                 config = yaml.safe_load(f)
 
-            config["site_name"] = self.config["site_name"]
+            config["site_name"] = self.config["strings"]["site_name"]
             config["docs_dir"] = str(self.docs_dir.absolute())
             config["site_dir"] = str(self.dist_dir.absolute())
-            config["theme"]["language"] = self.config["locale"].split("_")[0]
+            if self.config["locale"] == "C":
+                language = "en"
+            else:
+                language = self.config["locale"].split("_")[0]
+            config["theme"]["language"] = language
             config["markdown_extensions"][0]["pymdownx.snippets"]["base_path"] = [
                 self.build_dir
             ]
@@ -87,8 +91,8 @@ class SiteTask(HttpRequest):
                 f.write(
                     self.template(
                         "index.j2",
-                        home_title=self.config["home_title"],
-                        gallery_title=self.config["gallery_title"],
+                        home_title=self.config["strings"]["home_title"],
+                        gallery_title=self.config["strings"]["gallery_title"],
                         grid_items=images,
                     )
                 )

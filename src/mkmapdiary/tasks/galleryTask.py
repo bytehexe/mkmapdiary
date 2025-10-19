@@ -50,8 +50,8 @@ class GalleryTask(BaseTask):
                 f.write(
                     self.template(
                         "day_gallery.j2",
-                        map_title=self.config["map_title"],
-                        gallery_title=self.config["gallery_title"],
+                        map_title=self.config["strings"]["map_title"],
+                        gallery_title=self.config["strings"]["gallery_title"],
                         gallery_items=gallery_items,
                         geo_items=geo_items,
                         gpx_data=gpx_data,

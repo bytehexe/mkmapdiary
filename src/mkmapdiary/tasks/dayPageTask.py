@@ -14,16 +14,21 @@ class DayPageTask(BaseTask):
         """Generate day pages for each date with assets."""
 
         def _generate_day_page(date):
+            if self.config["locale"] == "C":
+                formatter = "%a, %Y-%m-%d"
+            else:
+                formatter = "%a, %x"
+
             day_page_path = self.docs_dir / f"{date}.md"
             with open(day_page_path, "w") as f:
                 formatted_date = datetime.datetime.strptime(date, "%Y-%m-%d").strftime(
-                    "%a, %x"
+                    formatter
                 )
                 f.write(
                     self.template(
                         "day_base.j2",
                         formatted_date=formatted_date,
-                        journal_title=self.config["journal_title"],
+                        journal_title=self.config["strings"]["journal_title"],
                         date=date,
                     )
                 )

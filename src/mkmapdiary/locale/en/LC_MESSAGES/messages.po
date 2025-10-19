@@ -1,20 +1,20 @@
 msgid "site_name"
-msgstr "Reisetagebuch"
+msgstr "Travel Diary"
 
 msgid "gallery_title"
-msgstr "Galerie"
+msgstr "Gallery"
 
 msgid "map_title"
-msgstr "Karte"
+msgstr "Map"
 
 msgid "journal_title"
-msgstr "Tagebuch"
+msgstr "Journal"
 
 msgid "home_title"
-msgstr "Startseite"
+msgstr "Home"
 
 msgid "days_title"
-msgstr "Tage"
+msgstr "Days"
 
 msgid "audio_title"
 msgstr "Audio"

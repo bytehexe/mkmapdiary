@@ -24,3 +24,9 @@ repos:
         entry: hatch test
         types: [python]
         pass_filenames: false
+      - id: translation-files
+        name: Translation files must be up to date
+        language: system
+        entry: python util/update_translations.py --check
+        types: [pofile]
+        pass_filenames: false

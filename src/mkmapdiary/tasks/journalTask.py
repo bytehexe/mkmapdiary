@@ -48,8 +48,8 @@ class JournalTask(BaseTask):
                 f.write(
                     self.template(
                         "day_journal.j2",
-                        journal_title=self.config["journal_title"],
-                        audio_title=self.config["audio_title"],
+                        journal_title=self.config["strings"]["journal_title"],
+                        audio_title=self.config["strings"]["audio_title"],
                         assets=assets,
                     )
                 )

@@ -11,6 +11,7 @@ __about__.py
 
 # Example files
 /example*/
+/demo*/
 
 # MonkeyType
 monkeytype/
