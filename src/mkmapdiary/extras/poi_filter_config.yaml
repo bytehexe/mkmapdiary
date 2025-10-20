@@ -4,17 +4,14 @@
 # == Places ==
 - symbol: "city"
   description: "City or large town"
-  index: place
   filters:
     - place: city
 - symbol: "town"
   description: "Town"
-  index: place
   filters:
     - place: town
 - symbol: "village"
   description: "Village"
-  index: place
   filters:
     - place: village
     - place: hamlet
