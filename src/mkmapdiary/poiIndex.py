@@ -33,6 +33,8 @@ class PoiIndex:
         for region in regions:
             PoiIndexBuilder(region).build_index()
 
+        # TODO: Compute rank, load the indexes, merge them, etc.
+
     def __findBestRegion(self, geo_data):
 
         best = None
