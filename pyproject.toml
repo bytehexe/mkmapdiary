@@ -67,6 +67,13 @@ Documentation = "https://bytehexe.github.io/mkmapdiary/"
 Issues = "https://github.com/bytehexe/mkmapdiary/issues"
 Source = "https://github.com/bytehexe/mkmapdiary"
 
+[tool.taskipy.tasks]
+
+test = { help = "Run linters and unittests", cmd = "pre-commit run -a" }
+serve = { help = "Start mkdocs server", cmd = "hatch run mkdocs:serve" }
+demo = { help="Run mkmapdiary on the 'demo' directory", cmd = "hatch run ./tools/demo.py" }
+translate = { help="Update translation mo files", cmd = "./tools/update_translations.py" }
+
 [tool.hatch.version]
 source = "vcs"
 
