@@ -1,4 +1,5 @@
 fail_fast: true
+default_install_hook_types: [pre-commit, commit-msg]
 repos:
   - repo: local
     hooks:
@@ -30,3 +31,8 @@ repos:
         entry: python tools/update_translations.py --check
         types: [pofile]
         pass_filenames: false
+      - id: gitlint
+        name: Commit messages must follow the conventional commits standard
+        language: system
+        entry: gitlint --msg-filename
+        stages: [commit-msg]
