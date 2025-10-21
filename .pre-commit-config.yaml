@@ -27,6 +27,6 @@ repos:
       - id: translation-files
         name: Translation files must be up to date
         language: system
-        entry: python util/update_translations.py --check
+        entry: python tools/update_translations.py --check
         types: [pofile]
         pass_filenames: false

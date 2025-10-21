@@ -20,5 +20,5 @@ pre-commit install
 
 ## Updating the locale files
 ```
-python util/update_translations.py
+python tools/update_translations.py
 ```
