@@ -7,6 +7,9 @@ import ollama
 import threading
 from pathlib import PosixPath
 from typing import Optional
+from mkmapdiary.util.cache import with_cache
+from mkmapdiary.db import Db
+from typing import Mapping, Tuple, Union, List, Any
 
 ai_lock = threading.Lock()
 
@@ -45,52 +48,52 @@ class BaseTask(ABC):
 
     @property
     @abstractmethod
-    def config(self):
+    def config(self) -> dict:
         """Property to access the configuration."""
 
     @property
     @abstractmethod
-    def db(self):
+    def db(self) -> Db:
         """Property to access the database."""
 
     @property
     @abstractmethod
-    def source_dir(self):
+    def source_dir(self) -> PosixPath:
         """Property to access the source directory."""
 
     @property
     @abstractmethod
-    def build_dir(self):
+    def build_dir(self) -> PosixPath:
         """Property to access the build directory."""
 
     @property
     @abstractmethod
-    def files_dir(self):
+    def files_dir(self) -> PosixPath:
         """Property to access the files directory."""
 
     @property
     @abstractmethod
-    def docs_dir(self):
+    def docs_dir(self) -> PosixPath:
         """Property to access the docs directory."""
 
     @property
     @abstractmethod
-    def templates_dir(self):
+    def templates_dir(self) -> PosixPath:
         """Property to access the templates directory."""
 
     @property
     @abstractmethod
-    def assets_dir(self):
+    def assets_dir(self) -> PosixPath:
         """Property to access the assets directory."""
 
     @property
     @abstractmethod
-    def dist_dir(self):
+    def dist_dir(self) -> PosixPath:
         """Property to access the distribution directory."""
 
     @property
     @abstractmethod
-    def cache(self):
+    def cache(self) -> Mapping[Tuple[str, Union[Tuple[Any], List[Any]]], Any]:
         """Property to access the cache."""
 
     def extract_meta_datetime(self, source: PosixPath) -> Optional[datetime.datetime]:
@@ -112,7 +115,7 @@ class BaseTask(ABC):
         # Fallback: Use the file's modification time
         return datetime.datetime.fromtimestamp(stat.st_mtime)
 
-    def template(self, template, **params):
+    def template(self, template, **params) -> str:
         template = self.__template_env.get_template(template)
         return template.render(**params)
 
@@ -138,13 +141,13 @@ class BaseTask(ABC):
         self.__unique_paths[candidate] = source
         return candidate
 
-    def ai(self, key, format):
+    def ai(self, key, format) -> str:
         return self.__ai(
             self.config["ai"][key]["prompt"].format(**format),
             options=self.config["ai"][key]["options"],
         )
 
-    def __ai(self, prompt, **params):
+    def __ai(self, prompt, **params) -> str:
         """Generate text using an AI model."""
 
         model = self.config["ollama_ai_model"]
@@ -156,20 +159,7 @@ class BaseTask(ABC):
 
         return response["message"]["content"].strip()
 
-    def with_cache(self, key, compute_func, *args, cache_args=None):
+    def with_cache(self, *args, **params) -> Any:
         """Get the value from cache or compute it if not present."""
 
-        assert type(key) is str, "Key must be a string"
-        assert callable(compute_func), "compute_func must be callable"
-
-        if cache_args is None:
-            full_key = (key, args)
-        else:
-            full_key = (key, cache_args)
-
-        try:
-            return self.cache[full_key]
-        except KeyError:
-            value = compute_func(*args)
-            self.cache[full_key] = value
-            return value
+        return with_cache(self.cache, *args, **params)
