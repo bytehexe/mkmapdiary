@@ -81,7 +81,7 @@ class PoiIndexBuilder:
 
             # Load filter configuration
             filter_config_file = (
-                pathlib.Path(__file__).parent / "extras" / "poi_filter_config.yaml"
+                pathlib.Path(__file__).parent / "resources" / "poi_filter_config.yaml"
             )
             with open(filter_config_file, "r") as f:
                 filter_config = yaml.safe_load(f)

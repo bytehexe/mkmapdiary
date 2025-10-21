@@ -31,7 +31,7 @@ def main(
     script_dir = pathlib.Path(__file__).parent
 
     # Load config defaults
-    default_config = script_dir / "extras" / "defaults.yaml"
+    default_config = script_dir / "resources" / "defaults.yaml"
     config_data = yaml.safe_load(default_config.read_text())
 
     # Load local user configuration

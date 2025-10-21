@@ -143,7 +143,7 @@ class GeojsonTask(GeoLookup):
 
             # Validate file
             script_dir = pathlib.Path(__file__).parent
-            with open(script_dir.parent / "extras" / "geo.schema.yaml") as f:
+            with open(script_dir.parent / "resources" / "geo.schema.yaml") as f:
                 schema = yaml.safe_load(f)
             validate(instance=data, schema=schema)
 

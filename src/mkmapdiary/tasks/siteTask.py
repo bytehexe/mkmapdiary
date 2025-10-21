@@ -54,7 +54,7 @@ class SiteTask(HttpRequest):
         def _generate_mkdocs_config():
 
             script_dir = pathlib.Path(__file__).parent
-            with open(script_dir.parent / "extras" / "site_config.yaml") as f:
+            with open(script_dir.parent / "resources" / "site_config.yaml") as f:
                 config = yaml.safe_load(f)
 
             config["site_name"] = self.config["strings"]["site_name"]
@@ -111,7 +111,7 @@ class SiteTask(HttpRequest):
 
     def task_compile_css(self) -> Dict[str, Any]:
         script_dir = pathlib.Path(__file__).parent
-        input_sass = script_dir.parent / "extras" / "extra.sass"
+        input_sass = script_dir.parent / "resources" / "extra.sass"
         output_css = self.docs_dir / "extra.css"
 
         def _http_importer(path):
@@ -156,7 +156,7 @@ class SiteTask(HttpRequest):
             shutil.copy2(input_js, output_js)
 
         for asset in simple_assets:
-            input = script_dir.parent / "extras" / asset
+            input = script_dir.parent / "resources" / asset
             output = self.docs_dir / asset
 
             yield dict(
