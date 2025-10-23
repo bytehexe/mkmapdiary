@@ -47,6 +47,8 @@ dependencies = [
     "gpxpy",
     "hdbscan",
     "pyrosm",
+    "msgpack",
+    "osmium>=4.0.0",
 ]
 
 [project.optional-dependencies]
@@ -71,8 +73,11 @@ Source = "https://github.com/bytehexe/mkmapdiary"
 
 test = { help = "Run linters and unittests", cmd = "pre-commit run -a" }
 serve = { help = "Start mkdocs server", cmd = "hatch run mkdocs:serve" }
-demo = { help="Run mkmapdiary on the 'demo' directory", cmd = "hatch run ./tools/demo.py" }
+demo = { help="Create (if needed) and run the demo", cmd = "hatch run ./tools/demo.py" }
 translate = { help="Update translation mo files", cmd = "./tools/update_translations.py" }
+lint = { help="An alias for 'test'", cmd="task test" }
+run = { help="Run mkmapdiary with the given arguments", cmd="hatch run mkmapdiary" }
+run-min = { help="Run mkmapdiary with the given arguments (without extras)", cmd="hatch run min:mkmapdiary" }
 
 [tool.hatch.version]
 source = "vcs"
@@ -143,6 +148,14 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module="pytest.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module="sklearn.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module="msgpack.*"
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]

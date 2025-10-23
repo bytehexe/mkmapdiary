@@ -23,18 +23,18 @@ class LocalProjection:
         centroid = shape.centroid
 
         # pick CRS dynamically
-        self.crs_proj = self.__get_local_projection(centroid.x, centroid.y)
-        self.crs_wgs = "EPSG:4326"
+        self.__crs_proj = self.__get_local_projection(centroid.x, centroid.y)
+        self.__crs_wgs = "EPSG:4326"
 
-        self.transformer_to_proj = Transformer.from_crs(
-            self.crs_wgs, self.crs_proj, always_xy=True
+        self.__transformer_to_proj = Transformer.from_crs(
+            self.__crs_wgs, self.__crs_proj, always_xy=True
         )
-        self.transformer_to_wgs = Transformer.from_crs(
-            self.crs_proj, self.crs_wgs, always_xy=True
+        self.__transformer_to_wgs = Transformer.from_crs(
+            self.__crs_proj, self.__crs_wgs, always_xy=True
         )
 
     def to_local(self, shape):
-        return transform(self.transformer_to_proj.transform, shape)
+        return transform(self.__transformer_to_proj.transform, shape)
 
     def to_wgs(self, shape):
-        return transform(self.transformer_to_wgs.transform, shape)
+        return transform(self.__transformer_to_wgs.transform, shape)

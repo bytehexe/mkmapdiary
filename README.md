@@ -47,6 +47,8 @@ This is for debugging/demonstration purposes only! Images by https://picsum.phot
 Within the project root, run:
 
 ```bash
+pipx install hatch taskipy pre-commit
+pre-commit install
 hatch run mkmapdiary --help
 ```
 
