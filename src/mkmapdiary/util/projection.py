@@ -7,6 +7,7 @@ from shapely.ops import transform
 class LocalProjection:
     @staticmethod
     def __get_local_projection(lon, lat):
+        # Interface uses (lon, lat) format for consistency with GeoJSON and web standards
         # UPS zones
         if lat >= 84:
             return CRS.from_epsg(32661)  # UPS North
@@ -22,7 +23,7 @@ class LocalProjection:
     def __init__(self, shape):
         centroid = shape.centroid
 
-        # pick CRS dynamically
+        # pick CRS dynamically - centroid.x is longitude, centroid.y is latitude (Shapely uses (x=lon, y=lat))
         self.__crs_proj = self.__get_local_projection(centroid.x, centroid.y)
         self.__crs_wgs = "EPSG:4326"
 

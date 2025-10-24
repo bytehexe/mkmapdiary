@@ -6,6 +6,7 @@ from shapely.geometry import MultiPoint
 
 class GeoCluster:
     def __init__(self, locations):
+        # Interface expects locations as (lon, lat) tuples for consistency with GeoJSON
         self.__locations = locations
 
         self.__degrees, self.__distance, self.__midpoint = (
@@ -32,6 +33,7 @@ class GeoCluster:
 
     @property
     def shape(self):
+        # MultiPoint expects (lon, lat) format which matches our interface
         return MultiPoint(self.__locations)
 
     @property
@@ -40,8 +42,9 @@ class GeoCluster:
             return (None, None)
 
         pts = np.array(self.__locations)
-        lat = np.radians(pts[:, 0])
-        lon = np.radians(pts[:, 1])
+        # Convert from (lon, lat) interface to internal calculation format
+        lon = np.radians(pts[:, 0])  # longitude from first column
+        lat = np.radians(pts[:, 1])  # latitude from second column
 
         x = np.cos(lat) * np.cos(lon)
         y = np.cos(lat) * np.sin(lon)
@@ -55,10 +58,11 @@ class GeoCluster:
         hyp = np.sqrt(x_mean * x_mean + y_mean * y_mean)
         lat_mean = np.arctan2(z_mean, hyp)
 
+        # Return as (lon, lat) to match interface format
         return (
+            (np.degrees(lon_mean) + 540) % 360 - 180,  # normalize longitude [-180, 180]
             np.degrees(lat_mean),
-            (np.degrees(lon_mean) + 540) % 360 - 180,
-        )  # normalize [-180, 180]
+        )
 
     @property
     def radius(self):
@@ -92,7 +96,7 @@ class GeoCluster:
 
     @staticmethod
     def __greatcircle_midpoint(lat1, lon1, lat2, lon2):
-        """Midpoint (lat, lon) in radians between two points on a sphere."""
+        """Midpoint in radians between two points on a sphere. Returns (lat, lon) for internal calculations."""
         dlon = lon2 - lon1
         bx = np.cos(lat2) * np.cos(dlon)
         by = np.cos(lat2) * np.sin(dlon)
@@ -107,7 +111,7 @@ class GeoCluster:
         Returns:
         - separation_deg: angular separation in degrees
         - separation_m: great-circle distance in meters
-        - midpoint: (lat, lon) in degrees
+        - midpoint: (lon, lat) in degrees to match interface format
         """
         pts = np.array(self.__locations)
         n = len(pts)
@@ -117,22 +121,25 @@ class GeoCluster:
 
         # Handle 2-point case
         if n == 2:
-            lat1, lon1 = np.radians(pts[0])
-            lat2, lon2 = np.radians(pts[1])
+            # Convert from (lon, lat) interface to internal calculation format
+            lon1, lat1 = np.radians(pts[0])
+            lon2, lat2 = np.radians(pts[1])
             ang = self.__greatcircle_angle(lat1, lon1, lat2, lon2)
             mid_lat, mid_lon = self.__greatcircle_midpoint(lat1, lon1, lat2, lon2)
             separation_m = ang * self.EARTH_RADIUS_M
+            # Return midpoint as (lon, lat) to match interface format
             return (
                 np.degrees(ang),
                 separation_m,
-                (np.degrees(mid_lat), (np.degrees(mid_lon) + 540) % 360 - 180),
+                ((np.degrees(mid_lon) + 540) % 360 - 180, np.degrees(mid_lat)),
             )
 
         # Step 1: Convex hull to reduce comparisons
         hull = ConvexHull(pts)
         hull_pts = pts[hull.vertices]
-        lat = np.radians(hull_pts[:, 0])
-        lon = np.radians(hull_pts[:, 1])
+        # Convert from (lon, lat) interface to internal calculation format
+        lon = np.radians(hull_pts[:, 0])  # longitude from first column
+        lat = np.radians(hull_pts[:, 1])  # latitude from second column
 
         # Step 2: Pairwise angular distances
         sin_lat = np.sin(lat)
@@ -157,4 +164,5 @@ class GeoCluster:
         mid_lat_deg = np.degrees(mid_lat)
         mid_lon_deg = (np.degrees(mid_lon) + 540) % 360 - 180  # normalize [-180, 180]
 
-        return np.degrees(ang), separation_m, (mid_lat_deg, mid_lon_deg)
+        # Return midpoint as (lon, lat) to match interface format
+        return np.degrees(ang), separation_m, (mid_lon_deg, mid_lat_deg)

@@ -50,9 +50,10 @@ class GeojsonTask(GeoLookup):
     @classmethod
     def __addPoint(cls, gpx, coordinates, properties, tag="wpt"):
         if tag == "wpt":
+            # Convert from GeoJSON coordinates [lon, lat] to GPX format (lat, lon)
             wpt = gpxpy.gpx.GPXWaypoint(
-                latitude=coordinates[1],
-                longitude=coordinates[0],
+                latitude=coordinates[1],  # lat from second element
+                longitude=coordinates[0],  # lon from first element
                 elevation=(
                     coordinates[2]
                     if len(coordinates) > 2 and coordinates[2] is not None
@@ -68,9 +69,10 @@ class GeojsonTask(GeoLookup):
             return wpt
         elif tag == "trkpt":
             assert properties.get("type") == None
+            # Convert from GeoJSON coordinates [lon, lat] to GPX format (lat, lon)
             pt = gpxpy.gpx.GPXTrackPoint(
-                latitude=coordinates[1],
-                longitude=coordinates[0],
+                latitude=coordinates[1],  # lat from second element
+                longitude=coordinates[0],  # lon from first element
                 elevation=(
                     coordinates[2]
                     if len(coordinates) > 2 and coordinates[2] is not None
@@ -110,7 +112,7 @@ class GeojsonTask(GeoLookup):
         return trkseg
 
     def __lookup(self, lookup):
-        # lookup can be coordinates
+        # lookup can be coordinates - expects/returns (lon, lat) format for GeoJSON compatibility
         if isinstance(lookup, list) and len(lookup) in (2, 3):
             return lookup
 
@@ -121,7 +123,8 @@ class GeojsonTask(GeoLookup):
         if location is None:
             raise ValueError(f"Could not lookup location: {lookup}")
 
-        return [location["lat"], location["lon"]]
+        # Convert from Nominatim response (lat, lon) to GeoJSON format (lon, lat)
+        return [location["lon"], location["lat"]]
 
     def __load_file(self, source):
         ext = source.suffix

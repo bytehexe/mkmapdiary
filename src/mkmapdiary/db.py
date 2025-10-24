@@ -37,6 +37,7 @@ class Db:
 
         with self.lock:
             cursor = self.conn.cursor()
+            # Database stores coordinates in separate latitude/longitude columns (not (lon, lat) tuples)
             cursor.execute(
                 """
                 INSERT INTO assets (path, type, datetime, latitude, longitude)
@@ -117,6 +118,7 @@ class Db:
             return list(cursor.fetchall())
 
     def get_geo_by_name(self, name):
+        # Returns dictionary with separate latitude/longitude keys (not (lon, lat) tuple)
         with self.lock:
             cursor = self.conn.cursor()
             cursor.execute(
@@ -148,6 +150,7 @@ class Db:
             return list(row for row in cursor.fetchall())
 
     def update_asset_position(self, asset_id, latitude, longitude, approx):
+        # Database stores coordinates in separate latitude/longitude columns
         with self.lock:
             cursor = self.conn.cursor()
             cursor.execute(

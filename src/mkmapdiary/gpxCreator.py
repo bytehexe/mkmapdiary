@@ -35,7 +35,9 @@ class GpxCreator:
                 for pt in seg.points:
                     if pt.time is not None and pt.time.date() == self.__date:
                         new_seg.points.append(pt)
-                        self.__coords.append([pt.latitude, pt.longitude])
+                        # Store coordinates as (lon, lat) for consistent interface format
+                        # Converting from GPX format (lat, lon) to interface format (lon, lat)
+                        self.__coords.append([pt.longitude, pt.latitude])
                 if len(new_seg.points) > 0:
                     new_trk.segments.append(new_seg)
             if len(new_trk.segments) > 0:
@@ -71,7 +73,8 @@ class GpxCreator:
                 # Ignore overly large clusters
                 continue
 
-            mlat, mlon = cluster.mass_point
+            # cluster.mass_point returns (lon, lat) format, convert for GPX which expects (lat, lon)
+            mlon, mlat = cluster.mass_point
             mwpt = gpxpy.gpx.GPXWaypoint(
                 latitude=mlat,
                 longitude=mlon,
@@ -80,7 +83,8 @@ class GpxCreator:
                 symbol="cluster-mass",
             )
             self.__gpx_out.waypoints.append(mwpt)
-            clat, clon = cluster.midpoint
+            # cluster.midpoint returns (lon, lat) format, convert for GPX which expects (lat, lon)
+            clon, clat = cluster.midpoint
             cwpt = gpxpy.gpx.GPXWaypoint(
                 latitude=clat,
                 longitude=clon,
@@ -95,17 +99,23 @@ class GpxCreator:
             print(f"Searching POIs near cluster {label} at {clat},{clon}")
             print(cluster.shape)
             index = Index(cluster.shape, keep_pbf=True)
-            nearest_pois = index.get_nearest(cluster.mass_point, n=1)
-            if nearest_pois[0]:
-                poi = nearest_pois[0]
-                pwpt = gpxpy.gpx.GPXWaypoint(
-                    latitude=clat,
-                    longitude=clon,
-                    name=poi.name,
-                    description=f"{poi.description} ({poi.rank})",
-                    symbol="cluster-poi",
-                )
-                self.__gpx_out.waypoints.append(pwpt)
+            # Convert mass_point (lon, lat) to shapely.Point for Index.get_nearest
+            mass_lon, mass_lat = cluster.mass_point
+            if mass_lon is not None and mass_lat is not None:
+                from shapely.geometry import Point
+
+                mass_point = Point(mass_lon, mass_lat)  # Point expects (x=lon, y=lat)
+                nearest_pois, distances = index.get_nearest(1, mass_point)
+                if nearest_pois:
+                    poi = nearest_pois[0]
+                    pwpt = gpxpy.gpx.GPXWaypoint(
+                        latitude=clat,
+                        longitude=clon,
+                        name=poi.name,
+                        description=f"{poi.description} ({poi.rank})",
+                        symbol="cluster-poi",
+                    )
+                    self.__gpx_out.waypoints.append(pwpt)
 
     def __add_journal_markers(self):
         for asset, asset_type in self.__db.get_assets_by_date(
@@ -115,6 +125,7 @@ class GpxCreator:
             if geo is None:
                 continue
             metadata = self.__db.get_metadata(asset)
+            # geo dict uses separate latitude/longitude keys - GPX format (lat, lon)
             wpt = gpxpy.gpx.GPXWaypoint(
                 latitude=geo["latitude"],
                 longitude=geo["longitude"],

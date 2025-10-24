@@ -29,12 +29,12 @@ class GeoLookup(HttpRequest):
         else:
             return 2 + offset
 
-    @staticmethod
-    def __round_coord(coord, zoom):
-        d = GeoLookup.__decimals_for_zoom(zoom)
+    def __round_coord(self, coord, zoom):
+        d = self.__decimals_for_zoom(zoom)
         return round(coord, d)
 
     def geoReverse(self, lat, lon, zoom):
+        # Interface uses separate lat, lon parameters (not (lon, lat) tuple) for Nominatim API compatibility
         zoom = max(1, min(zoom, 10))  # Clamp zoom
 
         with lock:

@@ -10,11 +10,13 @@ class BallTree:
         self.__filter_config = filter_config
 
     def query_radius(self, X, r):
+        # Interface expects (lat, lon) format, sklearn haversine expects (lat, lon)
         X = np.radians(X)  # X is (lat, lon), sklearn haversine expects (lat, lon)
         rh = r / 6371000.0  # Convert radius from meters to radians
         return self.__find(self.__sklearn_ball_tree.query_radius([X], rh)[0])
 
     def query(self, X, k=1):
+        # Interface expects (lat, lon) format, sklearn haversine expects (lat, lon)
         X = np.radians(X)  # X is (lat, lon), sklearn haversine expects (lat, lon)
         result = self.__sklearn_ball_tree.query([X], k)
         return list(self.__find(result[1][0])), [x * 6371000.0 for x in result[0][0]]
@@ -24,9 +26,9 @@ class BallTree:
             yield self.__create_poi(i)
 
     def __create_poi(self, index) -> Poi:
-        coord = [
-            float(x) for x in np.degrees(self.__sklearn_ball_tree.data[index])
-        ]  # coords are stored as (lat, lon)
+        # Convert from sklearn storage format (lat, lon) to interface format (lon, lat)
+        lat, lon = np.degrees(self.__sklearn_ball_tree.data[index])
+        coord = [lon, lat]  # Interface uses (lon, lat) format
         poi_data = self.__pois[index]
         assert len(poi_data) == 4, "POI data structure has changed."
         assert len(poi_data[2]) == 2, "POI filter reference structure has changed."

@@ -150,18 +150,19 @@ class GPXTask(BaseTask):
         }
 
     def __get_timed_coords(self, gpx, coords):
+        # Extract coordinates from GPX format (lat, lon) and store as (time, lon, lat) for internal use
         for wpt in gpx.waypoints:
             if wpt.time is not None:
-                coords.append((wpt.time, wpt.latitude, wpt.longitude))
+                coords.append((wpt.time, wpt.longitude, wpt.latitude))
         for trk in gpx.tracks:
             for seg in trk.segments:
                 for pt in seg.points:
                     if pt.time is not None:
-                        coords.append((pt.time, pt.latitude, pt.longitude))
+                        coords.append((pt.time, pt.longitude, pt.latitude))
         for rte in gpx.routes:
             for pt in rte.points:
                 if pt.time is not None:
-                    coords.append((pt.time, pt.latitude, pt.longitude))
+                    coords.append((pt.time, pt.longitude, pt.latitude))
 
     def task_geo_correlation(self) -> Dict[str, Any]:
         def _update_positions():
@@ -189,8 +190,12 @@ class GPXTask(BaseTask):
                     closest = min(candidates, key=lambda x: abs(x[0] - asset_time))
                     diff = (closest[0] - asset_time).total_seconds()
                     if abs(diff) < self.config["geo_correlation"]["max_time_diff"]:
+                        # closest contains (time, lon, lat), database expects separate lat, lon parameters
                         self.db.update_asset_position(
-                            asset_id, closest[1], closest[2], int(diff)
+                            asset_id,
+                            closest[2],
+                            closest[1],
+                            int(diff),  # lat, lon for database
                         )
             sys.stderr.write(tabulate(*self.db.dump()))
             sys.stderr.write("\n")

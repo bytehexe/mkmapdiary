@@ -128,6 +128,7 @@ class Index:
         print("Querying ball tree ...")
         print("Bounding radius (meters):", self.bounding_radius)
         print("Center coordinates (WGS):", self.center)
+        # Convert from Shapely Point (x=lon, y=lat) to BallTree expected (lat, lon) format
         return self.ball_tree.query_radius(
             [self.center.y, self.center.x],
             r=self.bounding_radius,
@@ -139,6 +140,7 @@ class Index:
 
         print("Querying ball tree for nearest neighbors ...")
         print("Center coordinates (WGS):", self.center)
+        # Convert from Shapely Point (x=lon, y=lat) to BallTree expected (lat, lon) format
         return self.ball_tree.query(
             [point.y, point.x],
             k=n,
@@ -171,8 +173,8 @@ class Index:
 
 
 if __name__ == "__main__":
-    # use Berlin as test point
-    berlin_center = shapely.Point(13.4050, 52.5200)
+    # use Berlin as test point - Point constructor uses (x=lon, y=lat) format
+    berlin_center = shapely.Point(13.4050, 52.5200)  # (lon, lat)
     projection = LocalProjection(berlin_center)
     berlin_geo_data = projection.to_wgs(
         projection.to_local(berlin_center).buffer(60000)
