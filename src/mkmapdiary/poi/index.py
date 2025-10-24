@@ -7,7 +7,7 @@ from mkmapdiary.util.osm import calculate_rank, clip_rank
 from mkmapdiary.util.projection import LocalProjection
 from mkmapdiary.poi.indexFileReader import IndexFileReader
 from mkmapdiary.poi.ballTreeBuilder import BallTreeBuilder
-from typing import List, Optional, Any
+from typing import List, Optional, Tuple, Any
 import msgpack
 import pathlib
 from sklearn.neighbors import BallTree
@@ -17,6 +17,7 @@ import numpy as np
 from collections import namedtuple
 import yaml
 from threading import Lock
+import sys
 
 lock = Lock()
 
@@ -44,18 +45,27 @@ class Index:
 
         # Find best matching regions
         regions: List[Region] = []
+        sys.stderr.write("Finding best matching Geofabrik regions...\n")
+        sys.stderr.flush()
         while geo_data_copy.is_empty is False:
-            print("Next iteration to find best matching Geofabrik region...")
-            best_region = self.__findBestRegion(geo_data_copy)
+            sys.stderr.write(
+                "Next iteration to find best matching Geofabrik region...\n"
+            )
+            sys.stderr.flush()
+            best_region, remaining_geo_data = self.__findBestRegion(
+                geo_data_copy, regions
+            )
             if best_region is None:
                 break
             regions.append(best_region)
-            print(f"Selected region: {best_region.name}")
-            geo_data_copy = best_region.remaining_geo_data
-
-        print("Selected Geofabrik regions for POI extraction:")
+            sys.stderr.write(f"Selected region: {best_region.name}\n")
+            sys.stderr.flush()
+            geo_data_copy = remaining_geo_data
+        sys.stderr.write("Selected Geofabrik regions for POI extraction:\n")
+        sys.stderr.flush()
         for region in regions:
-            print(f" - {region.name}")
+            sys.stderr.write(f" - {region.name}\n")
+            sys.stderr.flush()
 
         for region in regions:
             poi_index_path = (
@@ -67,36 +77,50 @@ class Index:
             )
 
             if not poi_index_path.exists():
-                print(f"POI index for region {region.name} does not exist. Building...")
+                sys.stderr.write(
+                    f"POI index for region {region.name} does not exist. Building...\n"
+                )
+                sys.stderr.flush()
                 IndexBuilder(region, keep_pbf=keep_pbf).build_index()
                 continue
 
             region_index = IndexFileReader(poi_index_path)
             if not region_index.is_up_to_date(31536000):
-                print(f"POI index for region {region.name} is outdated. Rebuilding...")
+                sys.stderr.write(
+                    f"POI index for region {region.name} is outdated. Rebuilding...\n"
+                )
+                sys.stderr.flush()
                 IndexBuilder(region, keep_pbf=keep_pbf).build_index()
                 continue
             if not region_index.is_valid(self.filter_config):
-                print(f"POI index for region {region.name} is invalid. Rebuilding...")
+                sys.stderr.write(
+                    f"POI index for region {region.name} is invalid. Rebuilding...\n"
+                )
+                sys.stderr.flush()
                 IndexBuilder(region, keep_pbf=keep_pbf).build_index()
                 continue
 
-            print(f"Using existing POI index for region {region.name}.")
+            sys.stderr.write(f"Using existing POI index for region {region.name}.\n")
+            sys.stderr.flush()
 
-        if geo_data.area > 0:
-            local_projection = LocalProjection(geo_data)
-            self.bounding_radius = shapely.minimum_bounding_radius(
-                local_projection.to_local(geo_data)
-            )
-            self.center = local_projection.to_wgs(
-                shapely.centroid(local_projection.to_local(geo_data))
-            )
-        else:
+        local_projection = LocalProjection(geo_data)
+        local_geo_data = local_projection.to_local(geo_data)
+
+        if local_geo_data.area == 0:
+            local_geo_data = local_geo_data.buffer(50)
+
+        self.bounding_radius = shapely.minimum_bounding_radius(local_geo_data)
+        self.center = local_projection.to_wgs(
+            shapely.centroid(local_projection.to_local(geo_data))
+        )
+
+        if geo_data.area == 0:
             raise ValueError(
                 "Invalid bounding radius calculated for the area of interest."
             )
         rank = calculate_rank(None, self.bounding_radius)
-        print(f"Calculated rank for the area of interest: {rank}")
+        sys.stderr.write(f"Calculated rank for the area of interest: {rank}\n")
+        sys.stderr.flush()
 
         if rank is None:
             raise ValueError("Invalid rank calculated for the area of interest.")
@@ -107,7 +131,8 @@ class Index:
         builder = BallTreeBuilder(self.filter_config)
 
         for region in regions:
-            print(f"Loading POI index for region: {region.name}")
+            sys.stderr.write(f"Loading POI index for region: {region.name}\n")
+            sys.stderr.flush()
             # Load the index file
             poi_index_path = (
                 pathlib.Path.home()
@@ -121,7 +146,8 @@ class Index:
             data = reader.read()
             builder.load(data, min_rank, max_rank)
 
-        print("Generating ball tree ...")
+        sys.stderr.write("Generating ball tree ...\n")
+        sys.stderr.flush()
         self.ball_tree = builder.build()
 
     def get_all(self):
@@ -146,11 +172,16 @@ class Index:
             k=n,
         )
 
-    def __findBestRegion(self, geo_data) -> Optional[Region]:
+    def __findBestRegion(self, geo_data, used_regions) -> Tuple[Optional[Region], Any]:
 
         best = None
+        remaining_geo_data = geo_data
+        best_size = float("inf")
 
         for region in self.geofabrik_data["features"]:
+
+            if any(r.id == region["properties"]["id"] for r in used_regions):
+                continue  # Skip already used regions
 
             # Check if any of the provided geo_data areas intersect with the region
             shape = shapely.from_geojson(json.dumps(region))
@@ -158,18 +189,18 @@ class Index:
             if remaining_geo_data.equals(geo_data):
                 continue  # No intersection
 
-            remaining_area = shapely.area(remaining_geo_data)
+            size = shapely.area(
+                geo_data
+            )  # Note: size is only an approximation, not meaningful due to projections
 
-            if best is None or remaining_area < best.remaining_area:
+            if best is None or size < best_size:
                 best = Region(
                     id=region["properties"]["id"],
                     name=region["properties"]["name"],
                     url=region["properties"]["urls"]["pbf"],
-                    remaining_geo_data=remaining_geo_data,
-                    remaining_area=remaining_area,
                 )
 
-        return best
+        return best, remaining_geo_data
 
 
 if __name__ == "__main__":

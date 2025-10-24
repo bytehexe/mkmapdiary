@@ -14,16 +14,11 @@ from shapely.geometry import shape
 from mkmapdiary.poi.indexFileWriter import IndexFileWriter
 import yaml
 from typing import List, Optional, Any
+import sys
 
 Region = namedtuple(
     "Region",
-    [
-        "id",
-        "name",
-        "url",
-        "remaining_geo_data",
-        "remaining_area",
-    ],
+    ["id", "name", "url"],
 )
 
 
@@ -48,7 +43,8 @@ class IndexBuilder:
 
     def build_index(self):
         region = self.region
-        print(f"Building POI index for region: {region.name}")
+        sys.stderr.write(f"Building POI index for region: {region.name}\n")
+        sys.stderr.flush()
 
         # Download or use cached PBF file
         if self.pbf_path.exists():
@@ -67,12 +63,14 @@ class IndexBuilder:
         w = IndexFileWriter(self.idx_path, filter_config=self.filter_config)
         w.write(index)
 
-        print(f"POI index built successfully for region: {region.name}")
+        sys.stderr.write(f"POI index built successfully for region: {region.name}\n")
+        sys.stderr.flush()
 
         return index
 
     def __downloadPbf(self, region: Region, pbf_file_name: pathlib.Path):
-        print(f"Downloading PBF ...")
+        sys.stderr.write(f"Downloading PBF ...\n")
+        sys.stderr.flush()
         result = requests.get(region.url)
         result.raise_for_status()
         with open(pbf_file_name, "wb") as pbf_file:
@@ -80,7 +78,8 @@ class IndexBuilder:
 
     def __buildPoiIndex(self) -> dict:
 
-        print("Building index structure ...")
+        sys.stderr.write("Building index structure ...")
+        sys.stderr.flush()
 
         index: dict[int, dict[str, list]] = {}
         for i in range(MIN_RANK, MAX_RANK + 1):
@@ -130,6 +129,9 @@ class IndexBuilder:
                 radius = None
 
             else:
+                if not hasattr(obj, "__geo_interface__"):
+                    continue  # No geometry available
+
                 geom = shape(obj.__geo_interface__["geometry"])  # type: ignore
                 proj = LocalProjection(geom)
                 local_geom = proj.to_local(geom)

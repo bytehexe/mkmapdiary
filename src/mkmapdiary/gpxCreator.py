@@ -97,7 +97,6 @@ class GpxCreator:
 
             # Add a POI for each cluster center
             print(f"Searching POIs near cluster {label} at {clat},{clon}")
-            print(cluster.shape)
             index = Index(cluster.shape, keep_pbf=True)
             # Convert mass_point (lon, lat) to shapely.Point for Index.get_nearest
             mass_lon, mass_lat = cluster.mass_point
