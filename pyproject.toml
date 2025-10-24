@@ -80,6 +80,12 @@ lint = { help="An alias for 'test'", cmd="task test" }
 run = { help="Run mkmapdiary with the given arguments", cmd="hatch run mkmapdiary" }
 run-min = { help="Run mkmapdiary with the given arguments (without extras)", cmd="hatch run min:mkmapdiary" }
 
+[tool.pytest.ini_options]
+markers = [
+    "slow: a test that takes a long time to run.",
+    "local: a test that should not run in the pipeline (e.g. due to caching).",
+]
+
 [tool.hatch.version]
 source = "vcs"
 

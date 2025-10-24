@@ -19,7 +19,7 @@ jobs:
           python -m pip install hatch pre-commit yamllint black --user
       - name: Run tests
         run: |
-          env SKIP="mypy,translation-files" pre-commit run -a
+          env PYTEST_MARK="not local and not slow" SKIP="mypy,translation-files" pre-commit run -a
 
   build:
     name: Build distribution 📦
