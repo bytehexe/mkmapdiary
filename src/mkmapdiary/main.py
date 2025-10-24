@@ -205,10 +205,13 @@ def main(
     class CustomReporter(doit.reporter.ConsoleReporter):
         def execute_task(self, task):
             display_name = task.name
-            if "/" in display_name:
-                display_name = display_name.split(":", 1)[0]
             if len(display_name) > 30:
-                display_name = display_name[:27] + "..."
+                if "/" in display_name:
+                    display_name_front = display_name.split(":", 1)[0]
+                    display_name_back = display_name[-26 + len(display_name_front) :]
+                    display_name = f"{display_name_front}:...{display_name_back}"
+                else:
+                    display_name = display_name[:27] + "..."
             current_task.set(display_name)
             super().execute_task(task)
             current_task.set("unknown")
