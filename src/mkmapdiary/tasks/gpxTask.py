@@ -54,6 +54,7 @@ class GPXTask(BaseTask):
         return filename
 
     def __gpx2gpx(self, date, dst, gpx_source):
+        print(f"Generating GPX for date {date} into {dst}")
 
         if gpx_source:
             sources = self.__sources
@@ -66,7 +67,19 @@ class GPXTask(BaseTask):
         with open(dst, "w", encoding="utf-8") as f:
             f.write(gpx_out)
 
-    @create_after("geo2gpx", target_regex=r".*\.gpx")
+    def task_pre_gpx(self) -> Dict[str, Any]:
+        # Ensure that the assets and files directories exist
+        return {
+            "actions": None,
+            "task_dep": [
+                f"create_directory:{self.assets_dir}",
+                f"create_directory:{self.files_dir}",
+                "geo2gpx",
+                "qstarz2gpx",
+            ],
+        }
+
+    @create_after("pre_gpx", target_regex=r".*\.gpx")
     def task_gpx2gpx(self) -> Iterator[Dict[str, Any]]:
 
         # Collect all dates in all source files
@@ -91,9 +104,10 @@ class GPXTask(BaseTask):
                 "name": date.isoformat(),
                 "actions": [(self.__gpx2gpx, [date, dst, True])],
                 "file_dep": [str(src) for src in self.__sources],
-                "task_dep": ["geo_correlation"],
+                "task_dep": ["geo_correlation", "qstarz2gpx"],
                 "targets": [str(dst)],
                 "clean": True,
+                "verbosity": 2,
             }
 
         journal_dates = (

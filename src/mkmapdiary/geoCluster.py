@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.spatial import ConvexHull
 import copy
+from shapely.geometry import MultiPoint
 
 
 class GeoCluster:
@@ -28,6 +29,10 @@ class GeoCluster:
     @property
     def midpoint(self):
         return copy.deepcopy(self.__midpoint)
+
+    @property
+    def shape(self):
+        return MultiPoint(self.__locations)
 
     @property
     def mass_point(self):

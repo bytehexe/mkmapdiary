@@ -3,6 +3,7 @@ import hdbscan
 import numpy as np
 from mkmapdiary.geoCluster import GeoCluster
 import warnings
+from mkmapdiary.poi.index import Index
 
 
 class GpxCreator:
@@ -89,6 +90,22 @@ class GpxCreator:
                 position_dilution=cluster.radius,
             )
             self.__gpx_out.waypoints.append(cwpt)
+
+            # Add a POI for each cluster center
+            print(f"Searching POIs near cluster {label} at {clat},{clon}")
+            print(cluster.shape)
+            index = Index(cluster.shape, keep_pbf=True)
+            nearest_pois = index.get_nearest(cluster.mass_point, n=1)
+            if nearest_pois[0]:
+                poi = nearest_pois[0]
+                pwpt = gpxpy.gpx.GPXWaypoint(
+                    latitude=clat,
+                    longitude=clon,
+                    name=poi.name,
+                    description=f"{poi.description} ({poi.rank})",
+                    symbol="cluster-poi",
+                )
+                self.__gpx_out.waypoints.append(pwpt)
 
     def __add_journal_markers(self):
         for asset, asset_type in self.__db.get_assets_by_date(

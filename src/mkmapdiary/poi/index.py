@@ -16,10 +16,17 @@ import numpy as np
 
 from collections import namedtuple
 import yaml
+from threading import Lock
+
+lock = Lock()
 
 
 class Index:
     def __init__(self, geo_data, keep_pbf: bool = False, rank_offset=(-1, 1)):
+        with lock:
+            self.__init(geo_data, keep_pbf, rank_offset)
+
+    def __init(self, geo_data, keep_pbf: bool, rank_offset):
         geo_data_copy = deepcopy(geo_data)
 
         # TODO: Check for areas already indexed
@@ -126,11 +133,14 @@ class Index:
             r=self.bounding_radius,
         )
 
-    def get_nearest(self, n: int):
+    def get_nearest(self, n: int, point: Optional[shapely.Point] = None):
+        if point is None:
+            point = self.center
+
         print("Querying ball tree for nearest neighbors ...")
         print("Center coordinates (WGS):", self.center)
         return self.ball_tree.query(
-            [self.center.y, self.center.x],
+            [point.y, point.x],
             k=n,
         )
 

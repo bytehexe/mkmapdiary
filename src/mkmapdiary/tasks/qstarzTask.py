@@ -37,6 +37,7 @@ class QstarzTask(BaseTask):
             yield {
                 "name": f"{source}",
                 "file_dep": [source],
+                "task_dep": [f"create_directory:{self.files_dir}"],
                 "targets": [dst],
                 "actions": [
                     "gpsbabel -t -w -r -i qstarz_bl-1000 -f %(dependencies)s -o gpx -F %(targets)s"
