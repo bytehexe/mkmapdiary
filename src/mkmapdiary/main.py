@@ -11,8 +11,24 @@ from tabulate import tabulate
 from .cache import Cache
 import locale
 import gettext
-
+import logging
+import logging.config
+import doit.reporter
+import contextvars
 import sys
+
+
+def record_factory(*args, **kwargs):
+    record = old_factory(*args, **kwargs)
+    record.task = current_task.get()
+    return record
+
+
+old_factory = logging.getLogRecordFactory()
+logging.setLogRecordFactory(record_factory)
+
+logger = logging.getLogger(__name__)
+current_task = contextvars.ContextVar("current_task", default="unknown")
 
 
 def main(
@@ -25,6 +41,17 @@ def main(
     verbose,
     no_cache,
 ):
+    # Set up logging
+    with open(pathlib.Path(__file__).parent / "resources" / "logging.yaml") as f:
+        logging_config = yaml.safe_load(f)
+
+    build_dir.mkdir(parents=True, exist_ok=True)
+    logging_config["handlers"]["file"]["filename"] = str(build_dir / "mkmapdiary.log")
+    logging.config.dictConfig(logging_config)
+
+    logger.info("Starting mkmapdiary")
+    log = build_dir / "mkmapdiary.log"
+    logger.info(f"Build dir: {log}")
 
     click.echo("Generating configuration ...")
 
@@ -124,10 +151,10 @@ def main(
     if (
         build_dir.is_dir()
         and any(build_dir.iterdir())
-        and not (build_dir / "mkdocs.yml").is_file()
+        and not (build_dir / "mkmapdiary.log").is_file()
     ):
         click.echo(
-            f"Error: Build directory '{build_dir}' is not empty and does not contain a mkdocs.yml file."
+            f"Error: Build directory '{build_dir}' is not empty and does not contain a mkmapdiary.log file."
         )
         sys.exit(1)
     if (
@@ -175,10 +202,25 @@ def main(
 
     click.echo("Running tasks ...")
 
+    class CustomReporter(doit.reporter.ConsoleReporter):
+        def execute_task(self, task):
+            display_name = task.name
+            if "/" in display_name:
+                display_name = display_name.split(":", 1)[0]
+            if len(display_name) > 30:
+                display_name = display_name[:27] + "..."
+            current_task.set(display_name)
+            super().execute_task(task)
+            current_task.set("unknown")
+
+        def write(self, text):
+            logger.info(text.rstrip())
+
     doit_config = {
         "GLOBAL": {
             "backend": "sqlite3",
             "dep_file": str(build_dir / "doit.db"),
+            "reporter": CustomReporter,
         }
     }
     exitcode = DoitMain(

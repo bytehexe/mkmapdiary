@@ -1,0 +1,25 @@
+# Logging configuration
+version: 1
+formatters:
+  simple:
+    format: '@%(relativeCreated)6d %(task)-30s [%(levelname)s] %(message)s'
+  log:
+    format: '%(asctime)s @%(relativeCreated)6d: %(name)s, %(task)s [%(levelname)s] %(message)s'
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: INFO
+    formatter: simple
+    stream: ext://sys.stdout
+  file:
+    class: logging.FileHandler
+    level: DEBUG
+    formatter: log
+    filename: None  # Set this to your desired log file path
+    mode: "w"
+loggers:
+  mkmapdiary:
+    level: DEBUG
+root:
+  level: INFO
+  handlers: [console, file]
