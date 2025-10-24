@@ -53,7 +53,7 @@ def main(
     log = build_dir / "mkmapdiary.log"
     logger.info(f"Build dir: {log}")
 
-    click.echo("Generating configuration ...")
+    logger.info("Generating configuration ...")
 
     script_dir = pathlib.Path(__file__).parent
 
@@ -121,39 +121,39 @@ def main(
         try:
             import whisper
         except ImportError:
-            click.echo(
+            logger.error(
                 "Error: Transcription feature requires the 'whisper' package to be installed."
             )
             sys.exit(1)
 
-    click.echo("Preparing directories ...")
+    logger.info("Preparing directories ...")
     # Sanity checks
     if not source_dir.is_dir():
-        click.echo(
+        logger.error(
             f"Error: Source directory '{source_dir}' does not exist or is not a directory."
         )
         sys.exit(1)
     if build_dir.is_file():
-        click.echo(f"Error: Build directory '{build_dir}' is a file.")
+        logger.error(f"Error: Build directory '{build_dir}' is a file.")
         sys.exit(1)
     if dist_dir.is_file():
-        click.echo(f"Error: Distribution directory '{dist_dir}' is a file.")
+        logger.error(f"Error: Distribution directory '{dist_dir}' is a file.")
         sys.exit(1)
     if build_dir == dist_dir:
-        click.echo("Error: Build and distribution directories must be different.")
+        logger.error("Error: Build and distribution directories must be different.")
         sys.exit(1)
     if build_dir == source_dir:
-        click.echo("Error: Build and source directories must be different.")
+        logger.error("Error: Build and source directories must be different.")
         sys.exit(1)
     if dist_dir == source_dir:
-        click.echo("Error: Distribution and source directories must be different.")
+        logger.error("Error: Distribution and source directories must be different.")
         sys.exit(1)
     if (
         build_dir.is_dir()
         and any(build_dir.iterdir())
         and not (build_dir / "mkmapdiary.log").is_file()
     ):
-        click.echo(
+        logger.error(
             f"Error: Build directory '{build_dir}' is not empty and does not contain a mkmapdiary.log file."
         )
         sys.exit(1)
@@ -162,7 +162,7 @@ def main(
         and any(dist_dir.iterdir())
         and not (dist_dir / "index.html").is_file()
     ):
-        click.echo(
+        logger.error(
             f"Error: Distribution directory '{dist_dir}' is not empty and does not contain an index.html file."
         )
         sys.exit(1)
@@ -177,7 +177,7 @@ def main(
     if always_execute:
         util.clean_dir(build_dir)
 
-    click.echo("Generating tasks ...")
+    logger.info("Generating tasks ...")
 
     if no_cache:
         cache = {}
@@ -187,7 +187,7 @@ def main(
     taskList = TaskList(config_data, source_dir, build_dir, dist_dir, cache)
 
     n_assets = taskList.db.count_assets()
-    click.echo(f"Found {n_assets} assets" + (":" if n_assets > 0 else "."))
+    logger.info(f"Found {n_assets} assets" + (":" if n_assets > 0 else "."))
     if n_assets > 0:
         print(tabulate(*taskList.db.dump()))
 
@@ -200,7 +200,7 @@ def main(
         proccess_args.extend(["-v", "2"])
     proccess_args.append("--parallel-type=thread")
 
-    click.echo("Running tasks ...")
+    logger.info("Running tasks ...")
 
     class CustomReporter(doit.reporter.ConsoleReporter):
         def execute_task(self, task):
@@ -231,5 +231,5 @@ def main(
         config_filenames=(),
         extra_config=doit_config,
     ).run(proccess_args)
-    click.echo("Done.")
+    logger.info("Done.")
     sys.exit(exitcode)
