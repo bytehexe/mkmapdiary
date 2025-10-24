@@ -18,6 +18,19 @@ import contextvars
 import sys
 
 
+def icon_pad(symbol):
+    """Pad a symbol to a given display width."""
+
+    length = len(symbol)
+    if length == 1:
+        return symbol + " "
+    elif length == 2 and ord(symbol[1]) == 65039:
+        # VS16
+        return symbol + "  "
+    else:
+        raise ValueError("Invalid symbol")
+
+
 def record_factory(*args, **kwargs):
     record = old_factory(*args, **kwargs)
     record.task = current_task.get()
@@ -49,11 +62,13 @@ def main(
     logging_config["handlers"]["file"]["filename"] = str(build_dir / "mkmapdiary.log")
     logging.config.dictConfig(logging_config)
 
+    current_task.set("main")
+
     logger.info("Starting mkmapdiary")
     log = build_dir / "mkmapdiary.log"
-    logger.info(f"Build dir: {log}")
+    logger.info(f"Log: {log}", extra={"icon": icon_pad("📄")})
 
-    logger.info("Generating configuration ...")
+    logger.info("Generating configuration ...", extra={"icon": icon_pad("⚙️")})
 
     script_dir = pathlib.Path(__file__).parent
 
@@ -175,9 +190,9 @@ def main(
 
     # Clean build directory if needed
     if always_execute:
-        util.clean_dir(build_dir)
+        util.clean_dir(build_dir, keep_files=["mkmapdiary.log"])
 
-    logger.info("Generating tasks ...")
+    logger.info("Generating tasks ...", extra={"icon": icon_pad("📝")})
 
     if no_cache:
         cache = {}
