@@ -19,6 +19,8 @@ class IconFilter(logging.Filter):
         else:
             if record.levelno >= logging.ERROR:
                 record.fmt_icon = self.__pad_icon("💥")
+            elif record.levelno >= logging.WARNING:
+                record.fmt_icon = self.__pad_icon("⚠️")
         return True
 
 

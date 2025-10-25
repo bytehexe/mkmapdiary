@@ -7,7 +7,7 @@ formatters:
       icon: '   '
       fmt_icon: '   '
   log:
-    format: '%(asctime)s: %(name)s, %(task)-30s [%(levelname)s] %(message)s'
+    format: '%(asctime)s: %(name)s, %(task)s [%(levelname)s] %(message)s'
 handlers:
   console:
     class: logging.StreamHandler
