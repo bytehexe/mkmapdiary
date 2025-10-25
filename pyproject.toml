@@ -49,6 +49,7 @@ dependencies = [
     "pyrosm",
     "msgpack",
     "osmium>=4.0.0",
+    "wcwidth"
 ]
 
 [project.optional-dependencies]
@@ -147,6 +148,10 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module="rawpy.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module="wcwidth.*"
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]

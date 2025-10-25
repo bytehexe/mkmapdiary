@@ -2,11 +2,12 @@
 version: 1
 formatters:
   simple:
-    format: '[%(levelname)s] %(relativeCreated)6dms %(icon)s%(message)s'
+    format: '[%(levelname)s] %(relativeCreated)6dms %(fmt_icon)s%(message)s'
     defaults:
       icon: '   '
+      fmt_icon: '   '
   log:
-    format: '%(asctime)s @%(relativeCreated)6d: %(name)s, %(task)-30s [%(levelname)s] %(message)s'
+    format: '%(asctime)s: %(name)s, %(task)-30s [%(levelname)s] %(message)s'
 handlers:
   console:
     class: logging.StreamHandler
