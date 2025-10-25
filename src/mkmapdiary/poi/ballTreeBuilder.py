@@ -1,6 +1,9 @@
 from sklearn.neighbors import BallTree as SkBallTree
 from mkmapdiary.poi.ballTree import BallTree
 import numpy as np
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class BallTreeBuilder:
@@ -18,7 +21,7 @@ class BallTreeBuilder:
             ), "Mismatch between coordinates and POI data lengths"
 
     def __build(self) -> SkBallTree:
-        print("Generating ball tree ...")
+        logger.info("Generating ball tree ...")
         ball_tree = SkBallTree(
             np.radians(
                 self.__coords

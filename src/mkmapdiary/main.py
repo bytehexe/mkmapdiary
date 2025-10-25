@@ -14,9 +14,10 @@ import gettext
 import logging
 import doit.reporter
 import sys
-from mkmapdiary.util.log import setup_logging, current_task
+from mkmapdiary.util.log import setup_logging, current_task, StepFilter
 
 logger = logging.getLogger(__name__)
+runner_logger = logging.getLogger(__name__ + ".runner")
 
 
 def main(
@@ -27,15 +28,36 @@ def main(
     always_execute,
     num_processes,
     verbose,
+    quiet,
     no_cache,
 ):
     setup_logging(build_dir)
+
+    if verbose > 0 and quiet > 0:
+        logger.error("Error: Cannot use both verbose and quiet options together.")
+        sys.exit(1)
+
+    console_log = logging.getHandlerByName("console")
+    if console_log:
+        if quiet == 1:
+            console_log.addFilter(StepFilter())
+        elif quiet == 2:
+            console_log.setLevel(logging.WARNING)
+        elif quiet == 3:
+            console_log.setLevel(logging.ERROR)
+        elif quiet >= 4:
+            console_log.setLevel(logging.CRITICAL)
+
+        if verbose == 1:
+            console_log.setLevel(logging.DEBUG)
+        elif verbose >= 2:
+            console_log.setLevel(logging.NOTSET)
 
     current_task.set("main")
 
     logger.info("Starting mkmapdiary")
     log = build_dir / "mkmapdiary.log"
-    logger.info(f"Log: {log}", extra={"icon": "📄"})
+    logger.debug(f"Log: {log}", extra={"icon": "📄"})
 
     logger.info("Generating configuration ...", extra={"icon": "⚙️"})
 
@@ -161,7 +183,7 @@ def main(
     if always_execute:
         util.clean_dir(build_dir, keep_files=["mkmapdiary.log"])
 
-    logger.info("Generating tasks ...", extra={"icon": "📝"})
+    logger.info("Generating tasks ...", extra={"icon": "📝", "is_step": True})
 
     if no_cache:
         cache = {}
@@ -171,9 +193,14 @@ def main(
     taskList = TaskList(config_data, source_dir, build_dir, dist_dir, cache)
 
     n_assets = taskList.db.count_assets()
-    logger.info(f"Found {n_assets} assets" + (":" if n_assets > 0 else "."))
+
     if n_assets > 0:
-        print(tabulate(*taskList.db.dump()))
+        asset_str = tabulate(*taskList.db.dump())
+    else:
+        asset_str = ""
+    logger.debug(
+        f"Found {n_assets} assets" + (f":\n{asset_str}" if n_assets > 0 else ".")
+    )
 
     proccess_args = []
     if always_execute:
@@ -184,7 +211,7 @@ def main(
         proccess_args.extend(["-v", "2"])
     proccess_args.append("--parallel-type=thread")
 
-    logger.info("Running tasks ...")
+    logger.info("Running tasks ...", extra={"icon": "🚀", "is_step": True})
 
     class CustomReporter(doit.reporter.ConsoleReporter):
         def execute_task(self, task):
@@ -201,7 +228,7 @@ def main(
             current_task.set("unknown")
 
         def write(self, text):
-            logger.info(text.rstrip())
+            runner_logger.info(text.rstrip())
 
     doit_config = {
         "GLOBAL": {
@@ -215,5 +242,5 @@ def main(
         config_filenames=(),
         extra_config=doit_config,
     ).run(proccess_args)
-    logger.info("Done.")
+    logger.info("Done.", extra={"icon": "✅"})
     sys.exit(exitcode)

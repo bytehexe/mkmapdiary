@@ -201,5 +201,4 @@ class SiteTask(HttpRequest):
             targets=[
                 self.dist_dir / "sitemap.xml",
             ],
-            verbosity=2,
         )

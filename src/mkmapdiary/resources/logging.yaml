@@ -1,8 +1,8 @@
 # Logging configuration
 version: 1
 formatters:
-  simple:
-    format: '[%(levelname)s] %(relativeCreated)6dms %(fmt_icon)s%(message)s'
+  terminal:
+    format: '%(levelname)-5s %(relativeCreated)6dms %(fmt_icon)s%(message)s'
     defaults:
       icon: '   '
       fmt_icon: '   '
@@ -12,7 +12,7 @@ handlers:
   console:
     class: logging.StreamHandler
     level: INFO
-    formatter: simple
+    formatter: terminal
     stream: ext://sys.stdout
   file:
     class: logging.FileHandler

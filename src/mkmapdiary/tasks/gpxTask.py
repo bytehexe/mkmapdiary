@@ -11,6 +11,9 @@ import bisect
 from mkmapdiary.gpxCreator import GpxCreator
 from pathlib import PosixPath
 from typing import Any, Callable, Dict, Iterator, List, Tuple, Union
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class GPXTask(BaseTask):
@@ -54,8 +57,6 @@ class GPXTask(BaseTask):
         return filename
 
     def __gpx2gpx(self, date, dst, gpx_source):
-        print(f"Generating GPX for date {date} into {dst}")
-
         if gpx_source:
             sources = self.__sources
         else:
@@ -107,7 +108,6 @@ class GPXTask(BaseTask):
                 "task_dep": ["geo_correlation", "qstarz2gpx"],
                 "targets": [str(dst)],
                 "clean": True,
-                "verbosity": 2,
             }
 
         journal_dates = (
@@ -146,7 +146,6 @@ class GPXTask(BaseTask):
             "task_dep": ["gpx2gpx"],
             "file_dep": [str(src) for src in self.__sources],
             "actions": [_gpx_deps],
-            "verbosity": 2,
         }
 
     def __get_timed_coords(self, gpx, coords):
@@ -197,18 +196,13 @@ class GPXTask(BaseTask):
                             closest[1],
                             int(diff),  # lat, lon for database
                         )
-            sys.stderr.write(tabulate(*self.db.dump()))
-            sys.stderr.write("\n")
-            sys.stderr.flush()
+            logger.debug("Asset positions updated:\n" + tabulate(*self.db.dump()))
 
         return {
             "actions": [_update_positions],
             "file_dep": [str(src) for src in self.__sources],
             "uptodate": [False],
-            "verbosity": 2,
         }
 
     def __debug_dump_gpx(self):
-        sys.stderr.write(tabulate(*self.db.dump("gpx")))
-        sys.stderr.write("\n")
-        sys.stderr.flush()
+        logger.debug("GPX dump:\n" + tabulate(*self.db.dump("gpx")))

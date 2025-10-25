@@ -4,6 +4,9 @@ import numpy as np
 from mkmapdiary.geoCluster import GeoCluster
 import warnings
 from mkmapdiary.poi.index import Index
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class GpxCreator:
@@ -96,7 +99,10 @@ class GpxCreator:
             self.__gpx_out.waypoints.append(cwpt)
 
             # Add a POI for each cluster center
-            print(f"Searching POIs near cluster {label} at {clat},{clon}")
+            logger.info(
+                f"Searching POIs near cluster {label} at {clat},{clon}",
+                extra={"icon": "📍"},
+            )
             index = Index(cluster.shape, keep_pbf=True)
             # Convert mass_point (lon, lat) to shapely.Point for Index.get_nearest
             mass_lon, mass_lat = cluster.mass_point

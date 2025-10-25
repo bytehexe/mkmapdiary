@@ -18,6 +18,9 @@ from collections import namedtuple
 import yaml
 from threading import Lock
 import sys
+import logging
+
+logger = logging.getLogger(__name__)
 
 lock = Lock()
 
@@ -45,27 +48,20 @@ class Index:
 
         # Find best matching regions
         regions: List[Region] = []
-        sys.stderr.write("Finding best matching Geofabrik regions...\n")
-        sys.stderr.flush()
+        logger.info("Finding best matching Geofabrik regions...\n")
         while geo_data_copy.is_empty is False:
-            sys.stderr.write(
-                "Next iteration to find best matching Geofabrik region...\n"
-            )
-            sys.stderr.flush()
+            logger.info("Next iteration to find best matching Geofabrik region...\n")
             best_region, remaining_geo_data = self.__findBestRegion(
                 geo_data_copy, regions
             )
             if best_region is None:
                 break
             regions.append(best_region)
-            sys.stderr.write(f"Selected region: {best_region.name}\n")
-            sys.stderr.flush()
+            logger.info(f"Selected region: {best_region.name}\n")
             geo_data_copy = remaining_geo_data
-        sys.stderr.write("Selected Geofabrik regions for POI extraction:\n")
-        sys.stderr.flush()
+        logger.info("Selected Geofabrik regions for POI extraction:\n")
         for region in regions:
-            sys.stderr.write(f" - {region.name}\n")
-            sys.stderr.flush()
+            logger.info(f" - {region.name}\n")
 
         for region in regions:
             poi_index_path = (
@@ -77,31 +73,27 @@ class Index:
             )
 
             if not poi_index_path.exists():
-                sys.stderr.write(
+                logger.info(
                     f"POI index for region {region.name} does not exist. Building...\n"
                 )
-                sys.stderr.flush()
                 IndexBuilder(region, keep_pbf=keep_pbf).build_index()
                 continue
 
             region_index = IndexFileReader(poi_index_path)
             if not region_index.is_up_to_date(31536000):
-                sys.stderr.write(
+                logger.info(
                     f"POI index for region {region.name} is outdated. Rebuilding...\n"
                 )
-                sys.stderr.flush()
                 IndexBuilder(region, keep_pbf=keep_pbf).build_index()
                 continue
             if not region_index.is_valid(self.filter_config):
-                sys.stderr.write(
+                logger.info(
                     f"POI index for region {region.name} is invalid. Rebuilding...\n"
                 )
-                sys.stderr.flush()
                 IndexBuilder(region, keep_pbf=keep_pbf).build_index()
                 continue
 
-            sys.stderr.write(f"Using existing POI index for region {region.name}.\n")
-            sys.stderr.flush()
+            logger.info(f"Using existing POI index for region {region.name}.\n")
 
         local_projection = LocalProjection(geo_data)
         local_geo_data = local_projection.to_local(geo_data)
@@ -119,8 +111,7 @@ class Index:
                 "Invalid bounding radius calculated for the area of interest."
             )
         rank = calculate_rank(None, self.bounding_radius)
-        sys.stderr.write(f"Calculated rank for the area of interest: {rank}\n")
-        sys.stderr.flush()
+        logger.info(f"Calculated rank for the area of interest: {rank}\n")
 
         if rank is None:
             raise ValueError("Invalid rank calculated for the area of interest.")
@@ -131,8 +122,7 @@ class Index:
         builder = BallTreeBuilder(self.filter_config)
 
         for region in regions:
-            sys.stderr.write(f"Loading POI index for region: {region.name}\n")
-            sys.stderr.flush()
+            logger.info(f"Loading POI index for region: {region.name}\n")
             # Load the index file
             poi_index_path = (
                 pathlib.Path.home()
@@ -146,14 +136,13 @@ class Index:
             data = reader.read()
             builder.load(data, min_rank, max_rank)
 
-        sys.stderr.write("Generating ball tree ...\n")
-        sys.stderr.flush()
+        logger.info("Generating ball tree ...\n")
         self.ball_tree = builder.build()
 
     def get_all(self):
-        print("Querying ball tree ...")
-        print("Bounding radius (meters):", self.bounding_radius)
-        print("Center coordinates (WGS):", self.center)
+        logger.info("Querying ball tree ...")
+        logger.debug("Bounding radius (meters): %s", self.bounding_radius)
+        logger.debug("Center coordinates (WGS): %s", self.center)
         # Convert from Shapely Point (x=lon, y=lat) to BallTree expected (lat, lon) format
         return self.ball_tree.query_radius(
             [self.center.y, self.center.x],
@@ -164,8 +153,8 @@ class Index:
         if point is None:
             point = self.center
 
-        print("Querying ball tree for nearest neighbors ...")
-        print("Center coordinates (WGS):", self.center)
+        logger.info("Querying ball tree for nearest neighbors ...")
+        logger.debug("Center coordinates (WGS): %s", self.center)
         # Convert from Shapely Point (x=lon, y=lat) to BallTree expected (lat, lon) format
         return self.ball_tree.query(
             [point.y, point.x],

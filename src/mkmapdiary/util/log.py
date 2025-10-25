@@ -16,7 +16,23 @@ class IconFilter(logging.Filter):
     def filter(self, record):
         if hasattr(record, "icon"):
             record.fmt_icon = self.__pad_icon(record.icon)
+        else:
+            if record.levelno >= logging.ERROR:
+                record.fmt_icon = self.__pad_icon("💥")
         return True
+
+
+class StepFilter(logging.Filter):
+    def filter(self, record):
+        if record.name == "mkmapdiary.main.runner":
+            return True
+        if record.name == "mkmapdiary.taskList":
+            return True
+        if hasattr(record, "is_step") and record.is_step:
+            return True
+        if record.levelno >= logging.WARNING:
+            return True
+        return False
 
 
 def record_factory(*args, **kwargs):
@@ -41,3 +57,14 @@ def setup_logging(build_dir: pathlib.Path):
     console_handler = logging.getHandlerByName("console")
     if console_handler:
         console_handler.addFilter(IconFilter())
+
+
+class ThisMayTakeAWhile:
+    def __init__(self, logger: logging.Logger):
+        self.logger = logger
+
+    def __enter__(self):
+        self.logger.info("This may take a while ...", extra={"icon": "⏳"})
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.logger.info("Done.", extra={"icon": "⌛"})

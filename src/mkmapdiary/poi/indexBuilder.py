@@ -15,6 +15,9 @@ from mkmapdiary.poi.indexFileWriter import IndexFileWriter
 import yaml
 from typing import List, Optional, Any
 import sys
+import logging
+
+logger = logging.getLogger(__name__)
 
 Region = namedtuple(
     "Region",
@@ -43,8 +46,7 @@ class IndexBuilder:
 
     def build_index(self):
         region = self.region
-        sys.stderr.write(f"Building POI index for region: {region.name}\n")
-        sys.stderr.flush()
+        logger.info(f"Building POI index for region: {region.name}\n")
 
         # Download or use cached PBF file
         if self.pbf_path.exists():
@@ -63,14 +65,12 @@ class IndexBuilder:
         w = IndexFileWriter(self.idx_path, filter_config=self.filter_config)
         w.write(index)
 
-        sys.stderr.write(f"POI index built successfully for region: {region.name}\n")
-        sys.stderr.flush()
+        logger.info(f"POI index built successfully for region: {region.name}\n")
 
         return index
 
     def __downloadPbf(self, region: Region, pbf_file_name: pathlib.Path):
-        sys.stderr.write(f"Downloading PBF ...\n")
-        sys.stderr.flush()
+        logger.info(f"Downloading PBF ...\n")
         result = requests.get(region.url)
         result.raise_for_status()
         with open(pbf_file_name, "wb") as pbf_file:
@@ -78,8 +78,7 @@ class IndexBuilder:
 
     def __buildPoiIndex(self) -> dict:
 
-        sys.stderr.write("Building index structure ...")
-        sys.stderr.flush()
+        logger.info("Building index structure ...")
 
         index: dict[int, dict[str, list]] = {}
         for i in range(MIN_RANK, MAX_RANK + 1):
@@ -142,7 +141,7 @@ class IndexBuilder:
                 rank = calculate_rank(radius=radius, place=obj.tags.get("place"))
 
             if rank is None:
-                print(
+                logger.warning(
                     f"Skipping: {poi_name} (invalid rank); place={obj.tags.get('place', '')}, radius={radius}"
                 )
                 continue

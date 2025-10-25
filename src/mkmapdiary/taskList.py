@@ -20,6 +20,9 @@ from mkmapdiary.cache import Cache
 from mkmapdiary.db import Db
 from pathlib import PosixPath
 from typing import Dict, List, Union, Any
+import logging
+
+logger = logging.getLogger(__name__)
 
 tasks = [
     ImageTask,
@@ -135,10 +138,10 @@ class TaskList(*tasks):  # type: ignore
             return
 
         tags = identify.tags_from_path(str(source))
-        print(f"> Processing {source} [{" ".join(tags)}]")
+        logger.info(f"Processing {source} [{" ".join(tags)}]", extra={"icon": "🔍"})
 
         if not tags:
-            print(f"Warning: No tags for {source}")
+            logger.warning(f"Warning: No tags for {source}")
             return
 
         handler = None
@@ -163,8 +166,8 @@ class TaskList(*tasks):  # type: ignore
             self.add_assets(handler(source))
             return
 
-        print(
-            f"Warning: No handler for {source} with tags {tags} and extension '{ext}'"
+        logger.warning(
+            f"No handler for {source} with tags {tags} and extension '{ext}'"
         )
 
     def handle_directory(self, source: PosixPath):

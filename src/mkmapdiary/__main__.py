@@ -49,7 +49,18 @@ def validate_param(ctx, param, value):
     type=int,
     help="Number of parallel processes to use",
 )
-@click.option("-v", "--verbose", is_flag=True, help="Enable verbose output")
+@click.option(
+    "-v",
+    "--verbose",
+    count=True,
+    help="Increase verbosity level. Can be used multiple times.",
+)
+@click.option(
+    "-q",
+    "--quiet",
+    count=True,
+    help="Decrease verbosity level. Can be used multiple times.",
+)
 @click.option(
     "--no-cache",
     is_flag=True,
