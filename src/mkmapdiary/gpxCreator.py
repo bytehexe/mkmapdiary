@@ -5,6 +5,8 @@ from mkmapdiary.geoCluster import GeoCluster
 import warnings
 from mkmapdiary.poi.index import Index
 import logging
+from mkmapdiary.util.log import ThisMayTakeAWhile
+from collections import namedtuple
 
 logger = logging.getLogger(__name__)
 
@@ -20,9 +22,12 @@ class GpxCreator:
         self.__init()
 
     def __init(self):
-        for source in self.__sources:
-            self.__load_source(source)
-        self.__compute_clusters()
+        logger.debug(f"Creating GPX for date {self.__date}")
+        with ThisMayTakeAWhile(logger):
+            for source in self.__sources:
+                self.__load_source(source)
+        with ThisMayTakeAWhile(logger):
+            self.__compute_clusters()
         self.__add_journal_markers()
 
     def __load_source(self, source):

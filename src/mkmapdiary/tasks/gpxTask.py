@@ -196,7 +196,10 @@ class GPXTask(BaseTask):
                             closest[1],
                             int(diff),  # lat, lon for database
                         )
-            logger.debug("Asset positions updated:\n" + tabulate(*self.db.dump()))
+            logger.debug(
+                "Asset positions updated:\n" + tabulate(*self.db.dump()),
+                extra={"icon": "🌐"},
+            )
 
         return {
             "actions": [_update_positions],
