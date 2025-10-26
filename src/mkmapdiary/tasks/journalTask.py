@@ -1,8 +1,10 @@
-from .base.baseTask import BaseTask
 import pathlib
-from doit import create_after
 from datetime import datetime
-from typing import Callable, Dict, Iterator, List, Tuple, Union, Any
+from typing import Any, Dict, Iterator
+
+from doit import create_after
+
+from .base.baseTask import BaseTask
 
 
 class JournalTask(BaseTask):

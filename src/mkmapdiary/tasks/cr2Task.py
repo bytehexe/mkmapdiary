@@ -1,9 +1,10 @@
-import rawpy
+from typing import Any, Dict, Iterator
+
 import imageio.v2 as imageio
+import rawpy
+
 from .base.baseTask import BaseTask
 from .base.exifReader import ExifReader
-from pathlib import PosixPath
-from typing import Callable, Dict, Iterator, List, Tuple, Union, Any
 
 
 class Cr2Task(BaseTask, ExifReader):

@@ -1,11 +1,12 @@
+import hashlib
+import threading
+from typing import Any, Dict, Iterator
+
 from PIL import Image
+from pydub import AudioSegment
+
 from .base.baseTask import BaseTask
 from .base.exifReader import ExifReader
-from pydub import AudioSegment
-import hashlib
-from pathlib import PosixPath
-from typing import Callable, Dict, Iterator, List, Tuple, Union, Any
-import threading
 
 whisper_lock = threading.Lock()
 

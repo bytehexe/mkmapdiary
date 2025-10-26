@@ -1,5 +1,6 @@
-from .baseTask import BaseTask
 import requests
+
+from .baseTask import BaseTask
 
 
 class HttpRequest(BaseTask):

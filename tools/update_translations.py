@@ -1,14 +1,12 @@
 #! /usr/bin/env python3
 
-import gettext
-import locale
-import sys
-import click
-import subprocess
-import os
-import pathlib
 import hashlib
+import pathlib
+import subprocess
+import sys
 import tempfile
+
+import click
 
 
 def compute_sha1_checksum(file_path):

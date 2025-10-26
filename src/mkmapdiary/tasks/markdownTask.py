@@ -1,6 +1,6 @@
+from typing import Any, Dict, Iterator
+
 from .base.baseTask import BaseTask
-from pathlib import PosixPath
-from typing import Callable, Dict, Iterator, List, Tuple, Union, Any
 
 
 class MarkdownTask(BaseTask):

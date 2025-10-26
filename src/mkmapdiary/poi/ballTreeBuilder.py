@@ -1,7 +1,9 @@
-from sklearn.neighbors import BallTree as SkBallTree
-from mkmapdiary.poi.ballTree import BallTree
-import numpy as np
 import logging
+
+import numpy as np
+from sklearn.neighbors import BallTree as SkBallTree
+
+from mkmapdiary.poi.ballTree import BallTree
 
 logger = logging.getLogger(__name__)
 

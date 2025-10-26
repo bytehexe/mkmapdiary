@@ -1,17 +1,19 @@
-from .base.baseTask import BaseTask
+import bisect
+import logging
+from datetime import datetime, timedelta
+from pathlib import PosixPath
+from typing import Any, Dict, Iterator, List
+from zoneinfo import ZoneInfo
+
 import gpxpy
 import gpxpy.gpx
-from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
-from mkmapdiary.geoCluster import GeoCluster
 from doit import create_after
 from tabulate import tabulate
-import sys
-import bisect
+
+from mkmapdiary.geoCluster import GeoCluster
 from mkmapdiary.gpxCreator import GpxCreator
-from pathlib import PosixPath
-from typing import Any, Callable, Dict, Iterator, List, Tuple, Union
-import logging
+
+from .base.baseTask import BaseTask
 
 logger = logging.getLogger(__name__)
 

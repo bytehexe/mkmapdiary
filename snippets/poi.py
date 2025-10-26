@@ -1,6 +1,7 @@
-import pyrosm
-import pandas.errors
 import warnings
+
+import pandas.errors
+import pyrosm
 import yaml
 
 fp = pyrosm.get_data("berlin")

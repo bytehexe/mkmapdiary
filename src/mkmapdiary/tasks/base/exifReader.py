@@ -1,8 +1,9 @@
-import exiftool
 import datetime
-from pathlib import PosixPath
-from typing import Dict, Optional, Union, Any
 from abc import ABC, abstractmethod
+from pathlib import PosixPath
+from typing import Any, Dict, Optional
+
+import exiftool
 
 
 class ExifReader(ABC):

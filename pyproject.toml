@@ -80,6 +80,7 @@ translate = { help="Update translation mo files", cmd = "./tools/update_translat
 lint = { help="An alias for 'test'", cmd="task test" }
 run = { help="Run mkmapdiary with the given arguments", cmd="hatch run mkmapdiary" }
 run-min = { help="Run mkmapdiary with the given arguments (without extras)", cmd="hatch run min:mkmapdiary" }
+fix = { help="Run linters in fix mode", cmd="python -m autoflake -ri .; python -m isort .; black ."}
 
 [tool.pytest.ini_options]
 markers = [
@@ -192,3 +193,6 @@ exclude_lines = [
   "if __name__ == .__main__.:",
   "if TYPE_CHECKING:",
 ]
+
+[tool.isort]
+profile = "black"

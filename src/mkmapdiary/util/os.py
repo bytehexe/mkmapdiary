@@ -1,6 +1,6 @@
 import pathlib
 import shutil
-from typing import Optional, List
+from typing import List, Optional
 
 
 def clean_dir(build_dir: pathlib.Path, keep_files: Optional[List[str]] = None):

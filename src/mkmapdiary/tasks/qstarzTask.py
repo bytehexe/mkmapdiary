@@ -1,6 +1,7 @@
-from .base.baseTask import BaseTask
 from pathlib import PosixPath
-from typing import Any, Dict, Iterator, List, Union
+from typing import Any, Dict, Iterator, List
+
+from .base.baseTask import BaseTask
 
 
 class QstarzTask(BaseTask):

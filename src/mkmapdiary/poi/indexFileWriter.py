@@ -1,5 +1,7 @@
-import msgpack
 import time
+
+import msgpack
+
 from mkmapdiary.poi.common import get_hash
 
 

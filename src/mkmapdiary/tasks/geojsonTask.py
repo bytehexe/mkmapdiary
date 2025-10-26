@@ -1,17 +1,19 @@
-from PIL import Image
-from .base.baseTask import BaseTask
-from .base.geoLookup import GeoLookup
-import json, yaml
-from jsonschema import validate
+import json
 import pathlib
-import gpxpy
-import gpxpy.gpx
-import dateutil
 from itertools import zip_longest
 from threading import Lock
+from typing import Any, Dict, Iterator, List
+
+import dateutil
+import gpxpy
+import gpxpy.gpx
 import requests
-import time
-from typing import Any, Callable, Dict, Iterator, List, Tuple, Union
+import yaml
+from jsonschema import validate
+from PIL import Image
+
+from .base.baseTask import BaseTask
+from .base.geoLookup import GeoLookup
 
 coder_lock = Lock()
 

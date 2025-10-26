@@ -1,6 +1,7 @@
-from .httpRequest import HttpRequest
 import threading
 import time
+
+from .httpRequest import HttpRequest
 
 lock = threading.Lock()
 

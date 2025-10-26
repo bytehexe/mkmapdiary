@@ -36,3 +36,13 @@ repos:
         language: system
         entry: gitlint --msg-filename
         stages: [commit-msg]
+      - id: isort
+        name: Python imports must be sorted with isort
+        language: system
+        entry: python -m isort --check-only
+        types: [python]
+      - id: autoflake
+        name: Python files must be free of unused imports and variables
+        language: system
+        entry: python -m autoflake -i -c
+        types: [python]

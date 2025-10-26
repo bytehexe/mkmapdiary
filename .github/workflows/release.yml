@@ -16,7 +16,7 @@ jobs:
           cache: 'pip'
       - name: Install dependencies
         run: |
-          python -m pip install hatch pre-commit yamllint black --user
+          python -m pip install hatch pre-commit yamllint black autoflake isort --user
       - name: Run tests
         run: |
           env PYTEST_MARK="not local and not slow" SKIP="mypy,translation-files" pre-commit run -a

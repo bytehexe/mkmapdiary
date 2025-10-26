@@ -1,11 +1,11 @@
-import click
-import pathlib
-
 import os
+import pathlib
 import tempfile
 
-from .main import main
+import click
+
 from .generate_demo import generate_demo_data as generate_demo
+from .main import main
 
 
 def validate_param(ctx, param, value):

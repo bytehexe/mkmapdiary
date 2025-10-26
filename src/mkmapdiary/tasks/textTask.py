@@ -1,7 +1,6 @@
+from typing import Any, Dict, Iterator
+
 from .base.baseTask import BaseTask
-import shutil
-from pathlib import PosixPath
-from typing import Callable, Dict, Iterator, List, Tuple, Union, Any
 
 
 class TextTask(BaseTask):

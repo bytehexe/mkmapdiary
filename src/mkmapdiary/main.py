@@ -1,20 +1,22 @@
-import click
-import pathlib
-import yaml
-
-from .taskList import TaskList
-from . import util
-from doit.api import run_tasks
-from doit.doit_cmd import DoitMain
-from doit.cmd_base import ModuleTaskLoader
-from tabulate import tabulate
-from .cache import Cache
-import locale
 import gettext
+import locale
 import logging
-import doit.reporter
+import pathlib
 import sys
-from mkmapdiary.util.log import setup_logging, current_task, StepFilter
+
+import click
+import doit.reporter
+import yaml
+from doit.api import run_tasks
+from doit.cmd_base import ModuleTaskLoader
+from doit.doit_cmd import DoitMain
+from tabulate import tabulate
+
+from mkmapdiary.util.log import StepFilter, current_task, setup_logging
+
+from . import util
+from .cache import Cache
+from .taskList import TaskList
 
 logger = logging.getLogger(__name__)
 runner_logger = logging.getLogger(__name__ + ".runner")

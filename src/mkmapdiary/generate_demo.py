@@ -1,11 +1,11 @@
-import os
-import pathlib
-import click
-import random
 import datetime
-import sys
-import ollama
+import pathlib
+import random
 import subprocess
+import sys
+
+import click
+import ollama
 import requests
 
 

@@ -1,15 +1,16 @@
 import datetime
-from collections import namedtuple
+import threading
 from abc import ABC, abstractmethod
-from jinja2 import Environment, PackageLoader, select_autoescape, StrictUndefined
+from collections import namedtuple
+from pathlib import PosixPath
+from typing import Any, List, Mapping, Optional, Tuple, Union
+
 import dateutil.parser
 import ollama
-import threading
-from pathlib import PosixPath
-from typing import Optional
-from mkmapdiary.util.cache import with_cache
+from jinja2 import Environment, PackageLoader, StrictUndefined, select_autoescape
+
 from mkmapdiary.db import Db
-from typing import Mapping, Tuple, Union, List, Any
+from mkmapdiary.util.cache import with_cache
 
 ai_lock = threading.Lock()
 
@@ -44,7 +45,6 @@ class BaseTask(ABC):
     @abstractmethod
     def handle(self, source):
         """Handle a source file or directory based on its tags."""
-        pass
 
     @property
     @abstractmethod

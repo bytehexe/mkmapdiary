@@ -1,8 +1,9 @@
-from .base.baseTask import BaseTask
-import datetime
 import pathlib
+from typing import Any, Dict, Iterator
+
 from doit import create_after
-from typing import Callable, Dict, Iterator, List, Tuple, Union, Any
+
+from .base.baseTask import BaseTask
 
 
 class GalleryTask(BaseTask):

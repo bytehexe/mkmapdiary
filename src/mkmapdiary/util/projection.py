@@ -1,6 +1,6 @@
 import math
-from pyproj import CRS
-from pyproj import Transformer
+
+from pyproj import CRS, Transformer
 from shapely.ops import transform
 
 

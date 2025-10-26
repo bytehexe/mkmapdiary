@@ -1,12 +1,13 @@
+import logging
+import warnings
+
 import gpxpy
 import hdbscan
 import numpy as np
+
 from mkmapdiary.geoCluster import GeoCluster
-import warnings
 from mkmapdiary.poi.index import Index
-import logging
 from mkmapdiary.util.log import ThisMayTakeAWhile
-from collections import namedtuple
 
 logger = logging.getLogger(__name__)
 

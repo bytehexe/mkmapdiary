@@ -1,6 +1,7 @@
+import copy
+
 import numpy as np
 from scipy.spatial import ConvexHull
-import copy
 from shapely.geometry import MultiPoint
 
 

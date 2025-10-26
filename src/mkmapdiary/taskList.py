@@ -1,26 +1,28 @@
+import logging
+from pathlib import PosixPath
+from typing import Any, Dict
+
 from identify import identify
-from collections import namedtuple, defaultdict
 
-from .tasks import ImageTask
-from .tasks import SiteTask
-from .tasks import Cr2Task
-from .tasks import DayPageTask
-from .tasks import GeojsonTask
-from .tasks import GalleryTask
-from .tasks import JournalTask
-from .tasks import TextTask
-from .tasks import MarkdownTask
-from .tasks import AudioTask
-from .tasks import GPXTask
-from .tasks import QstarzTask
-from .tasks import TagsTask
-
-from .db import Db
 from mkmapdiary.cache import Cache
 from mkmapdiary.db import Db
-from pathlib import PosixPath
-from typing import Dict, List, Union, Any
-import logging
+
+from .db import Db
+from .tasks import (
+    AudioTask,
+    Cr2Task,
+    DayPageTask,
+    GalleryTask,
+    GeojsonTask,
+    GPXTask,
+    ImageTask,
+    JournalTask,
+    MarkdownTask,
+    QstarzTask,
+    SiteTask,
+    TagsTask,
+    TextTask,
+)
 
 logger = logging.getLogger(__name__)
 

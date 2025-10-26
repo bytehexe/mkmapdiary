@@ -1,21 +1,21 @@
-import requests
+import logging
 import pathlib
 import tempfile
+from collections import namedtuple
+
+import msgpack
 import osmium
 import osmium.filter
-from ..util import calculate_rank
+import requests
 import shapely
-from mkmapdiary.util.projection import LocalProjection
-from mkmapdiary.util.osm import MIN_RANK, MAX_RANK
-from collections import namedtuple
-import msgpack
-from typing import IO, Union
-from shapely.geometry import shape
-from mkmapdiary.poi.indexFileWriter import IndexFileWriter
 import yaml
-from typing import List, Optional, Any
-import sys
-import logging
+from shapely.geometry import shape
+
+from mkmapdiary.poi.indexFileWriter import IndexFileWriter
+from mkmapdiary.util.osm import MAX_RANK, MIN_RANK
+from mkmapdiary.util.projection import LocalProjection
+
+from ..util import calculate_rank
 
 logger = logging.getLogger(__name__)
 

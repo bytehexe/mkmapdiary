@@ -1,5 +1,6 @@
-from mkmapdiary.poi.common import Poi
 import numpy as np
+
+from mkmapdiary.poi.common import Poi
 
 
 class BallTree:

@@ -1,8 +1,9 @@
+from typing import Any, Dict, Iterator
+
 from PIL import Image
+
 from .base.baseTask import BaseTask
 from .base.exifReader import ExifReader
-from pathlib import PosixPath
-from typing import Callable, Dict, Iterator, List, Tuple, Union, Any
 
 
 class ImageTask(BaseTask, ExifReader):

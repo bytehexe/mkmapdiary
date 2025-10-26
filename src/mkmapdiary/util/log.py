@@ -1,9 +1,10 @@
-from wcwidth import wcswidth
+import contextvars
 import logging
 import logging.config
-import contextvars
 import pathlib
+
 import yaml
+from wcwidth import wcswidth
 
 
 class IconFilter(logging.Filter):

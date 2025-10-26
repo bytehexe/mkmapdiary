@@ -1,24 +1,23 @@
+import json
+import logging
+import pathlib
 from copy import deepcopy
+from threading import Lock
+from typing import Any, List, Optional, Tuple
+
+import msgpack
+import numpy as np
 import requests
 import shapely
-import json
+import yaml
+from sklearn.metrics.pairwise import haversine_distances
+from sklearn.neighbors import BallTree
+
+from mkmapdiary.poi.ballTreeBuilder import BallTreeBuilder
 from mkmapdiary.poi.indexBuilder import IndexBuilder, Region
+from mkmapdiary.poi.indexFileReader import IndexFileReader
 from mkmapdiary.util.osm import calculate_rank, clip_rank
 from mkmapdiary.util.projection import LocalProjection
-from mkmapdiary.poi.indexFileReader import IndexFileReader
-from mkmapdiary.poi.ballTreeBuilder import BallTreeBuilder
-from typing import List, Optional, Tuple, Any
-import msgpack
-import pathlib
-from sklearn.neighbors import BallTree
-from sklearn.metrics.pairwise import haversine_distances
-import numpy as np
-
-from collections import namedtuple
-import yaml
-from threading import Lock
-import sys
-import logging
 
 logger = logging.getLogger(__name__)
 

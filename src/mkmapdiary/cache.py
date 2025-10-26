@@ -1,9 +1,9 @@
-import sqlite3
-import pathlib
-import threading
 import collections
 import collections.abc
 import json
+import pathlib
+import sqlite3
+import threading
 
 lock = threading.Lock()
 
