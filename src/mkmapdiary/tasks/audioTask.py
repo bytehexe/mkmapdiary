@@ -1,4 +1,5 @@
 import hashlib
+import logging
 import threading
 from typing import Any, Dict, Iterator
 
@@ -9,6 +10,8 @@ from mkmapdiary.util.log import ThisMayTakeAWhile
 from .base.baseTask import BaseTask
 
 whisper_lock = threading.Lock()
+
+logger = logging.getLogger(__name__)
 
 
 class AudioTask(BaseTask):
@@ -62,7 +65,7 @@ class AudioTask(BaseTask):
     def __transcribe_audio(self, src):
         import whisper
 
-        with ThisMayTakeAWhile(self.logger, "Transcribing audio"):
+        with ThisMayTakeAWhile(logger, "Transcribing audio"):
             with whisper_lock:
                 model = whisper.load_model("turbo")
                 result = model.transcribe(str(src))

@@ -1,7 +1,6 @@
 import gettext
 import locale
 import logging
-import pathlib
 import sys
 
 import click
@@ -196,7 +195,7 @@ def main(
     if no_cache:
         cache = {}
     else:
-        cache = Cache(pathlib.Path.home() / ".mkmapdiary" / "cache.sqlite")
+        cache = Cache(dirs.cache_db_path)
 
     dirs.create_dirs = True
     taskList = TaskList(config_data, dirs, cache)
