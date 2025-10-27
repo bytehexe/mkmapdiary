@@ -14,7 +14,7 @@ class TagsTask(BaseTask):
         """Generate tags list."""
 
         def _generate_tags(date):
-            tags_path = self.docs_dir / "templates" / f"{date}_tags.md"
+            tags_path = self.dirs.docs_dir / "templates" / f"{date}_tags.md"
 
             content = []
 
@@ -60,11 +60,11 @@ class TagsTask(BaseTask):
             yield dict(
                 name=str(date),
                 actions=[(_generate_tags, [date])],
-                targets=[self.docs_dir / "templates" / f"{date}_tags.md"],
+                targets=[self.dirs.docs_dir / "templates" / f"{date}_tags.md"],
                 file_dep=self.db.get_all_assets(),
                 calc_dep=["get_gpx_deps"],
                 task_dep=[
-                    f"create_directory:{self.templates_dir}",
+                    f"create_directory:{self.dirs.templates_dir}",
                     "transcribe_audio",
                 ],
                 uptodate=[True],

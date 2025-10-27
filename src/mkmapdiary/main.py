@@ -159,11 +159,11 @@ def main(
         sys.exit(1)
     if (
         build_dir.is_dir()
-        and any(build_dir.iterdir())
-        and not dirs.doit_db_path.is_file()
+        and any(x for x in build_dir.iterdir() if x.name != "mkmapdiary.log")
+        and not dirs.build_dir_marker_file.is_file()
     ):
         logger.error(
-            f"Error: Build directory '{build_dir}' is not empty and does not contain a doit.db file."
+            f"Error: Build directory '{build_dir}' is not empty and does not contain a .mkmapdiary_build_dir file."
         )
         sys.exit(1)
     if (
@@ -182,9 +182,14 @@ def main(
     if not build_dir.is_dir():
         build_dir.mkdir(parents=True, exist_ok=True)
 
+    # Create build directory marker file
+    dirs.build_dir_marker_file.touch()
+
     # Clean build directory if needed
     if always_execute:
-        util.clean_dir(build_dir, keep_files=["mkmapdiary.log"])
+        util.clean_dir(
+            build_dir, keep_files=["mkmapdiary.log", ".mkmapdiary_build_dir"]
+        )
 
     logger.info("Generating tasks ...", extra={"icon": "📝", "is_step": True})
 

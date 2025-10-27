@@ -25,12 +25,12 @@ class SiteTask(HttpRequest):
     @property
     def __site_dirs(self):
         return [
-            self.build_dir,
-            self.assets_dir,
-            self.docs_dir,
-            self.dist_dir,
-            self.files_dir,
-            self.templates_dir,
+            self.dirs.build_dir,
+            self.dirs.assets_dir,
+            self.dirs.docs_dir,
+            self.dirs.dist_dir,
+            self.dirs.files_dir,
+            self.dirs.templates_dir,
         ]
 
     def task_create_directory(self) -> Iterator[Dict[str, Any]]:
@@ -59,30 +59,30 @@ class SiteTask(HttpRequest):
                 config = yaml.safe_load(f)
 
             config["site_name"] = self.config["strings"]["site_name"]
-            config["docs_dir"] = str(self.docs_dir.absolute())
-            config["site_dir"] = str(self.dist_dir.absolute())
+            config["docs_dir"] = str(self.dirs.docs_dir.absolute())
+            config["site_dir"] = str(self.dirs.dist_dir.absolute())
             if self.config["locale"] == "C":
                 language = "en"
             else:
                 language = self.config["locale"].split("_")[0]
             config["theme"]["language"] = language
             config["markdown_extensions"][0]["pymdownx.snippets"]["base_path"] = [
-                self.build_dir
+                self.dirs.build_dir
             ]
 
-            with open(self.build_dir / "mkdocs.yml", "w") as f:
+            with open(self.dirs.build_dir / "mkdocs.yml", "w") as f:
                 yaml.dump(config, f, sort_keys=False)
 
         return dict(
             actions=[(_generate_mkdocs_config, ())],
-            targets=[self.build_dir / "mkdocs.yml"],
-            task_dep=[f"create_directory:{self.build_dir}"],
+            targets=[self.dirs.build_dir / "mkdocs.yml"],
+            task_dep=[f"create_directory:{self.dirs.build_dir}"],
             uptodate=[True],
         )
 
     def task_build_static_pages(self) -> Iterator[Dict[str, Any]]:
         def _generate_index_page():
-            index_path = self.docs_dir / "index.md"
+            index_path = self.dirs.docs_dir / "index.md"
 
             images = [
                 pathlib.PosixPath(x[0]) for x in self.db.get_assets_by_type("image")
@@ -104,16 +104,15 @@ class SiteTask(HttpRequest):
             file_dep=self.db.get_all_assets(),
             calc_dep=["get_gpx_deps"],
             task_dep=[
-                f"create_directory:{self.dist_dir}",
+                f"create_directory:{self.dirs.dist_dir}",
             ],
-            targets=[self.docs_dir / "index.md"],
+            targets=[self.dirs.docs_dir / "index.md"],
             uptodate=[True],
         )
 
     def task_compile_css(self) -> Dict[str, Any]:
-        script_dir = pathlib.Path(__file__).parent
-        input_sass = script_dir.parent / "resources" / "extra.sass"
-        output_css = self.docs_dir / "extra.css"
+        input_sass = self.dirs.resources_dir / "extra.sass"
+        output_css = self.dirs.docs_dir / "extra.css"
 
         def _http_importer(path):
             try:
@@ -151,14 +150,12 @@ class SiteTask(HttpRequest):
     def task_copy_simple_asset(self) -> Iterator[Dict[str, Any]]:
         simple_assets = self.__simple_assets
 
-        script_dir = pathlib.Path(__file__).parent
-
         def _generate(input_js, output_js):
             shutil.copy2(input_js, output_js)
 
         for asset in simple_assets:
-            input = script_dir.parent / "resources" / asset
-            output = self.docs_dir / asset
+            input = self.dirs.resources_dir / asset
+            output = self.dirs.docs_dir / asset
 
             yield dict(
                 name=asset,
@@ -171,25 +168,25 @@ class SiteTask(HttpRequest):
         """Build the mkdocs site."""
 
         def _generate_file_deps():
-            yield self.build_dir / "mkdocs.yml"
-            yield self.docs_dir / "index.md"
+            yield self.dirs.build_dir / "mkdocs.yml"
+            yield self.dirs.docs_dir / "index.md"
             yield from self.db.get_all_assets()
             for date in self.db.get_all_dates():
-                yield self.docs_dir / f"{date}.md"
-                yield self.templates_dir / f"{date}_gallery.md"
-                yield self.templates_dir / f"{date}_journal.md"
-                yield self.templates_dir / f"{date}_tags.md"
+                yield self.dirs.docs_dir / f"{date}.md"
+                yield self.dirs.templates_dir / f"{date}_gallery.md"
+                yield self.dirs.templates_dir / f"{date}_journal.md"
+                yield self.dirs.templates_dir / f"{date}_tags.md"
             for asset in self.__simple_assets:
-                yield self.docs_dir / asset
+                yield self.dirs.docs_dir / asset
 
         return dict(
             actions=[
                 "mkdocs build --clean --config-file "
-                + str(self.build_dir / "mkdocs.yml")
+                + str(self.dirs.build_dir / "mkdocs.yml")
             ],
             file_dep=list(_generate_file_deps()),
             task_dep=[
-                f"create_directory:{self.dist_dir}",
+                f"create_directory:{self.dirs.dist_dir}",
                 "build_static_pages",
                 "generate_mkdocs_config",
                 "compile_css",
@@ -200,6 +197,6 @@ class SiteTask(HttpRequest):
             ],
             calc_dep=["get_gpx_deps"],
             targets=[
-                self.dist_dir / "sitemap.xml",
+                self.dirs.dist_dir / "sitemap.xml",
             ],
         )

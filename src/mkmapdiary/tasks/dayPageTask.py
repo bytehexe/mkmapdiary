@@ -20,7 +20,7 @@ class DayPageTask(BaseTask):
             else:
                 formatter = "%a, %x"
 
-            day_page_path = self.docs_dir / f"{date}.md"
+            day_page_path = self.dirs.docs_dir / f"{date}.md"
             with open(day_page_path, "w") as f:
                 formatted_date = datetime.datetime.strptime(date, "%Y-%m-%d").strftime(
                     formatter
@@ -41,7 +41,7 @@ class DayPageTask(BaseTask):
             yield dict(
                 name=str(date),
                 actions=[(_generate_day_page, (date,))],
-                targets=[self.docs_dir / f"{date}.md"],
-                task_dep=[f"create_directory:{self.docs_dir}"],
+                targets=[self.dirs.docs_dir / f"{date}.md"],
+                task_dep=[f"create_directory:{self.dirs.docs_dir}"],
                 uptodate=[True],
             )

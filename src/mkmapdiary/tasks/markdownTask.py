@@ -20,7 +20,7 @@ class MarkdownTask(BaseTask):
 
     def __generate_destination_filename(self, source):
         format = "md"
-        filename = (self.assets_dir / source.stem).with_suffix(f".{format}")
+        filename = (self.dirs.assets_dir / source.stem).with_suffix(f".{format}")
         return self.make_unique_filename(source, filename)
 
     def task_markdown2markdown(self) -> Iterator[Dict[str, Any]]:

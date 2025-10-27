@@ -32,7 +32,7 @@ class AudioTask(BaseTask):
         )
 
     def __generate_destination_filename(self, source, suffix):
-        filename = (self.assets_dir / source.stem).with_suffix(suffix)
+        filename = (self.dirs.assets_dir / source.stem).with_suffix(suffix)
         return self.make_unique_filename(source, filename)
 
     def task_convert_audio(self) -> Iterator[Dict[str, Any]]:

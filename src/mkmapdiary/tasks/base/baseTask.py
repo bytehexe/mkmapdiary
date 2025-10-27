@@ -10,6 +10,7 @@ import ollama
 from jinja2 import Environment, PackageLoader, StrictUndefined, select_autoescape
 
 from mkmapdiary.db import Db
+from mkmapdiary.lib.dirs import Dirs
 from mkmapdiary.util.cache import with_cache
 
 ai_lock = threading.Lock()
@@ -58,38 +59,8 @@ class BaseTask(ABC):
 
     @property
     @abstractmethod
-    def source_dir(self) -> PosixPath:
-        """Property to access the source directory."""
-
-    @property
-    @abstractmethod
-    def build_dir(self) -> PosixPath:
-        """Property to access the build directory."""
-
-    @property
-    @abstractmethod
-    def files_dir(self) -> PosixPath:
-        """Property to access the files directory."""
-
-    @property
-    @abstractmethod
-    def docs_dir(self) -> PosixPath:
-        """Property to access the docs directory."""
-
-    @property
-    @abstractmethod
-    def templates_dir(self) -> PosixPath:
-        """Property to access the templates directory."""
-
-    @property
-    @abstractmethod
-    def assets_dir(self) -> PosixPath:
-        """Property to access the assets directory."""
-
-    @property
-    @abstractmethod
-    def dist_dir(self) -> PosixPath:
-        """Property to access the distribution directory."""
+    def dirs(self) -> Dirs:
+        """Property to access the directory structure."""
 
     @property
     @abstractmethod

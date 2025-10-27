@@ -22,7 +22,7 @@ class ImageTask(BaseTask, ExifReader):
 
     def __generate_destination_filename(self, source):
         format = self.config.get("image_format", "jpg")
-        filename = (self.assets_dir / source.stem).with_suffix(f".{format}")
+        filename = (self.dirs.assets_dir / source.stem).with_suffix(f".{format}")
         return self.make_unique_filename(source, filename)
 
     def task_convert_image(self) -> Iterator[Dict[str, Any]]:

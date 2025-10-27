@@ -37,7 +37,7 @@ class GeojsonTask(GeoLookup):
         return assets
 
     def __generate_destination_filename(self, source):
-        filename = (self.files_dir / source.stem).with_suffix(
+        filename = (self.dirs.files_dir / source.stem).with_suffix(
             f"{source.suffix[0:2]}.gpx"
         )
         return self.make_unique_filename(source, filename)
@@ -147,8 +147,7 @@ class GeojsonTask(GeoLookup):
             data = self.__load_file(src)
 
             # Validate file
-            script_dir = pathlib.Path(__file__).parent
-            with open(script_dir.parent / "resources" / "geo.schema.yaml") as f:
+            with open(self.dirs.resources_dir / "geo.schema.yaml") as f:
                 schema = yaml.safe_load(f)
             validate(instance=data, schema=schema)
 

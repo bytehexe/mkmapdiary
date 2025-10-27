@@ -129,3 +129,10 @@ class Dirs:
     def doit_db_path(self) -> pathlib.Path:
         db_path = self.build_dir / "doit.db"
         return db_path
+
+    @property
+    def build_dir_marker_file(
+        self,
+    ) -> pathlib.Path:
+        marker_path = self.build_dir / ".mkmapdiary_build_dir"
+        return marker_path

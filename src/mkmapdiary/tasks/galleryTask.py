@@ -15,7 +15,7 @@ class GalleryTask(BaseTask):
         """Generate gallery pages."""
 
         def _generate_gallery(date):
-            gallery_path = self.docs_dir / "templates" / f"{date}_gallery.md"
+            gallery_path = self.dirs.docs_dir / "templates" / f"{date}_gallery.md"
 
             gallery_items = []
             geo_items = []
@@ -64,9 +64,9 @@ class GalleryTask(BaseTask):
             yield dict(
                 name=str(date),
                 actions=[(_generate_gallery, [date])],
-                targets=[self.templates_dir / f"{date}_gallery.md"],
+                targets=[self.dirs.templates_dir / f"{date}_gallery.md"],
                 file_dep=self.db.get_all_assets(),
                 calc_dep=["get_gpx_deps"],
-                task_dep=[f"create_directory:{self.templates_dir}"],
+                task_dep=[f"create_directory:{self.dirs.templates_dir}"],
                 uptodate=[True],
             )

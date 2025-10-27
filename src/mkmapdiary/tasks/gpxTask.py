@@ -55,7 +55,9 @@ class GPXTask(BaseTask):
         return dates
 
     def __generate_destination_filename(self, date):
-        filename = (self.assets_dir / date.strftime("%Y-%m-%d")).with_suffix(".gpx")
+        filename = (self.dirs.assets_dir / date.strftime("%Y-%m-%d")).with_suffix(
+            ".gpx"
+        )
         return filename
 
     def __gpx2gpx(self, date, dst, gpx_source):
@@ -75,8 +77,8 @@ class GPXTask(BaseTask):
         return {
             "actions": None,
             "task_dep": [
-                f"create_directory:{self.assets_dir}",
-                f"create_directory:{self.files_dir}",
+                f"create_directory:{self.dirs.assets_dir}",
+                f"create_directory:{self.dirs.files_dir}",
                 "geo2gpx",
                 "qstarz2gpx",
             ],

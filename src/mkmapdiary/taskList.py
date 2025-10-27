@@ -61,13 +61,6 @@ class TaskList(*tasks):  # type: ignore
         super().__init__()
 
         self.__config = config
-        self.__source_dir = dirs.source_dir
-        self.__build_dir = dirs.build_dir
-        self.__files_dir = self.build_dir / "files"
-        self.__docs_dir = self.build_dir / "docs"
-        self.__templates_dir = self.docs_dir / "templates"
-        self.__assets_dir = self.docs_dir / "assets"
-        self.__dist_dir = dirs.dist_dir
         self.__cache = cache
         self.__dirs = dirs
 
@@ -91,41 +84,6 @@ class TaskList(*tasks):  # type: ignore
         return self.__db
 
     @property
-    def source_dir(self) -> Path:
-        """Property to access the source directory."""
-        return self.__source_dir
-
-    @property
-    def build_dir(self) -> Path:
-        """Property to access the build directory."""
-        return self.__build_dir
-
-    @property
-    def files_dir(self) -> Path:
-        """Property to access the files directory."""
-        return self.__files_dir
-
-    @property
-    def docs_dir(self) -> Path:
-        """Property to access the docs directory."""
-        return self.__docs_dir
-
-    @property
-    def templates_dir(self) -> Path:
-        """Property to access the templates directory."""
-        return self.__templates_dir
-
-    @property
-    def assets_dir(self) -> Path:
-        """Property to access the assets directory."""
-        return self.__assets_dir
-
-    @property
-    def dist_dir(self) -> Path:
-        """Property to access the distribution directory."""
-        return self.__dist_dir
-
-    @property
     def cache(self) -> Cache:
         """Property to access the cache."""
         return self.__cache
@@ -136,7 +94,7 @@ class TaskList(*tasks):  # type: ignore
 
     def __scan(self):
         """Scan the source directory and identify files and directories."""
-        self.handle(self.source_dir)
+        self.handle(self.dirs.source_dir)
 
     def handle(self, source: Path):
         """Handle a source file or directory based on its tags."""

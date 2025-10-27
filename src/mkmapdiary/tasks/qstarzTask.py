@@ -27,7 +27,7 @@ class QstarzTask(BaseTask):
         return assets
 
     def __generate_destination_filename(self, source):
-        filename = (self.files_dir / source.stem).with_suffix(
+        filename = (self.dirs.files_dir / source.stem).with_suffix(
             f"{source.suffix[0:2]}.gpx"
         )
         return self.make_unique_filename(source, filename)
@@ -38,7 +38,7 @@ class QstarzTask(BaseTask):
             yield {
                 "name": f"{source}",
                 "file_dep": [source],
-                "task_dep": [f"create_directory:{self.files_dir}"],
+                "task_dep": [f"create_directory:{self.dirs.files_dir}"],
                 "targets": [dst],
                 "actions": [
                     "gpsbabel -t -w -r -i qstarz_bl-1000 -f %(dependencies)s -o gpx -F %(targets)s"

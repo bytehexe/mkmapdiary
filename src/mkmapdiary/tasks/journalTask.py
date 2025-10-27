@@ -16,7 +16,7 @@ class JournalTask(BaseTask):
         """Generate journal pages."""
 
         def _generate_journal(date):
-            gallery_path = self.docs_dir / "templates" / f"{date}_journal.md"
+            gallery_path = self.dirs.docs_dir / "templates" / f"{date}_journal.md"
 
             assets = []
 
@@ -60,9 +60,9 @@ class JournalTask(BaseTask):
             yield dict(
                 name=str(date),
                 actions=[(_generate_journal, [date])],
-                targets=[self.docs_dir / "templates" / f"{date}_journal.md"],
+                targets=[self.dirs.docs_dir / "templates" / f"{date}_journal.md"],
                 file_dep=self.db.get_all_assets(),
                 calc_dep=["get_gpx_deps"],
-                task_dep=[f"create_directory:{self.templates_dir}"],
+                task_dep=[f"create_directory:{self.dirs.templates_dir}"],
                 uptodate=[True],
             )
