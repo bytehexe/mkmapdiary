@@ -26,10 +26,10 @@ Region = namedtuple(
 
 
 class IndexBuilder:
-    def __init__(self, region: Region, keep_pbf: bool = False):
+    def __init__(self, region: Region, cache_dir: pathlib.Path, keep_pbf: bool = False):
         self.region: Region = region
         self.keep_pbf: bool = keep_pbf
-        self.cachedir = pathlib.Path.home() / ".mkmapdiary" / "cache" / "poi_index"
+        self.cachedir = cache_dir
         self.cachedir.mkdir(parents=True, exist_ok=True)
 
         # Open poi_filter_config

@@ -58,7 +58,7 @@ class Index:
                 logger.info(
                     f"POI index for region {region.name} does not exist. Building..."
                 )
-                IndexBuilder(region, keep_pbf=keep_pbf).build_index()
+                IndexBuilder(region, cache_dir, keep_pbf=keep_pbf).build_index()
                 continue
 
             region_index = IndexFileReader(poi_index_path)
@@ -66,13 +66,13 @@ class Index:
                 logger.info(
                     f"POI index for region {region.name} is outdated. Rebuilding..."
                 )
-                IndexBuilder(region, keep_pbf=keep_pbf).build_index()
+                IndexBuilder(region, cache_dir, keep_pbf=keep_pbf).build_index()
                 continue
             if not region_index.is_valid(self.filter_config):
                 logger.info(
                     f"POI index for region {region.name} is invalid. Rebuilding..."
                 )
-                IndexBuilder(region, keep_pbf=keep_pbf).build_index()
+                IndexBuilder(region, cache_dir, keep_pbf=keep_pbf).build_index()
                 continue
 
             logger.info(f"Using existing POI index for region {region.name}.")
@@ -106,13 +106,7 @@ class Index:
         for region in regions:
             logger.info(f"Loading POI index for region: {region.name}")
             # Load the index file
-            poi_index_path = (
-                pathlib.Path.home()
-                / ".mkmapdiary"
-                / "cache"
-                / "poi_index"
-                / f"{region.id}.idx"
-            )
+            poi_index_path = cache_dir / f"{region.id}.idx"
 
             reader = IndexFileReader(poi_index_path)
             data = reader.read()
