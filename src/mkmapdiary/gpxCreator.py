@@ -24,10 +24,10 @@ class GpxCreator:
 
     def __init(self):
         logger.debug(f"Creating GPX for date {self.__date}")
-        with ThisMayTakeAWhile(logger):
+        with ThisMayTakeAWhile(logger, "Parsing GPX sources"):
             for source in self.__sources:
                 self.__load_source(source)
-        with ThisMayTakeAWhile(logger):
+        with ThisMayTakeAWhile(logger, "Computing clusters"):
             self.__compute_clusters()
         self.__add_journal_markers()
 

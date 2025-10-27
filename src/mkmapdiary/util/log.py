@@ -63,11 +63,20 @@ def setup_logging(build_dir: pathlib.Path):
 
 
 class ThisMayTakeAWhile:
-    def __init__(self, logger: logging.Logger):
+    def __init__(self, logger: logging.Logger, info=None):
         self.logger = logger
+        self.__info = info
 
     def __enter__(self):
-        self.logger.info("This may take a while ...", extra={"icon": "⏳"})
+        if self.__info:
+            text = f"{self.__info} - This may take a while ..."
+        else:
+            text = "This may take a while ..."
+        self.logger.info(text, extra={"icon": "⏳"})
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.logger.info("Done.", extra={"icon": "⌛"})
+        if self.__info:
+            text = f" {self.__info[0].lower()}{self.__info[1:]}"
+        else:
+            text = ""
+        self.logger.info(f"Done{text}.", extra={"icon": "⌛"})

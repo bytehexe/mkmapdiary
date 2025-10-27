@@ -2,11 +2,11 @@ import hashlib
 import threading
 from typing import Any, Dict, Iterator
 
-from PIL import Image
 from pydub import AudioSegment
 
+from mkmapdiary.util.log import ThisMayTakeAWhile
+
 from .base.baseTask import BaseTask
-from .base.exifReader import ExifReader
 
 whisper_lock = threading.Lock()
 
@@ -62,9 +62,10 @@ class AudioTask(BaseTask):
     def __transcribe_audio(self, src):
         import whisper
 
-        with whisper_lock:
-            model = whisper.load_model("turbo")
-            result = model.transcribe(str(src))
+        with ThisMayTakeAWhile(self.logger, "Transcribing audio"):
+            with whisper_lock:
+                model = whisper.load_model("turbo")
+                result = model.transcribe(str(src))
         return result
 
     def task_transcribe_audio(self) -> Iterator[Dict[str, Any]]:
