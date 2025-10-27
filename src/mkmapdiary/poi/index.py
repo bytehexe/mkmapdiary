@@ -1,9 +1,7 @@
-import json
 import logging
 import pathlib
-from copy import deepcopy
 from threading import Lock
-from typing import Any, List, Optional, Tuple
+from typing import Optional
 
 import msgpack
 import numpy as np
@@ -16,6 +14,7 @@ from sklearn.neighbors import BallTree
 from mkmapdiary.poi.ballTreeBuilder import BallTreeBuilder
 from mkmapdiary.poi.indexBuilder import IndexBuilder, Region
 from mkmapdiary.poi.indexFileReader import IndexFileReader
+from mkmapdiary.poi.regionFinder import RegionFinder
 from mkmapdiary.util.osm import calculate_rank, clip_rank
 from mkmapdiary.util.projection import LocalProjection
 
@@ -30,9 +29,6 @@ class Index:
             self.__init(geo_data, keep_pbf, rank_offset)
 
     def __init(self, geo_data, keep_pbf: bool, rank_offset):
-        geo_data_copy = deepcopy(geo_data)
-
-        # TODO: Check for areas already indexed
 
         with open(
             pathlib.Path(__file__).parent.parent
@@ -46,21 +42,8 @@ class Index:
         self.geofabrik_data = response.json()
 
         # Find best matching regions
-        regions: List[Region] = []
-        logger.info("Finding best matching Geofabrik regions...")
-        while geo_data_copy.is_empty is False:
-            logger.info("Next iteration to find best matching Geofabrik region...")
-            best_region, remaining_geo_data = self.__findBestRegion(
-                geo_data_copy, regions
-            )
-            if best_region is None:
-                break
-            regions.append(best_region)
-            logger.info(f"Selected region: {best_region.name}")
-            geo_data_copy = remaining_geo_data
-        logger.info("Selected Geofabrik regions for POI extraction:")
-        for region in regions:
-            logger.info(f" - {region.name}")
+        finder = RegionFinder(geo_data, self.geofabrik_data)
+        regions = finder.find_regions()
 
         for region in regions:
             poi_index_path = (
@@ -156,39 +139,9 @@ class Index:
         logger.debug("Center coordinates (WGS): %s", self.center)
         # Convert from Shapely Point (x=lon, y=lat) to BallTree expected (lat, lon) format
         return self.ball_tree.query(
-            [point.y, point.x],
+            [point.y, point.x],  # type: ignore
             k=n,
         )
-
-    def __findBestRegion(self, geo_data, used_regions) -> Tuple[Optional[Region], Any]:
-
-        best = None
-        remaining_geo_data = geo_data
-        best_size = float("inf")
-
-        for region in self.geofabrik_data["features"]:
-
-            if any(r.id == region["properties"]["id"] for r in used_regions):
-                continue  # Skip already used regions
-
-            # Check if any of the provided geo_data areas intersect with the region
-            shape = shapely.from_geojson(json.dumps(region))
-            remaining_geo_data = shapely.difference(geo_data, shape)
-            if remaining_geo_data.equals(geo_data):
-                continue  # No intersection
-
-            size = shapely.area(
-                geo_data
-            )  # Note: size is only an approximation, not meaningful due to projections
-
-            if best is None or size < best_size:
-                best = Region(
-                    id=region["properties"]["id"],
-                    name=region["properties"]["name"],
-                    url=region["properties"]["urls"]["pbf"],
-                )
-
-        return best, remaining_geo_data
 
 
 if __name__ == "__main__":
