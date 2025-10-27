@@ -47,20 +47,20 @@ class Index:
 
         # Find best matching regions
         regions: List[Region] = []
-        logger.info("Finding best matching Geofabrik regions...\n")
+        logger.info("Finding best matching Geofabrik regions...")
         while geo_data_copy.is_empty is False:
-            logger.info("Next iteration to find best matching Geofabrik region...\n")
+            logger.info("Next iteration to find best matching Geofabrik region...")
             best_region, remaining_geo_data = self.__findBestRegion(
                 geo_data_copy, regions
             )
             if best_region is None:
                 break
             regions.append(best_region)
-            logger.info(f"Selected region: {best_region.name}\n")
+            logger.info(f"Selected region: {best_region.name}")
             geo_data_copy = remaining_geo_data
-        logger.info("Selected Geofabrik regions for POI extraction:\n")
+        logger.info("Selected Geofabrik regions for POI extraction:")
         for region in regions:
-            logger.info(f" - {region.name}\n")
+            logger.info(f" - {region.name}")
 
         for region in regions:
             poi_index_path = (
@@ -73,7 +73,7 @@ class Index:
 
             if not poi_index_path.exists():
                 logger.info(
-                    f"POI index for region {region.name} does not exist. Building...\n"
+                    f"POI index for region {region.name} does not exist. Building..."
                 )
                 IndexBuilder(region, keep_pbf=keep_pbf).build_index()
                 continue
@@ -81,18 +81,18 @@ class Index:
             region_index = IndexFileReader(poi_index_path)
             if not region_index.is_up_to_date(31536000):
                 logger.info(
-                    f"POI index for region {region.name} is outdated. Rebuilding...\n"
+                    f"POI index for region {region.name} is outdated. Rebuilding..."
                 )
                 IndexBuilder(region, keep_pbf=keep_pbf).build_index()
                 continue
             if not region_index.is_valid(self.filter_config):
                 logger.info(
-                    f"POI index for region {region.name} is invalid. Rebuilding...\n"
+                    f"POI index for region {region.name} is invalid. Rebuilding..."
                 )
                 IndexBuilder(region, keep_pbf=keep_pbf).build_index()
                 continue
 
-            logger.info(f"Using existing POI index for region {region.name}.\n")
+            logger.info(f"Using existing POI index for region {region.name}.")
 
         local_projection = LocalProjection(geo_data)
         local_geo_data = local_projection.to_local(geo_data)
@@ -110,7 +110,7 @@ class Index:
                 "Invalid bounding radius calculated for the area of interest."
             )
         rank = calculate_rank(None, self.bounding_radius)
-        logger.info(f"Calculated rank for the area of interest: {rank}\n")
+        logger.info(f"Calculated rank for the area of interest: {rank}")
 
         if rank is None:
             raise ValueError("Invalid rank calculated for the area of interest.")
@@ -121,7 +121,7 @@ class Index:
         builder = BallTreeBuilder(self.filter_config)
 
         for region in regions:
-            logger.info(f"Loading POI index for region: {region.name}\n")
+            logger.info(f"Loading POI index for region: {region.name}")
             # Load the index file
             poi_index_path = (
                 pathlib.Path.home()
@@ -135,7 +135,7 @@ class Index:
             data = reader.read()
             builder.load(data, min_rank, max_rank)
 
-        logger.info("Generating ball tree ...\n")
+        logger.info("Generating ball tree ...")
         self.ball_tree = builder.build()
 
     def get_all(self):

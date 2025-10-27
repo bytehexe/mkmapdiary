@@ -46,7 +46,7 @@ class IndexBuilder:
 
     def build_index(self):
         region = self.region
-        logger.info(f"Building POI index for region: {region.name}\n")
+        logger.info(f"Building POI index for region: {region.name}")
 
         # Download or use cached PBF file
         if self.pbf_path.exists():
@@ -65,12 +65,12 @@ class IndexBuilder:
         w = IndexFileWriter(self.idx_path, filter_config=self.filter_config)
         w.write(index)
 
-        logger.info(f"POI index built successfully for region: {region.name}\n")
+        logger.info(f"POI index built successfully for region: {region.name}")
 
         return index
 
     def __downloadPbf(self, region: Region, pbf_file_name: pathlib.Path):
-        logger.info(f"Downloading PBF ...\n")
+        logger.info(f"Downloading PBF ...")
         result = requests.get(region.url)
         result.raise_for_status()
         with open(pbf_file_name, "wb") as pbf_file:
