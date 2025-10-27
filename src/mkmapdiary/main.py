@@ -12,6 +12,7 @@ from doit.cmd_base import ModuleTaskLoader
 from doit.doit_cmd import DoitMain
 from tabulate import tabulate
 
+from mkmapdiary.lib.dirs import Dirs
 from mkmapdiary.util.log import StepFilter, current_task, setup_logging
 
 from . import util
@@ -57,27 +58,27 @@ def main(
 
     current_task.set("main")
 
+    dirs = Dirs(source_dir, build_dir, dist_dir, create_dirs=False)
+
     logger.info("Starting mkmapdiary")
-    log = build_dir / "mkmapdiary.log"
+    log = dirs.log_file_path
     logger.debug(f"Log: {log}", extra={"icon": "📄"})
 
     logger.info("Generating configuration ...", extra={"icon": "⚙️"})
 
-    script_dir = pathlib.Path(__file__).parent
-
     # Load config defaults
-    default_config = script_dir / "resources" / "defaults.yaml"
+    default_config = dirs.resources_dir / "defaults.yaml"
     config_data = yaml.safe_load(default_config.read_text())
 
     # Load local user configuration
-    user_config_file = pathlib.Path.home() / f".mkmapdiary/config.yaml"
+    user_config_file = dirs.user_config_file
     if user_config_file.exists():
         config_data = util.deep_update(
             config_data, yaml.safe_load(user_config_file.read_text())
         )
 
     # Load project configuration file if provided
-    project_config_file = source_dir / "config.yaml"
+    project_config_file = dirs.source_dir / "config.yaml"
     if project_config_file.is_file():
         config_data = util.deep_update(
             config_data, yaml.safe_load(project_config_file.read_text())
@@ -93,7 +94,7 @@ def main(
         d[key[-1]] = yaml.safe_load(value)
 
     # Load gettext
-    localedir = script_dir / "locale"
+    localedir = dirs.locale_dir
     if config_data["locale"] == "C":
         language = "en"
     else:
@@ -159,10 +160,10 @@ def main(
     if (
         build_dir.is_dir()
         and any(build_dir.iterdir())
-        and not (build_dir / "mkmapdiary.log").is_file()
+        and not dirs.doit_db_path.is_file()
     ):
         logger.error(
-            f"Error: Build directory '{build_dir}' is not empty and does not contain a mkmapdiary.log file."
+            f"Error: Build directory '{build_dir}' is not empty and does not contain a doit.db file."
         )
         sys.exit(1)
     if (
@@ -192,7 +193,8 @@ def main(
     else:
         cache = Cache(pathlib.Path.home() / ".mkmapdiary" / "cache.sqlite")
 
-    taskList = TaskList(config_data, source_dir, build_dir, dist_dir, cache)
+    dirs.create_dirs = True
+    taskList = TaskList(config_data, dirs, cache)
 
     n_assets = taskList.db.count_assets()
 
@@ -232,7 +234,7 @@ def main(
     doit_config = {
         "GLOBAL": {
             "backend": "sqlite3",
-            "dep_file": str(build_dir / "doit.db"),
+            "dep_file": str(dirs.doit_db_path),
             "reporter": CustomReporter,
         }
     }
