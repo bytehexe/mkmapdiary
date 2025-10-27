@@ -94,12 +94,6 @@ class Dirs:
             region_path.mkdir(parents=True, exist_ok=True)
         return region_path
 
-    def get_region_cache(self, region_name: str) -> pathlib.Path:
-        region_path = self.region_cache_dir / region_name
-        if self.create_dirs:
-            region_path.mkdir(parents=True, exist_ok=True)
-        return region_path
-
     @property
     def log_file_path(self) -> pathlib.Path:
         log_path = self.build_dir / "mkmapdiary.log"

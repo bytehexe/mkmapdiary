@@ -66,7 +66,7 @@ class GPXTask(BaseTask):
         else:
             sources = []
 
-        gc = GpxCreator(date, sources, self.db)
+        gc = GpxCreator(date, sources, self.db, self.dirs.region_cache_dir)
         gpx_out = gc.to_xml()
 
         with open(dst, "w", encoding="utf-8") as f:

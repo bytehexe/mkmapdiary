@@ -13,12 +13,13 @@ logger = logging.getLogger(__name__)
 
 
 class GpxCreator:
-    def __init__(self, date, sources, db):
+    def __init__(self, date, sources, db, region_cache_dir):
         self.__coords = []
         self.__gpx_out = gpxpy.gpx.GPX()
         self.__sources = sources
         self.__date = date
         self.__db = db
+        self.__region_cache_dir = region_cache_dir
 
         self.__init()
 
@@ -109,7 +110,8 @@ class GpxCreator:
                 f"Searching POIs near cluster {label} at {clat},{clon}",
                 extra={"icon": "📍"},
             )
-            index = Index(cluster.shape, keep_pbf=True)
+
+            index = Index(cluster.shape, self.__region_cache_dir, keep_pbf=True)
             # Convert mass_point (lon, lat) to shapely.Point for Index.get_nearest
             mass_lon, mass_lat = cluster.mass_point
             if mass_lon is not None and mass_lat is not None:

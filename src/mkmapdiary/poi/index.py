@@ -24,11 +24,17 @@ lock = Lock()
 
 
 class Index:
-    def __init__(self, geo_data, keep_pbf: bool = False, rank_offset=(-1, 1)):
+    def __init__(
+        self,
+        geo_data,
+        cache_dir: pathlib.Path,
+        keep_pbf: bool = False,
+        rank_offset=(-1, 1),
+    ):
         with lock:
-            self.__init(geo_data, keep_pbf, rank_offset)
+            self.__init(geo_data, cache_dir, keep_pbf, rank_offset)
 
-    def __init(self, geo_data, keep_pbf: bool, rank_offset):
+    def __init(self, geo_data, cache_dir: pathlib.Path, keep_pbf: bool, rank_offset):
 
         with open(
             pathlib.Path(__file__).parent.parent
@@ -46,13 +52,7 @@ class Index:
         regions = finder.find_regions()
 
         for region in regions:
-            poi_index_path = (
-                pathlib.Path.home()
-                / ".mkmapdiary"
-                / "cache"
-                / "poi_index"
-                / f"{region.id}.idx"
-            )
+            poi_index_path = cache_dir / f"{region.id}.idx"
 
             if not poi_index_path.exists():
                 logger.info(
@@ -141,21 +141,4 @@ class Index:
         return self.ball_tree.query(
             [point.y, point.x],  # type: ignore
             k=n,
-        )
-
-
-if __name__ == "__main__":
-    # use Berlin as test point - Point constructor uses (x=lon, y=lat) format
-    berlin_center = shapely.Point(13.4050, 52.5200)  # (lon, lat)
-    projection = LocalProjection(berlin_center)
-    berlin_geo_data = projection.to_wgs(
-        projection.to_local(berlin_center).buffer(60000)
-    )
-    poi_index = Index(berlin_geo_data, keep_pbf=True)
-    for idx in sorted(poi_index.get_all(), key=lambda x: -x.rank):
-        print(f"POI: {idx.name}; {idx.coords}, rank {idx.rank}")
-
-    for poi, distance in list(zip(*poi_index.get_nearest(1))):
-        print(
-            f"Nearest POI: {poi.name}; {poi.coords}, distance {distance:.2f} m, rank {poi.rank}"
         )

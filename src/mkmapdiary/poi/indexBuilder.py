@@ -141,7 +141,7 @@ class IndexBuilder:
                 rank = calculate_rank(radius=radius, place=obj.tags.get("place"))
 
             if rank is None:
-                logger.warning(
+                logger.debug(
                     f"Skipping: {poi_name} (invalid rank); place={obj.tags.get('place', '')}, radius={radius}"
                 )
                 continue
