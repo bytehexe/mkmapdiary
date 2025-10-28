@@ -22,9 +22,10 @@
   filters:
     - tourism: information
       information: office
-#- symbol: "tourism"
-#  filters:
-#    - tourism: True
+- symbol: "tourism"
+  description: "Tourist attraction"
+  filters:
+    - tourism: True
 
 # == Public Transport ==
 - symbol: "train_station"
@@ -43,9 +44,11 @@
 
 
 # == Natural Features ==
-#- symbol: "waves"
-#  filters:
-#    - natural: beach
-#- symbol: "forest"
-#  filters:
-#    - natural: True
+- symbol: "waves"
+  description: "Beach"
+  filters:
+    - natural: beach
+- symbol: "forest"
+  description: "Forest"
+  filters:
+    - natural: forest

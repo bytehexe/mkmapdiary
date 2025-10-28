@@ -1,5 +1,6 @@
 import math
 
+import numpy as np
 from pyproj import CRS, Transformer
 from shapely.ops import transform
 
@@ -33,6 +34,18 @@ class LocalProjection:
         self.__transformer_to_wgs = Transformer.from_crs(
             self.__crs_proj, self.__crs_wgs, always_xy=True
         )
+
+    def to_local_np(self, lonlat_array) -> np.ndarray:
+        x_array, y_array = self.__transformer_to_proj.transform(
+            lonlat_array[:, 0], lonlat_array[:, 1]
+        )
+        return np.column_stack((x_array, y_array))  # shape (n, 2)
+
+    def to_wgs_np(self, lonlat_array) -> np.ndarray:
+        lon_array, lat_array = self.__transformer_to_wgs.transform(
+            lonlat_array[:, 0], lonlat_array[:, 1]
+        )
+        return np.column_stack((lon_array, lat_array))  # shape (n, 2)
 
     def to_local(self, shape):
         return transform(self.__transformer_to_proj.transform, shape)

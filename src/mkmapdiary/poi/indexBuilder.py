@@ -1,5 +1,6 @@
 import logging
 import pathlib
+import sys
 import tempfile
 from collections import namedtuple
 
@@ -84,7 +85,14 @@ class IndexBuilder:
         for i in range(MIN_RANK, MAX_RANK + 1):
             index[i] = {"coords": [], "data": []}
 
+        all_filters_keys = set()
+        for filter_item in self.filter_config:
+            for filter_expression in filter_item["filters"]:
+                all_filters_keys.update(filter_expression.keys())
+
         processor = osmium.FileProcessor(self.pbf_path)
+        processor.with_filter(osmium.filter.KeyFilter("name"))
+        processor.with_filter(osmium.filter.KeyFilter(*all_filters_keys))
         processor.with_locations()
         processor.with_areas()
         processor.with_filter(osmium.filter.GeoInterfaceFilter())
@@ -105,10 +113,12 @@ class IndexBuilder:
                 for filter_expression_id, filter_expression in enumerate(
                     filter_item["filters"]
                 ):
-                    if all(
-                        obj.tags.get(k) == v
-                        for k, v in filter_expression.get("tags", {}).items()
-                    ):
+                    poi_tags = obj.tags
+                    matches = [
+                        (poi_tags.get(k)) if v is True else (poi_tags.get(k) == v)
+                        for k, v in filter_expression.items()
+                    ]
+                    if all(matches):
                         found = True
                         break
                 if found:
@@ -119,6 +129,16 @@ class IndexBuilder:
 
             type_str = obj.type_str()
             poi_id = obj.id
+
+            if poi_id == 3330379812:
+                logger.debug("Debug breakpoint")
+                logger.debug(f"POI ID: {poi_id}, Name: {poi_name}, Type: {type_str}")
+                logger.debug(f"POI Tags: {obj.tags}")
+                logger.debug(f"POI filter_item_id: {filter_item_id}")
+                logger.debug(f"POI filter_expression_id: {filter_expression_id}")
+                logger.debug(f"POI filter_item: {filter_item}")
+                logger.debug(f"POI filter_expression: {filter_expression}")
+                sys.exit(1)  # Intentional exit for debugging
 
             if type_str == "n":
 

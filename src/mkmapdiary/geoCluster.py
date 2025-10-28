@@ -1,20 +1,38 @@
 import copy
 
 import numpy as np
+import shapely
+from scipy import stats
 from scipy.spatial import ConvexHull
 from shapely.geometry import MultiPoint
+
+from mkmapdiary.util.projection import LocalProjection
 
 
 class GeoCluster:
     def __init__(self, locations):
         # Interface expects locations as (lon, lat) tuples for consistency with GeoJSON
         self.__locations = locations
+        self.__remove_outliers()
 
         self.__degrees, self.__distance, self.__midpoint = (
             self.__longest_greatcircle_separation()
         )
 
     EARTH_RADIUS_M = 6371008.8  # mean Earth radius in meters
+
+    def __remove_outliers(self):
+        if len(self.__locations) < 4:
+            return  # Not enough points to determine outliers
+
+        proj = LocalProjection(self.shape)
+        local_locations = proj.to_local_np(np.array(self.__locations))
+
+        # Identify outliers using a threshold
+        threshold = 1
+        z_scores = np.abs(stats.zscore(local_locations))
+        filtered_data = local_locations[(z_scores < threshold).all(axis=1)]
+        self.__locations = proj.to_wgs_np(filtered_data).tolist()
 
     @property
     def locations(self):

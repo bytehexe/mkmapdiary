@@ -21,7 +21,6 @@ class RegionFinder:
         logger.info("Finding best matching Geofabrik regions...")
         while self.geo_data.is_empty is False:
             logger.info("Next iteration to find best matching Geofabrik region...")
-            print("DEBUG: geo_data area:", self.geo_data)
             best_region, remaining_geo_data = self._findBestRegion(
                 self.geo_data, regions
             )

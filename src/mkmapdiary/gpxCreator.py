@@ -4,6 +4,7 @@ import warnings
 import gpxpy
 import hdbscan
 import numpy as np
+import shapely
 
 from mkmapdiary.geoCluster import GeoCluster
 from mkmapdiary.poi.index import Index
@@ -67,7 +68,11 @@ class GpxCreator:
         self.__coords = np.array(self.__coords)
 
         # Fit HDBSCAN
-        clusterer = hdbscan.HDBSCAN(min_cluster_size=1000, metric="haversine")
+        eps = 10  # meters
+        eps_rad = eps / 6371008.8  # convert to radians
+        clusterer = hdbscan.HDBSCAN(
+            min_cluster_size=1000, cluster_selection_epsilon=eps_rad, metric="haversine"
+        )
         with warnings.catch_warnings():
             warnings.simplefilter(action="ignore", category=FutureWarning)
             clusterer.fit(np.radians(self.__coords))
@@ -79,7 +84,7 @@ class GpxCreator:
             cluster_coords = self.__coords[labels == label]
             cluster = GeoCluster(cluster_coords)
 
-            if cluster.radius > 10000:
+            if cluster.radius > 1200:
                 # Ignore overly large clusters
                 continue
 
@@ -119,16 +124,29 @@ class GpxCreator:
 
                 mass_point = Point(mass_lon, mass_lat)  # Point expects (x=lon, y=lat)
                 nearest_pois, distances = index.get_nearest(1, mass_point)
-                if nearest_pois:
+
+                logger.debug(
+                    f"Nearest POI: {nearest_pois[0]}" if nearest_pois else "None",
+                    extra={"icon": "⭐"},
+                )
+
+                # Create bounding circle; the geocluster performs outlier removal,
+                # so we use the original cluster coordinates
+                cluster_envelope = shapely.MultiPoint(cluster_coords).convex_hull
+
+                if nearest_pois and shapely.Point(nearest_pois[0].coords).intersects(
+                    cluster_envelope
+                ):
                     poi = nearest_pois[0]
                     pwpt = gpxpy.gpx.GPXWaypoint(
-                        latitude=clat,
-                        longitude=clon,
+                        latitude=poi.coords[1],
+                        longitude=poi.coords[0],
                         name=poi.name,
                         description=f"{poi.description} ({poi.rank})",
                         symbol="cluster-poi",
                     )
                     self.__gpx_out.waypoints.append(pwpt)
+            del index
 
     def __add_journal_markers(self):
         for asset, asset_type in self.__db.get_assets_by_date(

@@ -77,21 +77,34 @@ class Index:
 
             logger.info(f"Using existing POI index for region {region.name}.")
 
+        logger.debug("Calculating area of interest parameters...")
+
+        logger.debug("Projecting geo data to local coordinates...")
+
         local_projection = LocalProjection(geo_data)
         local_geo_data = local_projection.to_local(geo_data)
 
-        if local_geo_data.area == 0:
-            local_geo_data = local_geo_data.buffer(50)
-
-        self.bounding_radius = shapely.minimum_bounding_radius(local_geo_data)
+        logger.debug("Calculating center...")
         self.center = local_projection.to_wgs(
             shapely.centroid(local_projection.to_local(geo_data))
         )
 
-        if geo_data.area == 0:
-            raise ValueError(
-                "Invalid bounding radius calculated for the area of interest."
+        logger.debug("Calculating bounding radius...")
+        if local_geo_data.area == 0:
+            logger.debug(
+                "Area is zero, buffering geometry by 50 meters to avoid issues..."
             )
+            try:
+                # Compute convex hull to simplify geometry before buffering
+                # This helps avoid memory issues, otherwise buffering complex geometries can be very expensive
+                local_geo_data = local_geo_data.convex_hull
+            except Exception as e:
+                logger.warning("Error occurred while calculating convex hull: %s", e)
+            local_geo_data = local_geo_data.buffer(50, resolution=2, quad_segs=2)
+
+        self.bounding_radius = shapely.minimum_bounding_radius(local_geo_data)
+
+        logger.debug("Calculate rank for area of interest...")
         rank = calculate_rank(None, self.bounding_radius)
         logger.info(f"Calculated rank for the area of interest: {rank}")
 
@@ -112,7 +125,8 @@ class Index:
             data = reader.read()
             builder.load(data, min_rank, max_rank)
 
-        logger.info("Generating ball tree ...")
+        logger.debug(f"Index parameters: {regions}, ({min_rank}, {max_rank})")
+        logger.info("Generating ball tree ... ")
         self.ball_tree = builder.build()
 
     def get_all(self):

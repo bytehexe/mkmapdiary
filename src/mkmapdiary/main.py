@@ -230,7 +230,6 @@ def main(
                 )
             current_task.set(display_name)
             super().execute_task(task)
-            current_task.set("unknown")
 
         def write(self, text):
             runner_logger.info(text.rstrip())
