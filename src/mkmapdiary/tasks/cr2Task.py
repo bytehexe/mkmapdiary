@@ -34,7 +34,7 @@ class Cr2Task(BaseTask, ExifReader):
             with rawpy.imread(str(src)) as raw:
                 rgb = raw.postprocess(
                     use_camera_wb=True,  # Kamera-Weißabgleich
-                    no_auto_bright=True,  # keine automatische Helligkeit
+                    no_auto_bright=False,  # automatische Helligkeit
                     output_bps=8,  # 8-bit pro Kanal (statt 16)
                 )
             imageio.imwrite(dst, rgb)
