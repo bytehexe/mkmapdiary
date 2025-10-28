@@ -87,7 +87,8 @@ def main(
                 config_data, load_config_file(user_config_file)
             )
         except ValidationError as e:
-            logger.error(f"User configuration is invalid:\n{e.message}")
+            logger.error(f"User configuration is invalid: {e.message}")
+            logger.info(f"Path: {'.'.join(str(p) for p in e.path)}")
             sys.exit(1)
         except ValueError as e:
             logger.error(f"Error loading user configuration: {e}")
@@ -101,7 +102,8 @@ def main(
                 config_data, load_config_file(project_config_file)
             )
         except ValidationError as e:
-            logger.error(f"Project configuration is invalid:\n{e.message}")
+            logger.error(f"Project configuration is invalid: {e.message}")
+            logger.info(f"Path: {'.'.join(str(p) for p in e.path)}")
             sys.exit(1)
         except ValueError as e:
             logger.error(f"Error loading project configuration: {e}")
@@ -113,7 +115,11 @@ def main(
             param_config = load_config_param(param)
             config_data = util.deep_update(config_data, param_config)
         except ValidationError as e:
-            logger.error(f"Config parameter '{param}' is invalid:\n{e.message}")
+            logger.error(f"Config parameter '{param}' is invalid: {e.message}")
+            logger.info(f"Path: {'.'.join(str(p) for p in e.path)}")
+            sys.exit(1)
+        except ValueError as e:
+            logger.error(f"Error loading config parameter '{param}': {e}")
             sys.exit(1)
 
     # Load gettext
