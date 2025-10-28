@@ -1,3 +1,4 @@
+import logging
 import pathlib
 import shutil
 from typing import Any, Dict, Iterator
@@ -7,6 +8,8 @@ import yaml
 
 from .base.baseTask import BaseTask
 from .base.httpRequest import HttpRequest
+
+logger = logging.getLogger(__name__)
 
 
 class SiteTask(HttpRequest):
@@ -59,8 +62,15 @@ class SiteTask(HttpRequest):
                 config = yaml.safe_load(f)
 
             config["site_name"] = self.config["strings"]["site_name"]
-            config["docs_dir"] = str(self.dirs.docs_dir.absolute())
-            config["site_dir"] = str(self.dirs.dist_dir.absolute())
+
+            # compute paths relative to mkdocs.yml location
+            config["docs_dir"] = str(
+                self.dirs.docs_dir.relative_to(self.dirs.build_dir)
+            )
+            config["site_dir"] = str(
+                self.dirs.dist_dir.relative_to(self.dirs.build_dir, walk_up=True)
+            )
+
             language = self.config["site"]["locale"].split("_")[0]
             config["theme"]["language"] = language
             config["markdown_extensions"][0]["pymdownx.snippets"]["base_path"] = [
