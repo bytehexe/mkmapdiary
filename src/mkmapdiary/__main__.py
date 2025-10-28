@@ -4,7 +4,6 @@ import tempfile
 
 import click
 
-from .generate_demo import generate_demo_data as generate_demo
 from .main import main
 
 
@@ -70,11 +69,22 @@ def validate_param(ctx, param, value):
     "-T",
     "--generate-demo-data",
     is_flag=True,
-    help="Generate demo data in the source directory; for testing purposes only; directory must be empty",
+    help="Do not compile. Generate demo data in the source directory; for testing purposes only; directory must be empty",
+)
+@click.option(
+    "--config",
+    is_flag=True,
+    help="Do not compile. Apply configuration from the --params options and write them to config.yaml in the source directory. Use with --user to write to the user config file instead.",
+)
+@click.option(
+    "--user",
+    is_flag=True,
+    help="Write configuration to the user config file instead of the project config file. Only relevant with --config.",
 )
 @click.argument(
     "source_dir",
     type=click.Path(path_type=pathlib.Path),
+    required=False,
 )
 @click.argument(
     "dist_dir",
@@ -86,18 +96,15 @@ def start(
     dist_dir,
     build_dir,
     persistent_build,
-    generate_demo_data,
     **kwargs,
 ):
+    # Do not add tasks here, only adjust directories and call main()
+    # Main reason: Logging setup needs to happen before any tasks are run
 
-    if generate_demo_data:
-        generate_demo(source_dir)
-        return
-
-    if dist_dir is None:
+    if dist_dir is None and source_dir is not None:
         dist_dir = source_dir.with_name(source_dir.name + "_dist")
 
-    if persistent_build and build_dir is None:
+    if persistent_build and build_dir is None and source_dir is not None:
         build_dir = source_dir.with_name(source_dir.name + "_build")
 
     main_exec = lambda: main(

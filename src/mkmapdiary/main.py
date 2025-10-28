@@ -1,10 +1,12 @@
 import gettext
 import locale
 import logging
+import pathlib
 import sys
 
 import click
 import doit.reporter
+import platformdirs
 import yaml
 from doit.api import run_tasks
 from doit.cmd_base import ModuleTaskLoader
@@ -18,6 +20,8 @@ from mkmapdiary.util.log import StepFilter, current_task, setup_logging
 
 from . import util
 from .cache import Cache
+from .generate_demo import generate_demo_data as generate_demo
+from .lib.config import write_config
 from .taskList import TaskList
 
 logger = logging.getLogger(__name__)
@@ -34,6 +38,9 @@ def main(
     verbose,
     quiet,
     no_cache,
+    generate_demo_data,
+    config,
+    user,
 ):
     setup_logging(build_dir)
 
@@ -58,6 +65,31 @@ def main(
             console_log.setLevel(logging.NOTSET)
 
     current_task.set("main")
+
+    if user and not config:
+        raise click.BadParameter("--user can only be used with --config.")
+    if not user and source_dir is None:
+        raise click.BadParameter("Source directory is required.")
+    if user and source_dir is not None:
+        raise click.BadParameter("Source directory cannot be used with --user.")
+
+    if config:
+        if user:
+            source_dir = pathlib.Path(
+                platformdirs.user_data_dir("mkmapdiary", "bytehexe")
+            )
+            source_dir.mkdir(parents=True, exist_ok=True)
+        if not source_dir:
+            raise click.BadParameter("Could not determine configuration directory.")
+        write_config(source_dir, params)
+        return
+
+    if not source_dir:
+        raise click.BadParameter("Source directory is required.")
+
+    if generate_demo_data:
+        generate_demo(source_dir)
+        return
 
     dirs = Dirs(source_dir, build_dir, dist_dir, create_dirs=False)
 

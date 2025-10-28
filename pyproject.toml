@@ -52,6 +52,7 @@ dependencies = [
     "wcwidth",
     "humanfriendly",
     "tzlocal",
+    "platformdirs",
 ]
 
 [project.optional-dependencies]

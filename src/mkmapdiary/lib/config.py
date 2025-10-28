@@ -1,12 +1,18 @@
+import logging
 import pathlib
+import sys
 from typing import Any, Dict
 
 import humanfriendly
 import jsonschema
 import yaml
 from jsonschema import Draft202012Validator, validators
+from jsonschema.exceptions import ValidationError
 
+from mkmapdiary import util
 from mkmapdiary.util.locale import auto_detect_locale, auto_detect_timezone
+
+logger = logging.getLogger(__name__)
 
 
 def auto_constructor(loader, node) -> Any:
@@ -79,3 +85,42 @@ def load_config_param(param: str) -> dict:
     d[key_list[-1]] = yaml.load(value, Loader=ConfigLoader)
 
     return load_config_data(config_data)
+
+
+def write_config(source_dir: pathlib.Path, params: list) -> None:
+    """Write configuration data to a YAML file at the specified path."""
+
+    config_path = source_dir / "config.yaml"
+    if config_path.is_file():
+        config_data = load_config_file(config_path)
+    else:
+        config_data = {}
+
+    for param in params:
+        try:
+            param_config = load_config_param(param)
+            config_data = util.deep_update(config_data, param_config)
+        except ValidationError as e:
+            logger.error(f"Config parameter '{param}' is invalid: {e.message}")
+            logger.info(f"Path: {'.'.join(str(p) for p in e.path)}")
+            sys.exit(1)
+        except ValueError as e:
+            logger.error(f"Error loading config parameter '{param}': {e}")
+            sys.exit(1)
+
+    if params:
+        load_config_data(config_data)  # Validate final config
+
+        with open(config_path, "w") as file:
+            yaml.dump(config_data, file, sort_keys=False)
+        logger.info(f"Wrote configuration to {config_path}")
+    else:
+        logger.info(
+            f"No parameters provided; configuration file {config_path} not modified."
+        )
+
+    if config_path.is_file():
+        with open(config_path, "r") as file:
+            logger.debug(
+                "Configuration file contents:\n%s", file.read(), extra={"icon": "📄"}
+            )
