@@ -1,0 +1,145 @@
+# JSON Schema for mkmapdiary configuration (in YAML format)
+$schema: "http://json-schema.org/draft-07/schema#"
+title: "mkmapdiary Configuration Schema"
+description: "Schema for validating mkmapdiary configuration files"
+type: object
+
+definitions:
+  customString:
+    oneOf:
+      - type: string
+      - type: "null"
+    description: "Custom string override (can be string or null)"
+
+  llmPrompt:
+    type: object
+    properties:
+      prompt:
+        type: string
+        description: "Prompt template"
+      options:
+        type: object
+        properties:
+          temperature:
+            type: number
+            minimum: 0
+            maximum: 2
+            description: "Temperature parameter for LLM"
+          top_p:
+            type: number
+            minimum: 0
+            maximum: 1
+            description: "Top-p parameter for LLM"
+          seed:
+            type: integer
+            description: "Random seed for reproducible results"
+        additionalProperties: false
+    required: ["prompt"]
+    additionalProperties: false
+
+properties:
+  features:
+    type: object
+    description: "Feature configuration settings"
+    properties:
+      transcription:
+        type: object
+        properties:
+          enabled:
+            type: boolean
+            description: "Enable or disable transcription feature. Use !auto for automatic detection."
+        additionalProperties: false
+
+      llms:
+        type: object
+        properties:
+          enabled:
+            type: boolean
+            description: "Enable or disable LLM features"
+          text_model:
+            type: string
+            description: "Text model to use for LLM operations"
+        additionalProperties: false
+
+      geo_correlation:
+        type: object
+        properties:
+          enabled:
+            type: boolean
+            description: "Enable or disable geo correlation"
+          time_offset:
+            anyOf:
+              - type: integer
+            description: "Time offset (e.g., '0 seconds', '5 minutes')"
+          max_time_diff:
+            anyOf:
+              - type: integer
+            description: "Maximum time difference for correlation (e.g., '300 seconds')"
+        additionalProperties: false
+
+      poi_detection:
+        type: object
+        properties:
+          enabled:
+            type: boolean
+            description: "Enable or disable POI detection"
+          max_age:
+            anyOf:
+              - type: integer
+            description: "Maximum age for POI data (e.g., '300 days')"
+        additionalProperties: false
+
+    additionalProperties: false
+
+  site:
+    type: object
+    description: "Site configuration settings"
+    properties:
+      image_format:
+        type: string
+        description: "Output image format"
+      image_options:
+        type: object
+        description: "Image processing options"
+        additionalProperties: true
+      locale:
+        type: string
+        description: "Site locale. Use !auto for automatic detection."
+      timezone:
+        type: string
+        description: "Timezone setting. Use !auto for automatic detection."
+    additionalProperties: false
+
+  strings:
+    type: object
+    description: "Custom translation strings"
+    properties:
+      journal_title:
+        $ref: "#/definitions/customString"
+      site_name:
+        $ref: "#/definitions/customString"
+      map_title:
+        $ref: "#/definitions/customString"
+      days_title:
+        $ref: "#/definitions/customString"
+      audio_title:
+        $ref: "#/definitions/customString"
+      text_title:
+        $ref: "#/definitions/customString"
+      gallery_title:
+        $ref: "#/definitions/customString"
+      home_title:
+        $ref: "#/definitions/customString"
+    additionalProperties: false
+
+  llm_prompts:
+    type: object
+    description: "LLM prompt templates configuration"
+    properties:
+      generate_title:
+        $ref: "#/definitions/llmPrompt"
+      generate_tags:
+        $ref: "#/definitions/llmPrompt"
+    additionalProperties: false
+
+additionalProperties: false

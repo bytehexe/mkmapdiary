@@ -15,10 +15,7 @@ class DayPageTask(BaseTask):
         """Generate day pages for each date with assets."""
 
         def _generate_day_page(date):
-            if self.config["locale"] == "C":
-                formatter = "%a, %Y-%m-%d"
-            else:
-                formatter = "%a, %x"
+            formatter = "%a, %x"
 
             day_page_path = self.dirs.docs_dir / f"{date}.md"
             with open(day_page_path, "w") as f:

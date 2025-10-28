@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 import pathlib
 import subprocess
+import sys
 
 if not pathlib.PosixPath("demo").is_dir():
-    subprocess.run("mkmapdiary -T demo", shell=True, check=True)
+    p = subprocess.run(["mkmapdiary", "-T", "demo"] + sys.argv[1:])
+    sys.exit(p.returncode)
 
-subprocess.run("mkmapdiary -Ba demo", shell=True, check=True)
+p = subprocess.run(["mkmapdiary", "-Ba", "demo"] + sys.argv[1:])
+sys.exit(p.returncode)

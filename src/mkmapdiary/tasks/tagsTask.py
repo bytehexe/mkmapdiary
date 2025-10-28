@@ -37,10 +37,7 @@ class TagsTask(BaseTask):
                     content.append("\n".join(file_content))
 
             if content:
-                if self.config["locale"] == "C":
-                    language = "en"
-                else:
-                    language = self.config["locale"].split(".")[0]
+                language = self.config["site"]["locale"].split(".")[0]
                 tags = self.ai(
                     "generate_tags",
                     format=dict(locale=language, text="\n\n".join(content)),

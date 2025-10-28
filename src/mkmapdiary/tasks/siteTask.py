@@ -61,10 +61,7 @@ class SiteTask(HttpRequest):
             config["site_name"] = self.config["strings"]["site_name"]
             config["docs_dir"] = str(self.dirs.docs_dir.absolute())
             config["site_dir"] = str(self.dirs.dist_dir.absolute())
-            if self.config["locale"] == "C":
-                language = "en"
-            else:
-                language = self.config["locale"].split("_")[0]
+            language = self.config["site"]["locale"].split("_")[0]
             config["theme"]["language"] = language
             config["markdown_extensions"][0]["pymdownx.snippets"]["base_path"] = [
                 self.dirs.build_dir

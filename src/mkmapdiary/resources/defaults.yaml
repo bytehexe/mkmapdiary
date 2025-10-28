@@ -1,21 +1,33 @@
-locale: "C" # e.g., "en_US.utf8", "de_DE.utf8", or "C" for default POSIX locale
-image_format: jpg
-image_options: {}
-ollama_ai_model: "llama3:8b"
+# Default configuration for mkmapdiary
 
-geo_lookup:
-  high_precision: false
+# The !auto value indicates that the value is automatically determined
+# based on system settings.
 
 features:
-  transcription: "auto"
+  # Feature configuration defaults
+  transcription:
+    enabled: !auto transcription.enabled
+  llms:
+    enabled: true
+    text_model: "llama3:8b"
+  geo_correlation:
+    enabled: true
+    time_offset: !duration 0 seconds
+    max_time_diff: !duration 300 seconds
+  poi_detection:
+    enabled: true
+    max_age: !duration 300 days
 
-geo_correlation:
-  timezone: "UTC"
-  time_offset: 0  # in seconds
-  max_time_diff: 300  # in seconds
+site:
+  # Site configuration defaults
+  image_format: jpg
+  image_options: {}
+  locale: !auto site.locale
+  timezone: !auto site.timezone
+
 
 strings:
-  # Default strings: use None to fall back to built-in translations
+  # Override translation strings here by providing custom values
   journal_title: null
   site_name: null
   map_title: null
@@ -25,9 +37,8 @@ strings:
   gallery_title: null
   home_title: null
 
-# Translations are set within the code using gettext; can be overriden in the project config
-
-ai:
+llm_prompts:
+  # LLM prompt templates
   generate_title:
     prompt: |
       Create exactly one title that summarizes the following text in {locale}.

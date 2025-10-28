@@ -169,8 +169,10 @@ class GPXTask(BaseTask):
 
     def task_geo_correlation(self) -> Dict[str, Any]:
         def _update_positions():
-            tz = ZoneInfo(self.config["geo_correlation"]["timezone"])
-            offset = timedelta(seconds=self.config["geo_correlation"]["time_offset"])
+            tz = ZoneInfo(self.config["site"]["timezone"])
+            offset = timedelta(
+                seconds=self.config["features"]["geo_correlation"]["time_offset"]
+            )
 
             coords = []
             for path in self.__sources:
@@ -192,7 +194,10 @@ class GPXTask(BaseTask):
                 if candidates:
                     closest = min(candidates, key=lambda x: abs(x[0] - asset_time))
                     diff = (closest[0] - asset_time).total_seconds()
-                    if abs(diff) < self.config["geo_correlation"]["max_time_diff"]:
+                    if (
+                        abs(diff)
+                        < self.config["features"]["geo_correlation"]["max_time_diff"]
+                    ):
                         # closest contains (time, lon, lat), database expects separate lat, lon parameters
                         self.db.update_asset_position(
                             asset_id,

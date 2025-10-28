@@ -114,14 +114,14 @@ class BaseTask(ABC):
 
     def ai(self, key, format) -> str:
         return self.__ai(
-            self.config["ai"][key]["prompt"].format(**format),
-            options=self.config["ai"][key]["options"],
+            self.config["llm_prompts"][key]["prompt"].format(**format),
+            options=self.config["llm_prompts"][key]["options"],
         )
 
     def __ai(self, prompt, **params) -> str:
         """Generate text using an AI model."""
 
-        model = self.config["ollama_ai_model"]
+        model = self.config["features"]["llms"]["text_model"]
 
         with ai_lock:
             response = ollama.chat(

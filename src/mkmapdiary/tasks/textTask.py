@@ -34,7 +34,7 @@ class TextTask(BaseTask):
                 title = f"{self.config['strings']['text_title']}: "
                 title += self.ai(
                     "generate_title",
-                    format=dict(locale=self.config["locale"], text=text),
+                    format=dict(locale=self.config["site"]["locale"], text=text),
                 )
 
                 markdown = self.template(

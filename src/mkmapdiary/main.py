@@ -9,8 +9,10 @@ import yaml
 from doit.api import run_tasks
 from doit.cmd_base import ModuleTaskLoader
 from doit.doit_cmd import DoitMain
+from jsonschema.exceptions import ValidationError
 from tabulate import tabulate
 
+from mkmapdiary.lib.config import load_config_file, load_config_param
 from mkmapdiary.lib.dirs import Dirs
 from mkmapdiary.util.log import StepFilter, current_task, setup_logging
 
@@ -67,37 +69,58 @@ def main(
 
     # Load config defaults
     default_config = dirs.resources_dir / "defaults.yaml"
-    config_data = yaml.safe_load(default_config.read_text())
+    try:
+        config_data = load_config_file(default_config)
+    except ValidationError as e:
+        logger.critical(f"Default configuration is invalid: {e.message}")
+        logger.info(f"Path: {'.'.join(str(p) for p in e.path)}")
+        sys.exit(1)
+    except ValueError as e:
+        logger.critical(f"Error loading default configuration: {e}")
+        sys.exit(1)
 
     # Load local user configuration
     user_config_file = dirs.user_config_file
     if user_config_file.exists():
-        config_data = util.deep_update(
-            config_data, yaml.safe_load(user_config_file.read_text())
-        )
+        try:
+            config_data = util.deep_update(
+                config_data, load_config_file(user_config_file)
+            )
+        except ValidationError as e:
+            logger.error(f"User configuration is invalid:\n{e.message}")
+            sys.exit(1)
+        except ValueError as e:
+            logger.error(f"Error loading user configuration: {e}")
+            sys.exit(1)
 
     # Load project configuration file if provided
     project_config_file = dirs.source_dir / "config.yaml"
     if project_config_file.is_file():
-        config_data = util.deep_update(
-            config_data, yaml.safe_load(project_config_file.read_text())
-        )
+        try:
+            config_data = util.deep_update(
+                config_data, load_config_file(project_config_file)
+            )
+        except ValidationError as e:
+            logger.error(f"Project configuration is invalid:\n{e.message}")
+            sys.exit(1)
+        except ValueError as e:
+            logger.error(f"Error loading project configuration: {e}")
+            sys.exit(1)
 
     # Override config with params
     for param in params:
-        key, value = param.split("=", 1)
-        key = key.split(".")
-        d = config_data
-        for k in key[:-1]:
-            d = d.setdefault(k, {})
-        d[key[-1]] = yaml.safe_load(value)
+        try:
+            param_config = load_config_param(param)
+            config_data = util.deep_update(config_data, param_config)
+        except ValidationError as e:
+            logger.error(f"Config parameter '{param}' is invalid:\n{e.message}")
+            sys.exit(1)
 
     # Load gettext
     localedir = dirs.locale_dir
-    if config_data["locale"] == "C":
-        language = "en"
-    else:
-        language = config_data["locale"].split("_")[0]
+
+    language = config_data["site"]["locale"].split("_")[0]
+
     lang = gettext.translation(
         "messages",
         localedir=str(localedir),
@@ -114,18 +137,12 @@ def main(
             config_data["strings"][key] = translation
 
     # Set locale
-    locale.setlocale(locale.LC_TIME, config_data["locale"])
+    logger.debug(f"Setting locale to {config_data['site']['locale']}")
+    locale.setlocale(locale.LC_TIME, config_data["site"]["locale"])
 
     # Feature checks
     features = config_data["features"]
-    if features["transcription"] == "auto":
-        try:
-            import whisper
-
-            features["transcription"] = True
-        except ImportError:
-            features["transcription"] = False
-    elif features["transcription"] is True:
+    if features["transcription"]["enabled"] is True:
         try:
             import whisper
         except ImportError:

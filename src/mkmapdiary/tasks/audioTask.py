@@ -78,7 +78,7 @@ class AudioTask(BaseTask):
 
             audio_title = self.config["strings"]["audio_title"]
 
-            if not self.config["features"]["transcription"]:
+            if not self.config["features"]["transcription"]["enabled"]:
                 with open(dst, "w") as f:
                     f.write(f"### {audio_title}\n\n")
                 return
@@ -111,7 +111,8 @@ class AudioTask(BaseTask):
                 text.append(segment["text"].strip())
 
             title = self.ai(
-                "generate_title", format=dict(locale=self.config["locale"], text=text)
+                "generate_title",
+                format=dict(locale=self.config["site"]["locale"], text=text),
             )
 
             output.append("</div>")
