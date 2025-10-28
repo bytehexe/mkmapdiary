@@ -2,7 +2,6 @@ import logging
 import warnings
 
 import gpxpy
-import gpxpy.gpx
 import hdbscan
 import numpy as np
 import shapely
@@ -16,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 class GpxCreator:
     def __init__(self, date, sources, db, region_cache_dir):
-        self.__coords: list[tuple[float, float]] = []
+        self.__coords = []
         self.__gpx_out = gpxpy.gpx.GPX()
         self.__sources = sources
         self.__date = date
@@ -66,7 +65,7 @@ class GpxCreator:
         if len(self.__coords) < 10:
             return
 
-        self.__coords = np.array(self.__coords).tolist()
+        self.__coords = np.array(self.__coords)
 
         # Fit HDBSCAN
         eps = 10  # meters
