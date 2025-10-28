@@ -2,6 +2,10 @@
 
 This section contains technical reference documentation for mkmapdiary's internal formats, configurations, and development information.
 
+## Configuration
+
+- **[Configuration](configuration.md)** - Complete configuration reference and examples
+
 ## File Formats
 
 - **[POI Index Format](poi-index-format.md)** - Binary format for cached points of interest data

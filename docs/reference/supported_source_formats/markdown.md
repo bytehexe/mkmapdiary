@@ -44,10 +44,11 @@ Files identified with the `markdown` tag by the [`identify` library](https://pyp
 ## Configuration
 
 ```yaml
-geo_correlation:                     # For coordinate correlation
-  timezone: "UTC"
-  time_offset: 0                     # Markdown creation time offset (seconds)
-  max_time_diff: 300                 # Max correlation window (seconds)
+features:
+  geo_correlation:                   # For coordinate correlation
+    enabled: true
+    time_offset: !duration 0 seconds         # Markdown creation time offset
+    max_time_diff: !duration 300 seconds     # Max correlation window
 ```
 
 ## Tips for Best Results

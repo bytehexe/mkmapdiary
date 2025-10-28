@@ -45,10 +45,11 @@ GPX files serve as the primary source for coordinate correlation. Other file typ
 Coordinate correlation behavior can be configured via the `geo_correlation` section:
 
 ```yaml
-geo_correlation:
-  timezone: "UTC"          # Timezone for timestamp matching
-  time_offset: 0           # Time offset in seconds
-  max_time_diff: 300       # Maximum time difference for correlation (seconds)
+features:
+  geo_correlation:
+    enabled: true
+    time_offset: !duration 0 seconds       # Time offset 
+    max_time_diff: !duration 300 seconds   # Maximum time difference for correlation
 ```
 
 ## Output

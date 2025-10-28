@@ -48,22 +48,23 @@ All audio formats supported by `pydub.AudioSegment`, including:
 
 ```yaml
 features:
-  transcription: "auto"              # Enable/disable transcription
+  transcription:
+    enabled: !auto transcription.enabled    # Enable/disable transcription (auto-detect)
+  llms:
+    enabled: true                           # Enable/disable LLM features
+    text_model: "llama3:8b"                # Model for transcription and titles
+  geo_correlation:                         # For coordinate correlation
+    enabled: true
+    time_offset: !duration 0 seconds       # Audio device time offset
+    max_time_diff: !duration 300 seconds   # Max correlation window
 
-ollama_ai_model: "llama3:8b"         # Model for transcription and titles
-
-ai:
-  generate_title:                    # Title generation settings
+llm_prompts:
+  generate_title:                          # Title generation settings
     prompt: |
       Create exactly one title that summarizes the following text...
     options:
       temperature: 0.2
       top_p: 0.8
-
-geo_correlation:                     # For coordinate correlation
-  timezone: "UTC"
-  time_offset: 0                     # Audio device time offset (seconds)
-  max_time_diff: 300                 # Max correlation window (seconds)
 ```
 
 ## Dependencies

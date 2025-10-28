@@ -43,9 +43,16 @@ Files identified with the `plain-text` tag by the [`identify` library](https://p
 strings:
   text_title: null                   # Custom prefix for text entries (or null for default)
 
-ollama_ai_model: "llama3:8b"         # Model for title generation
+features:
+  llms:
+    enabled: true                    # Enable/disable LLM features
+    text_model: "llama3:8b"         # Model for title generation
+  geo_correlation:                   # For coordinate correlation
+    enabled: true
+    time_offset: !duration 0 seconds        # Text device time offset
+    max_time_diff: !duration 300 seconds    # Max correlation window
 
-ai:
+llm_prompts:
   generate_title:                    # Title generation settings
     prompt: |
       Create exactly one title that summarizes the following text in {locale}.
@@ -53,11 +60,6 @@ ai:
     options:
       temperature: 0.2
       top_p: 0.8
-
-geo_correlation:                     # For coordinate correlation
-  timezone: "UTC"
-  time_offset: 0                     # Text device time offset (seconds)
-  max_time_diff: 300                 # Max correlation window (seconds)
 ```
 
 ## Dependencies

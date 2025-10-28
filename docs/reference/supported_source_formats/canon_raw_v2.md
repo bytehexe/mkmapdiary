@@ -43,13 +43,15 @@ Canon Raw v2 (CR2) files are processed similarly to common image formats, with f
 ## Configuration
 
 ```yaml
-image_format: jpg                    # Output format for converted RAW files
-image_options: {}                    # PIL/Pillow save options for conversion
+site:
+  image_format: jpg                  # Output format for converted RAW files
+  image_options: {}                  # PIL/Pillow save options for conversion
 
-geo_correlation:                     # For coordinate fallback
-  timezone: "UTC"
-  time_offset: 0                     # Camera time offset (seconds)  
-  max_time_diff: 300                 # Max correlation window (seconds)
+features:
+  geo_correlation:                   # For coordinate fallback
+    enabled: true
+    time_offset: !duration 0 seconds         # Camera time offset
+    max_time_diff: !duration 300 seconds     # Max correlation window
 ```
 
 ## Dependencies

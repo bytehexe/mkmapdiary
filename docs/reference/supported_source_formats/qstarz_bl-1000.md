@@ -53,10 +53,11 @@ After conversion to GPX format:
 No specific configuration required. Processing follows GPX configuration settings after conversion:
 
 ```yaml
-geo_correlation:                     # Applied after conversion
-  timezone: "UTC"
-  time_offset: 0                     # GPS device time offset (seconds)
-  max_time_diff: 300                 # Max correlation window (seconds)
+features:
+  geo_correlation:                   # Applied after conversion
+    enabled: true
+    time_offset: !duration 0 seconds         # GPS device time offset
+    max_time_diff: !duration 300 seconds     # Max correlation window
 ```
 
 ## Installation Requirements

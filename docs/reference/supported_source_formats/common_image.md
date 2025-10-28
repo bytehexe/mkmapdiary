@@ -47,13 +47,15 @@ All image formats supported by the identify library, including:
 ## Configuration
 
 ```yaml
-image_format: jpg                    # Output format
-image_options: {}                    # PIL/Pillow save options
+site:
+  image_format: jpg                  # Output format
+  image_options: {}                  # PIL/Pillow save options
 
-geo_correlation:                     # For coordinate fallback
-  timezone: "UTC"
-  time_offset: 0                     # Camera time offset (seconds)  
-  max_time_diff: 300                 # Max correlation window (seconds)
+features:
+  geo_correlation:                   # For coordinate fallback
+    enabled: true
+    time_offset: !duration 0 seconds         # Camera time offset
+    max_time_diff: !duration 300 seconds     # Max correlation window
 ```
 
 ## Dependencies
