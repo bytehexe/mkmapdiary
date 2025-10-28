@@ -65,10 +65,13 @@ class AudioTask(BaseTask):
     def __transcribe_audio(self, src):
         import whisper
 
-        with ThisMayTakeAWhile(logger, "Transcribing audio"):
-            with whisper_lock:
-                model = whisper.load_model("turbo")
-                result = model.transcribe(str(src))
+        with whisper_lock:
+            with ThisMayTakeAWhile(logger, "Transcribing audio: %s" % src.name):
+                if not hasattr(self, "_model"):
+                    # Loading the model seems to leak memory; therefore, we
+                    # load it only once and reuse it.
+                    self._model = whisper.load_model("turbo")
+                result = self._model.transcribe(str(src))
         return result
 
     def task_transcribe_audio(self) -> Iterator[Dict[str, Any]]:
