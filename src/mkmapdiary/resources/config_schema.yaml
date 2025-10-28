@@ -48,6 +48,9 @@ properties:
           enabled:
             type: boolean
             description: "Enable or disable transcription feature. Use !auto for automatic detection."
+          user_cache:
+            type: boolean
+            description: "Enable or disable cache in the user data directory for transcription"
         additionalProperties: false
 
       llms:

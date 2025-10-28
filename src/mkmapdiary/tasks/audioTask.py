@@ -86,12 +86,15 @@ class AudioTask(BaseTask):
             output = []
             output.append("<div class='transcript'>")
 
-            result = self.with_cache(
-                "whisper",
-                self.__transcribe_audio,
-                src,
-                cache_args=(self.__file_md5(src),),
-            )
+            if self.config["features"]["transcription"]["user_cache"]:
+                result = self.with_cache(
+                    "whisper",
+                    self.__transcribe_audio,
+                    src,
+                    cache_args=(self.__file_md5(src),),
+                )
+            else:
+                result = self.__transcribe_audio(src)
 
             audio = AudioSegment.from_file(src)
             text = []

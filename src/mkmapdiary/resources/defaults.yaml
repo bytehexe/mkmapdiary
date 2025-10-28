@@ -7,6 +7,7 @@ features:
   # Feature configuration defaults
   transcription:
     enabled: !auto transcription.enabled
+    user_cache: false
   llms:
     enabled: true
     text_model: "llama3:8b"
