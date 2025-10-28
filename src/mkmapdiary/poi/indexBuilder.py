@@ -72,10 +72,11 @@ class IndexBuilder:
 
     def __downloadPbf(self, region: Region, pbf_file_name: pathlib.Path):
         logger.info(f"Downloading PBF ...")
-        result = requests.get(region.url)
-        result.raise_for_status()
-        with open(pbf_file_name, "wb") as pbf_file:
-            pbf_file.write(result.content)
+        with requests.get(region.url, stream=True) as result:
+            result.raise_for_status()
+            with open(pbf_file_name, "wb") as pbf_file:
+                for chunk in result.iter_content(chunk_size=8192):
+                    pbf_file.write(chunk)
 
     def __buildPoiIndex(self) -> dict:
 
