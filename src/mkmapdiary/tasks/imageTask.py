@@ -30,6 +30,16 @@ class ImageTask(BaseTask, ExifReader):
 
         def _convert(src, dst):
             with Image.open(src) as img:
+                # apply image orientation if needed
+                self.read_exif(src)
+                orientation = self.read_exif(src).get("orientation", 1)
+                if orientation == 3:
+                    img = img.rotate(180, expand=True)
+                elif orientation == 6:
+                    img = img.rotate(270, expand=True)
+                elif orientation == 8:
+                    img = img.rotate(90, expand=True)
+
                 img.convert("RGB").save(dst, **self.config.get("image_options", {}))
 
         for src in self.__sources:
