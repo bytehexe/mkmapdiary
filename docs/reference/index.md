@@ -13,5 +13,6 @@ This section contains technical reference documentation for mkmapdiary's interna
 
 ## Development
 
+- **[Task Dependencies](task-dependencies.md)** - Flowchart showing how build tasks depend on each other
 - **[Development Commands](development/dev-commands.md)** - Commands for development and testing
 - **[Commit Prefixes](development/commit-prefixes.md)** - Git commit message conventions
