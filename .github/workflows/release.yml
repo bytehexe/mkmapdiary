@@ -82,13 +82,13 @@ jobs:
       - name: Create GitHub Release (stable)
         uses: softprops/action-gh-release@v2
         if: |
-          !contains(github.ref, 'a') && !contains(github.ref, 'b') && !contains(github.ref, 'rc')
+          !contains(github.ref_name, 'a') && !contains(github.ref_name, 'b') && !contains(github.ref_name, 'rc')
         with:
           generate_release_notes: true
       - name: Create GitHub Release (pre-release)
         uses: softprops/action-gh-release@v2
         if: |
-          contains(github.ref, 'a') || contains(github.ref, 'b') || contains(github.ref, 'rc')
+          contains(github.ref_name, 'a') || contains(github.ref_name, 'b') || contains(github.ref_name, 'rc')
         with:
           prerelease: true
           generate_release_notes: true
