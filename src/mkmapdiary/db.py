@@ -149,6 +149,14 @@ class Db:
             )
             return list(row for row in cursor.fetchall())
 
+    def get_unpositioned_asset_paths(self):
+        with self.lock:
+            cursor = self.conn.cursor()
+            cursor.execute(
+                'SELECT path FROM assets WHERE latitude IS NULL OR longitude IS NULL AND type != "gpx"'
+            )
+            return list(row[0] for row in cursor.fetchall())
+
     def update_asset_position(self, asset_id, latitude, longitude, approx):
         # Database stores coordinates in separate latitude/longitude columns
         with self.lock:

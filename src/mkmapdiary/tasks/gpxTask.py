@@ -212,7 +212,8 @@ class GPXTask(BaseTask):
 
         return {
             "actions": [_update_positions],
-            "file_dep": [str(src) for src in self.__sources],
+            "file_dep": [str(src) for src in self.__sources]
+            + self.db.get_unpositioned_asset_paths(),
             "uptodate": [False],
         }
 
