@@ -100,6 +100,7 @@ audio_files --> convert_audio
 audio_files --> transcribe_audio
 image_files --> convert_image
 cr2_files --> convert_raw
+convert_raw --> convert_image
 gpx_files --> pre_gpx
 geo_files --> geo2gpx
 qstarz_files --> qstarz2gpx
@@ -126,7 +127,6 @@ gpx2gpx ==> build_journal
 gpx2gpx ==> build_tags
 
 ' Asset dependencies (file_dep on all assets)
-convert_raw --> asset_collections
 convert_image --> asset_collections
 convert_audio --> asset_collections
 text2markdown --> asset_collections
