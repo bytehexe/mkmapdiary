@@ -1,0 +1,183 @@
+@startuml task-dependencies
+
+' INSTRUCTIONS FOR EDITING THIS DIAGRAM:
+' 
+' This PlantUML diagram shows the dependency graph of build tasks in mkmapdiary.
+' When adding or modifying tasks, follow these guidelines:
+'
+' 1. TASK NAMING:
+'    - Remove the 'task_' prefix from function names (e.g., task_build_site → build_site)
+'    - Use descriptive rectangle names with appropriate aliases
+'
+' 2. DEPENDENCY TYPES:
+'    - Use --> for task_dep (hard dependencies) and file_dep (file dependencies)
+'    - Use -.-> for calc_dep (calculated dependencies at runtime)
+'    - Both are blocking dependencies, but calc_dep is computed dynamically
+'
+' 3. COLOR CODING:
+'    - #lightgray: Source file types (input files)
+'    - #lightgreen: Data conversion (file format transformations)
+'    - #yellow: GPX preprocessing (preparation steps)
+'    - #orange: GPX processing (main GPS data processing)
+'    - #pink: Audio processing (transcription, conversion)
+'    - #lightyellow: Asset collection (pseudo-nodes for grouping)
+'    - #lightcyan: Content generation (page building)
+'    - #lavender: Site configuration (mkdocs setup, CSS, assets)
+'    - #red: Final build (site generation)
+'
+' 4. SOURCE FILE TYPES AND PSEUDO-NODES:
+'    - Add source file type nodes to show the complete pipeline from input to output
+'    - Use pseudo-nodes like 'all_assets' to simplify complex many-to-many relationships
+'    - This prevents visual clutter when multiple tasks depend on the same set of outputs
+'
+' 5. FINDING DEPENDENCIES:
+'    - Check task_dep arrays in task functions
+'    - Look for @create_after decorators
+'    - Check file_dep and calc_dep usage
+'    - Search for db.get_all_assets() usage (indicates file dependencies on all conversion tasks)
+'    - Check handle_* methods to understand which source file types feed into which tasks
+'
+' 6. VALIDATION:
+'    - Ensure all task_ functions from src/mkmapdiary/tasks/ are represented
+'    - Verify dependency directions match the actual code
+'    - Test the diagram renders correctly with: plantuml task-dependencies.puml
+'
+' 7. MAINTAINING THESE INSTRUCTIONS:
+'    - When adding new task types or source file types, update the COLOR CODING section
+'    - When changing the diagram structure, update relevant instruction sections
+'    - Keep examples in sync with actual implementation
+'    - Update validation steps if new verification methods are needed
+
+' Source file types (inputs)
+rectangle "Audio Files\n(.wav, .mp3, .flac, etc.)" as audio_files #lightgray
+rectangle "Image Files\n(.jpg, .png, .tiff, etc.)" as image_files #lightgray
+rectangle "CR2 Raw Files\n(.cr2)" as cr2_files #lightgray
+rectangle "GPX Files\n(.gpx)" as gpx_files #lightgray
+rectangle "GeoJSON/GeoYAML\n(.geo.json, .geo.yaml)" as geo_files #lightgray
+rectangle "Qstarz Files\n(.bin, .poi)" as qstarz_files #lightgray
+rectangle "Text Files\n(.txt)" as text_files #lightgray
+rectangle "Markdown Files\n(.md)" as markdown_files #lightgray
+
+' Data conversion tasks
+rectangle "geo2gpx" as geo2gpx #lightgreen
+rectangle "qstarz2gpx" as qstarz2gpx #lightgreen
+rectangle "convert_raw" as convert_raw #lightgreen
+rectangle "convert_image" as convert_image #lightgreen
+rectangle "convert_audio" as convert_audio #lightgreen
+rectangle "text2markdown" as text2markdown #lightgreen
+rectangle "markdown2markdown" as markdown2markdown #lightgreen
+
+' GPX processing tasks
+rectangle "pre_gpx" as pre_gpx #yellow
+rectangle "geo_correlation" as geo_correlation #yellow
+rectangle "gpx2gpx" as gpx2gpx #orange
+rectangle "get_gpx_deps" as get_gpx_deps #orange
+
+' Content generation tasks
+rectangle "transcribe_audio" as transcribe_audio #pink
+rectangle "build_day_page" as build_day_page #lightcyan
+rectangle "build_gallery" as build_gallery #lightcyan
+rectangle "build_journal" as build_journal #lightcyan
+rectangle "build_tags" as build_tags #lightcyan
+
+' Asset collection cluster
+rectangle "Asset Collections" as asset_collections #lightyellow {
+  rectangle "all_assets" as all_assets #lightyellow
+  rectangle "unpositioned_assets" as unpositioned_assets #lightyellow
+}
+
+' Site building tasks
+rectangle "generate_mkdocs_config" as generate_mkdocs_config #lavender
+rectangle "build_static_pages" as build_static_pages #lavender
+rectangle "compile_css" as compile_css #lavender
+rectangle "copy_simple_asset" as copy_simple_asset #lavender
+rectangle "build_site" as build_site #red
+
+' Source file to conversion task dependencies
+audio_files --> convert_audio
+audio_files --> transcribe_audio
+image_files --> convert_image
+cr2_files --> convert_raw
+gpx_files --> pre_gpx
+geo_files --> geo2gpx
+qstarz_files --> qstarz2gpx
+text_files --> text2markdown
+markdown_files --> markdown2markdown
+
+' Dependencies for pre_gpx
+geo2gpx --> pre_gpx
+qstarz2gpx --> pre_gpx
+
+' Dependencies for geo_correlation
+gpx_files --> geo_correlation
+
+' Dependencies for gpx2gpx
+pre_gpx --> gpx2gpx
+geo_correlation --> gpx2gpx
+qstarz2gpx --> gpx2gpx
+
+' Dependencies from gpx2gpx (using @create_after decorator)
+gpx2gpx --> get_gpx_deps
+gpx2gpx --> build_day_page
+gpx2gpx --> build_gallery
+gpx2gpx --> build_journal
+gpx2gpx --> build_tags
+
+' Asset dependencies (file_dep on all assets)
+convert_raw --> asset_collections
+convert_image --> asset_collections
+convert_audio --> asset_collections
+text2markdown --> asset_collections
+markdown2markdown --> asset_collections
+transcribe_audio --> asset_collections
+
+' Dependencies from asset collections to content generation tasks
+all_assets --> build_gallery
+all_assets --> build_journal
+all_assets --> build_tags
+all_assets --> build_static_pages
+unpositioned_assets --> geo_correlation
+
+' Dependencies for build_tags
+transcribe_audio --> build_tags
+
+' Dependencies for build_site
+build_static_pages --> build_site
+generate_mkdocs_config --> build_site
+compile_css --> build_site
+copy_simple_asset --> build_site
+build_day_page --> build_site
+build_gallery --> build_site
+build_journal --> build_site
+build_tags --> build_site
+get_gpx_deps -.-> build_site : calc_dep
+
+' Dependencies for build_static_pages
+get_gpx_deps -.-> build_static_pages : calc_dep
+
+' Dependencies for content generation tasks
+get_gpx_deps -.-> build_gallery : calc_dep
+get_gpx_deps -.-> build_journal : calc_dep
+get_gpx_deps -.-> build_tags : calc_dep
+
+' Legend
+legend top left
+  |Color| Task Type |
+  |<#lightgray>| Source file types |
+  |<#lightgreen>| Data conversion |
+  |<#yellow>| GPX preprocessing |
+  |<#orange>| GPX processing |
+  |<#pink>| Audio processing |
+  |<#lightyellow>| Asset collection |
+  |<#lightcyan>| Content generation |
+  |<#lavender>| Site configuration |
+  |<#red>| Final build |
+  
+  Line types:
+  ' Arrows are not rendered correctly here; so use different
+  ' dash patterns to simulate the results
+  — : task_dep/file_dep (hard dependency)
+  - - : calc_dep (calculated dependency)
+end legend
+
+@enduml
