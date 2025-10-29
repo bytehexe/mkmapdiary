@@ -12,7 +12,9 @@
 ' 2. DEPENDENCY TYPES:
 '    - Use --> for task_dep (hard dependencies) and file_dep (file dependencies)
 '    - Use -.-> for calc_dep (calculated dependencies at runtime)
-'    - Both are blocking dependencies, but calc_dep is computed dynamically
+'    - Use ==> for @create_after dependencies (delayed task creation)
+'    - Both task_dep and file_dep are blocking dependencies, calc_dep is computed dynamically
+'    - @create_after means tasks are created after the source task completes
 '
 ' 3. COLOR CODING:
 '    - #lightgray: Source file types (input files)
@@ -117,11 +119,11 @@ geo_correlation --> gpx2gpx
 qstarz2gpx --> gpx2gpx
 
 ' Dependencies from gpx2gpx (using @create_after decorator)
-gpx2gpx --> get_gpx_deps
-gpx2gpx --> build_day_page
-gpx2gpx --> build_gallery
-gpx2gpx --> build_journal
-gpx2gpx --> build_tags
+gpx2gpx ==> get_gpx_deps
+gpx2gpx ==> build_day_page
+gpx2gpx ==> build_gallery
+gpx2gpx ==> build_journal
+gpx2gpx ==> build_tags
 
 ' Asset dependencies (file_dep on all assets)
 convert_raw --> asset_collections
@@ -178,6 +180,7 @@ legend top left
   ' dash patterns to simulate the results
   — : task_dep/file_dep (hard dependency)
   - - : calc_dep (calculated dependency)
+  ══ : @create_after (delayed task creation)
 end legend
 
 @enduml
