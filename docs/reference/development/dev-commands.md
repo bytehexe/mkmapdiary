@@ -12,8 +12,15 @@ Run `task --list` to see all available tasks.
 
 ## Running the dev version
 
-```
-hatch run mkmapdiary
+```bash
+# Show help
+hatch run mkmapdiary --help
+
+# Build a project  
+hatch run mkmapdiary build source_dir
+
+# Configure a project
+hatch run mkmapdiary config -x key=value source_dir
 ```
 
 ## Pruning the enviroments

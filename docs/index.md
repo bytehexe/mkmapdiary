@@ -27,7 +27,7 @@ pipx install mkmapdiary[all]
 Generate a travel journal from your data directory:
 
 ```bash
-mkmapdiary your_travel_data/
+mkmapdiary build your_travel_data/
 x-www-browser your_travel_data_dist/index.html
 ```
 
@@ -36,8 +36,8 @@ x-www-browser your_travel_data_dist/index.html
 Want to see mkmapdiary in action? Generate a demo project with sample data:
 
 ```bash
-mkmapdiary -T demo
-mkmapdiary demo
+mkmapdiary build -T demo
+mkmapdiary build demo
 x-www-browser demo_dist/index.html
 ```
 

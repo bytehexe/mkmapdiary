@@ -134,22 +134,32 @@ The `!duration` tag converts human-readable durations to seconds:
 
 ## Command-Line Configuration
 
-Override any configuration value using the `-x` flag:
+Override any configuration value using the `-x` flag with the `build` command:
 
 ```bash
 # Enable/disable features
-mkmapdiary -x features.transcription.enabled=true
-mkmapdiary -x features.llms.enabled=false
+mkmapdiary build -x features.transcription.enabled=true source_dir
+mkmapdiary build -x features.llms.enabled=false source_dir
 
 # Set model
-mkmapdiary -x features.llms.text_model="llama3:70b"
+mkmapdiary build -x features.llms.text_model="llama3:70b" source_dir
 
 # Configure timing
-mkmapdiary -x features.geo_correlation.max_time_diff="!duration 10 minutes"
+mkmapdiary build -x features.geo_correlation.max_time_diff="!duration 10 minutes" source_dir
 
 # Set site options
-mkmapdiary -x site.image_format=png
-mkmapdiary -x strings.site_name="My Travel Journal"
+mkmapdiary build -x site.image_format=png source_dir
+mkmapdiary build -x strings.site_name="My Travel Journal" source_dir
+```
+
+You can also use global verbosity options:
+
+```bash
+# Verbose output
+mkmapdiary -v build source_dir
+
+# Quiet output  
+mkmapdiary -q build source_dir
 ```
 
 ## Configuration Files
@@ -166,7 +176,11 @@ Project-specific configuration:
 
 Create with:
 ```bash
-mkmapdiary --config -x key=value
+# Create project config
+mkmapdiary config -x key=value source_dir
+
+# Create user config (affects all projects)
+mkmapdiary config --user -x key=value
 ```
 
 ## Examples

@@ -2,6 +2,10 @@
 
 This section contains technical reference documentation for mkmapdiary's internal formats, configurations, and development information.
 
+## Command Line Interface
+
+- **[Commands](commands.md)** - Complete command reference and examples for `build` and `config` subcommands
+
 ## Configuration
 
 - **[Configuration](configuration.md)** - Complete configuration reference and examples

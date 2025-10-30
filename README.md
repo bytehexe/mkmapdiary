@@ -22,22 +22,22 @@ pipx install mkmapdiary[all]
 Set up a directory containing all your sources, e.g. `traveljournal`. Then run:
 
 ```bash
-mkmapdiary traveljournal
+mkmapdiary build traveljournal
 x-www-browser traveljournal_dist/index.html # Open the page
 ```
 
 Mkmapdiary will then create a directory `traveljournal_dist`, containing the output as a website.
 
-For the full reference of commandline options run `mkmapdiary --help`.
+For the full reference of commandline options run `mkmapdiary --help` or `mkmapdiary build --help`.
 
 ## Running mkmapdiary on placeholder data
 
 Mkmapdiary can generate a project with placeholder data:
 
 ```bash
-mkmapdiary -T demo
-mkmapdiary demo
-x-www-browser demo/index.html
+mkmapdiary build -T demo
+mkmapdiary build demo
+x-www-browser demo_dist/index.html
 ```
 
 This is for debugging/demonstration purposes only! Images by https://picsum.photos/.
