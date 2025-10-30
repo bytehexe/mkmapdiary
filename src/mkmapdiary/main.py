@@ -6,9 +6,6 @@ import sys
 
 import click
 import doit.reporter
-import platformdirs
-import yaml
-from doit.api import run_tasks
 from doit.cmd_base import ModuleTaskLoader
 from doit.doit_cmd import DoitMain
 from jsonschema.exceptions import ValidationError
@@ -21,7 +18,6 @@ from mkmapdiary.util.log import StepFilter, current_task, setup_logging
 from . import util
 from .cache import Cache
 from .generate_demo import generate_demo_data as generate_demo
-from .lib.config import write_config
 from .taskList import TaskList
 
 logger = logging.getLogger(__name__)
@@ -39,8 +35,6 @@ def main(
     quiet,
     no_cache,
     generate_demo_data,
-    config,
-    user,
 ):
     setup_logging(build_dir)
 
@@ -65,24 +59,6 @@ def main(
             console_log.setLevel(logging.NOTSET)
 
     current_task.set("main")
-
-    if user and not config:
-        raise click.BadParameter("--user can only be used with --config.")
-    if not user and source_dir is None:
-        raise click.BadParameter("Source directory is required.")
-    if user and source_dir is not None:
-        raise click.BadParameter("Source directory cannot be used with --user.")
-
-    if config:
-        if user:
-            source_dir = pathlib.Path(
-                platformdirs.user_data_dir("mkmapdiary", "bytehexe")
-            )
-            source_dir.mkdir(parents=True, exist_ok=True)
-        if not source_dir:
-            raise click.BadParameter("Could not determine configuration directory.")
-        write_config(source_dir, params)
-        return
 
     if not source_dir:
         raise click.BadParameter("Source directory is required.")
@@ -248,7 +224,11 @@ def main(
     logger.info("Generating tasks ...", extra={"icon": "📝", "is_step": True})
 
     if no_cache:
-        cache = {}
+        # Create a temporary cache that won't persist
+        import tempfile
+
+        with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as temp_cache:
+            cache = Cache(pathlib.Path(temp_cache.name))
     else:
         cache = Cache(dirs.cache_db_path)
 

@@ -1,126 +1,18 @@
-import os
-import pathlib
-import tempfile
-
 import click
 
-from .main import main
+from .commands.build import build
+from .commands.config import config
 
 
-def validate_param(ctx, param, value):
-    for val in value:
-        if "=" not in val:
-            raise click.BadParameter("Parameters must be in the format key=value")
-    return value
+@click.group()
+def cli():
+    """mkmapdiary - Create map diaries from GPS data and notes."""
 
 
-@click.command()
-@click.option(
-    "-x",
-    "--params",
-    multiple=True,
-    callback=validate_param,
-    type=str,
-    help="Add additional configuration parameter. Format: key=value. Nested keys can be specified using dot notation, e.g., 'features.transcription=False'",
-)
-@click.option(
-    "-b",
-    "--build-dir",
-    type=click.Path(path_type=pathlib.Path),
-    help="Path to the build directory (implies -B; defaults to a temporary directory)",
-)
-@click.option(
-    "-B",
-    "--persistent-build",
-    is_flag=True,
-    help="Uses a persistent build directory",
-)
-@click.option(
-    "-a",
-    "--always-execute",
-    is_flag=True,
-    help="Always execute tasks, even if up-to-date. Only relevant with persistent build directory.",
-)
-@click.option(
-    "-n",
-    "--num-processes",
-    default=os.cpu_count(),
-    type=int,
-    help="Number of parallel processes to use",
-)
-@click.option(
-    "-v",
-    "--verbose",
-    count=True,
-    help="Increase verbosity level. Can be used multiple times.",
-)
-@click.option(
-    "-q",
-    "--quiet",
-    count=True,
-    help="Decrease verbosity level. Can be used multiple times.",
-)
-@click.option(
-    "--no-cache",
-    is_flag=True,
-    help="Disable cache in the home directory (not recommended)",
-)
-@click.option(
-    "-T",
-    "--generate-demo-data",
-    is_flag=True,
-    help="Do not compile. Generate demo data in the source directory; for testing purposes only; directory must be empty",
-)
-@click.option(
-    "--config",
-    is_flag=True,
-    help="Do not compile. Apply configuration from the --params options and write them to config.yaml in the source directory. Use with --user to write to the user config file instead.",
-)
-@click.option(
-    "--user",
-    is_flag=True,
-    help="Write configuration to the user config file instead of the project config file. Only relevant with --config.",
-)
-@click.argument(
-    "source_dir",
-    type=click.Path(path_type=pathlib.Path),
-    required=False,
-)
-@click.argument(
-    "dist_dir",
-    type=click.Path(path_type=pathlib.Path),
-    required=False,
-)
-def start(
-    source_dir,
-    dist_dir,
-    build_dir,
-    persistent_build,
-    **kwargs,
-):
-    # Do not add tasks here, only adjust directories and call main()
-    # Main reason: Logging setup needs to happen before any tasks are run
-
-    if dist_dir is None and source_dir is not None:
-        dist_dir = source_dir.with_name(source_dir.name + "_dist")
-
-    if persistent_build and build_dir is None and source_dir is not None:
-        build_dir = source_dir.with_name(source_dir.name + "_build")
-
-    main_exec = lambda: main(
-        dist_dir=dist_dir,
-        build_dir=build_dir,
-        source_dir=source_dir,
-        **kwargs,
-    )
-
-    if build_dir is None:
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            build_dir = pathlib.Path(tmpdirname)
-            main_exec()
-    else:
-        main_exec()
+# Add subcommands
+cli.add_command(build)
+cli.add_command(config)
 
 
 if __name__ == "__main__":
-    start()
+    cli()
