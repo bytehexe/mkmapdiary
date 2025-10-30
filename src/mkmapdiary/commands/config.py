@@ -1,11 +1,9 @@
 import pathlib
-import tempfile
 
 import click
 import platformdirs
 
 from ..lib.config import write_config
-from ..util.log import setup_logging
 
 
 def validate_param(ctx, param, value):
@@ -36,25 +34,19 @@ def validate_param(ctx, param, value):
 )
 def config(params, user, source_dir):
     """Apply configuration from the --params options and write them to config.yaml."""
-    # Setup logging first - use temporary directory for log file
-    with tempfile.TemporaryDirectory() as tmpdir:
-        setup_logging(pathlib.Path(tmpdir))
+    # Logging is now set up at the group level
 
-        if user and source_dir is not None:
-            raise click.BadParameter("Source directory cannot be used with --user.")
+    if user and source_dir is not None:
+        raise click.BadParameter("Source directory cannot be used with --user.")
 
-        if not user and source_dir is None:
-            raise click.BadParameter(
-                "Source directory is required when not using --user."
-            )
+    if not user and source_dir is None:
+        raise click.BadParameter("Source directory is required when not using --user.")
 
-        if user:
-            source_dir = pathlib.Path(
-                platformdirs.user_data_dir("mkmapdiary", "bytehexe")
-            )
-            source_dir.mkdir(parents=True, exist_ok=True)
+    if user:
+        source_dir = pathlib.Path(platformdirs.user_data_dir("mkmapdiary", "bytehexe"))
+        source_dir.mkdir(parents=True, exist_ok=True)
 
-        if not source_dir:
-            raise click.BadParameter("Could not determine configuration directory.")
+    if not source_dir:
+        raise click.BadParameter("Could not determine configuration directory.")
 
-        write_config(source_dir, params)
+    write_config(source_dir, params)

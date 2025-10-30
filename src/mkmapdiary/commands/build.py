@@ -49,18 +49,6 @@ def validate_param(ctx, param, value):
     help="Number of parallel processes to use",
 )
 @click.option(
-    "-v",
-    "--verbose",
-    count=True,
-    help="Increase verbosity level. Can be used multiple times.",
-)
-@click.option(
-    "-q",
-    "--quiet",
-    count=True,
-    help="Decrease verbosity level. Can be used multiple times.",
-)
-@click.option(
     "--no-cache",
     is_flag=True,
     help="Disable cache in the home directory (not recommended)",
@@ -81,7 +69,9 @@ def validate_param(ctx, param, value):
     type=click.Path(path_type=pathlib.Path),
     required=False,
 )
+@click.pass_context
 def build(
+    ctx,
     source_dir,
     dist_dir,
     build_dir,
@@ -89,12 +79,14 @@ def build(
     params,
     always_execute,
     num_processes,
-    verbose,
-    quiet,
     no_cache,
     generate_demo_data,
 ):
     """Build the map diary from source directory to distribution directory."""
+    # Get verbosity settings from CLI group context
+    verbose = ctx.obj["verbose"]
+    quiet = ctx.obj["quiet"]
+
     # Do not add tasks here, only adjust directories and call main()
     # Main reason: Logging setup needs to happen before any tasks are run
 
