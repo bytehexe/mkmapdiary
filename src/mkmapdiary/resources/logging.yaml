@@ -14,15 +14,9 @@ handlers:
     level: INFO
     formatter: terminal
     stream: ext://sys.stdout
-  file:
-    class: logging.FileHandler
-    level: DEBUG
-    formatter: log
-    filename: None  # Set this to your desired log file path
-    mode: "w"
 loggers:
   mkmapdiary:
     level: DEBUG
 root:
   level: INFO
-  handlers: [console, file]
+  handlers: [console]

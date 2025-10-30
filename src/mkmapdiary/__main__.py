@@ -1,6 +1,4 @@
 import logging
-import pathlib
-import tempfile
 
 import click
 
@@ -25,9 +23,8 @@ from .util.log import StepFilter, setup_logging
 @click.pass_context
 def cli(ctx, verbose, quiet):
     """mkmapdiary - Create map diaries from GPS data and notes."""
-    # Setup logging first - use temporary directory for log file initially
-    with tempfile.TemporaryDirectory() as tmpdir:
-        setup_logging(pathlib.Path(tmpdir))
+    # Setup console logging only (no log file at CLI level)
+    setup_logging()
 
     # Handle verbosity conflicts
     if verbose > 0 and quiet > 0:

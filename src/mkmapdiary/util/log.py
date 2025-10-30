@@ -50,16 +50,39 @@ logging.setLogRecordFactory(record_factory)
 current_task = contextvars.ContextVar("current_task", default="unknown")
 
 
-def setup_logging(build_dir: pathlib.Path):
+def setup_logging():
+    """Setup console logging configuration."""
     with open(pathlib.Path(__file__).parent.parent / "resources" / "logging.yaml") as f:
         logging_config = yaml.safe_load(f)
 
-    build_dir.mkdir(parents=True, exist_ok=True)
-    logging_config["handlers"]["file"]["filename"] = str(build_dir / "mkmapdiary.log")
     logging.config.dictConfig(logging_config)
     console_handler = logging.getHandlerByName("console")
     if console_handler:
         console_handler.addFilter(IconFilter())
+
+
+def add_file_logging(build_dir: pathlib.Path):
+    """Add file logging to existing logging setup.
+
+    Args:
+        build_dir: Directory where the log file should be created.
+    """
+    build_dir.mkdir(parents=True, exist_ok=True)
+    log_file = build_dir / "mkmapdiary.log"
+
+    # Create file handler
+    file_handler = logging.FileHandler(str(log_file), mode="w")
+    file_handler.setLevel(logging.DEBUG)
+
+    # Set formatter
+    formatter = logging.Formatter(
+        "%(asctime)s: %(name)s, %(task)s [%(levelname)s] %(message)s"
+    )
+    file_handler.setFormatter(formatter)
+
+    # Add to root logger
+    root_logger = logging.getLogger()
+    root_logger.addHandler(file_handler)
 
 
 class ThisMayTakeAWhile:
