@@ -12,7 +12,6 @@ class ExifReader(ABC):
         pass
 
     def read_exif(self, source: PosixPath) -> Dict[str, Any]:
-
         meta = {}
 
         # Try to extract time from exif data

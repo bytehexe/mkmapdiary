@@ -11,3 +11,19 @@ from .qstarzTask import QstarzTask
 from .siteTask import SiteTask
 from .tagsTask import TagsTask
 from .textTask import TextTask
+
+__all__ = [
+    "AudioTask",
+    "Cr2Task",
+    "DayPageTask",
+    "GalleryTask",
+    "GeojsonTask",
+    "GPXTask",
+    "ImageTask",
+    "JournalTask",
+    "MarkdownTask",
+    "QstarzTask",
+    "SiteTask",
+    "TagsTask",
+    "TextTask",
+]

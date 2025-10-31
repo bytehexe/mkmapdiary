@@ -8,7 +8,6 @@ class HttpRequest(BaseTask):
         super().__init__()
 
     def httpRequest(self, url, data, headers, json=True):
-
         req = requests.Request("GET", url, params=data, headers=headers)
         prepared = req.prepare()
 
@@ -23,7 +22,6 @@ class HttpRequest(BaseTask):
         )
 
     def __send_request(self, prepared, json):
-
         with requests.Session() as session:
             response = session.send(prepared, timeout=5)
             response.raise_for_status()

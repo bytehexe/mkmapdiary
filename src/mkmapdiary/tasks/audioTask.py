@@ -75,7 +75,6 @@ class AudioTask(BaseTask):
         """Transcribe audio to text."""
 
         def _transcribe(src, dst):
-
             audio_title = self.config["strings"]["audio_title"]
 
             if not self.config["features"]["transcription"]["enabled"]:

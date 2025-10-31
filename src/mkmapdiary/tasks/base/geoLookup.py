@@ -7,7 +7,6 @@ lock = threading.Lock()
 
 
 class GeoLookup(HttpRequest):
-
     def geoSearch(self, location):
         with lock:
             time.sleep(1)  # respect rate limit

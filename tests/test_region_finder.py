@@ -44,7 +44,6 @@ def test_find_best_region_internal():
 
 @pytest.mark.local
 def test_find_regions_with_cache():
-
     geofabrik_data = load_geofabrik_data()
 
     geo_data_list = [

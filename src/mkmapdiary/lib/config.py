@@ -6,7 +6,6 @@ from typing import Any, Dict
 import humanfriendly
 import jsonschema
 import yaml
-from jsonschema import Draft202012Validator, validators
 from jsonschema.exceptions import ValidationError
 
 from mkmapdiary import util

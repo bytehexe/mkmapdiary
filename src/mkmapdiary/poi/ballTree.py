@@ -4,7 +4,6 @@ from mkmapdiary.poi.common import Poi
 
 
 class BallTree:
-
     def __init__(self, sklearn_ball_tree, pois, filter_config):
         self.__sklearn_ball_tree = sklearn_ball_tree
         self.__pois = pois
@@ -33,12 +32,12 @@ class BallTree:
         poi_data = self.__pois[index]
         assert len(poi_data) == 4, "POI data structure has changed."
         assert len(poi_data[2]) == 2, "POI filter reference structure has changed."
-        assert (
-            type(poi_data[2][0]) == int
-        ), f"POI filter item ID should be an integer, but got {type(poi_data[2][0])}."
-        assert (
-            type(poi_data[2][1]) == int
-        ), f"POI filter expression ID should be an integer, but got {type(poi_data[2][1])}."
+        assert type(poi_data[2][0]) is int, (
+            f"POI filter item ID should be an integer, but got {type(poi_data[2][0])}."
+        )
+        assert type(poi_data[2][1]) is int, (
+            f"POI filter expression ID should be an integer, but got {type(poi_data[2][1])}."
+        )
         filter_item = self.__filter_config[poi_data[2][0]]
         description = filter_item.get("description", "")
         symbol = filter_item.get("symbol", "unknown")

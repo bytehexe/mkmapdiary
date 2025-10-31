@@ -82,7 +82,7 @@ def create_demo_image_files(demo_data_dir: pathlib.Path):
 
 def create_demo_map_files(demo_data_dir: pathlib.Path):
     timestamp = random_datetime()
-    file_path = demo_data_dir / f"map.gpx"
+    file_path = demo_data_dir / "map.gpx"
 
     location = random_coords()
 
@@ -96,6 +96,7 @@ def create_demo_map_files(demo_data_dir: pathlib.Path):
             )
         )
 
+    nl = "\n"
     gpx_content = f"""<?xml version="1.0" encoding="UTF-8"?>
 <gpx version="1.1" creator="mkmapdiary - https://github.com/jannakl/mkmapdiary">
 <wpt lat="{location[0]}" lon="{location[1]}">
@@ -105,7 +106,7 @@ def create_demo_map_files(demo_data_dir: pathlib.Path):
 <trk>
 <name>Random Track</name>
 <trkseg>
-    {'\n'.join(trackpoints)}
+    {nl.join(trackpoints)}
 </trkseg>
 </trk>
 </gpx>

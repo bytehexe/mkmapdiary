@@ -18,7 +18,7 @@ from ..cache import Cache
 from ..lib.config import load_config_file, load_config_param
 from ..lib.dirs import Dirs
 from ..taskList import TaskList
-from ..util.log import StepFilter, add_file_logging, current_task
+from ..util.log import add_file_logging, current_task
 
 logger = logging.getLogger(__name__)
 runner_logger = logging.getLogger(__name__ + ".runner")
@@ -134,7 +134,7 @@ def main(
     features = config_data["features"]
     if features["transcription"]["enabled"] is True:
         try:
-            import whisper
+            import whisper  # noqa: F401, I001
         except ImportError:
             logger.error(
                 "Error: Transcription feature requires the 'whisper' package to be installed."
@@ -343,17 +343,18 @@ def build(
     if persistent_build and build_dir is None:
         build_dir = source_dir.with_name(source_dir.name + "_build")
 
-    main_exec = lambda: main(
-        dist_dir=dist_dir,
-        build_dir=build_dir,
-        source_dir=source_dir,
-        params=params,
-        always_execute=always_execute,
-        num_processes=num_processes,
-        verbose=verbose,
-        quiet=quiet,
-        no_cache=no_cache,
-    )
+    def main_exec():
+        main(
+            dist_dir=dist_dir,
+            build_dir=build_dir,
+            source_dir=source_dir,
+            params=params,
+            always_execute=always_execute,
+            num_processes=num_processes,
+            verbose=verbose,
+            quiet=quiet,
+            no_cache=no_cache,
+        )
 
     if build_dir is None:
         with tempfile.TemporaryDirectory() as tmpdirname:

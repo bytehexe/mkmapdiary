@@ -29,7 +29,6 @@ class GalleryTask(BaseTask):
 
                 geo_data_item = self.db.get_geo_by_name(asset)
                 if geo_data_item:
-
                     geo_item = dict(
                         photo="assets/" + asset.split("/")[-1],
                         thumbnail="assets/" + asset.split("/")[-1],

@@ -30,7 +30,6 @@ def debug(func):
 
 
 class BaseTask(ABC):
-
     def __init__(self):
         super().__init__()
         self.__unique_paths = {}

@@ -3,16 +3,12 @@ import pathlib
 from threading import Lock
 from typing import Optional
 
-import msgpack
-import numpy as np
 import requests
 import shapely
 import yaml
-from sklearn.metrics.pairwise import haversine_distances
-from sklearn.neighbors import BallTree
 
 from mkmapdiary.poi.ballTreeBuilder import BallTreeBuilder
-from mkmapdiary.poi.indexBuilder import IndexBuilder, Region
+from mkmapdiary.poi.indexBuilder import IndexBuilder
 from mkmapdiary.poi.indexFileReader import IndexFileReader
 from mkmapdiary.poi.regionFinder import RegionFinder
 from mkmapdiary.util.osm import calculate_rank, clip_rank
@@ -35,7 +31,6 @@ class Index:
             self.__init(geo_data, cache_dir, keep_pbf, rank_offset)
 
     def __init(self, geo_data, cache_dir: pathlib.Path, keep_pbf: bool, rank_offset):
-
         with open(
             pathlib.Path(__file__).parent.parent
             / "resources"

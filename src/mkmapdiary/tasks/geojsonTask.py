@@ -7,12 +7,9 @@ from typing import Any, Dict, Iterator, List
 import dateutil
 import gpxpy
 import gpxpy.gpx
-import requests
 import yaml
 from jsonschema import validate
-from PIL import Image
 
-from .base.baseTask import BaseTask
 from .base.geoLookup import GeoLookup
 
 coder_lock = Lock()
@@ -70,7 +67,7 @@ class GeojsonTask(GeoLookup):
             gpx.waypoints.append(wpt)
             return wpt
         elif tag == "trkpt":
-            assert properties.get("type") == None
+            assert properties.get("type") is None
             # Convert from GeoJSON coordinates [lon, lat] to GPX format (lat, lon)
             pt = gpxpy.gpx.GPXTrackPoint(
                 latitude=coordinates[1],  # lat from second element

@@ -1,5 +1,3 @@
-import pytest
-
 from docs.util import tags_sort
 
 

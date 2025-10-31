@@ -4,7 +4,6 @@ import sys
 import tempfile
 from typing import NamedTuple
 
-import msgpack
 import osmium
 import osmium.filter
 import requests
@@ -72,7 +71,7 @@ class IndexBuilder:
         return index
 
     def __downloadPbf(self, region: Region, pbf_file_name: pathlib.Path):
-        logger.info(f"Downloading PBF ...")
+        logger.info("Downloading PBF ...")
         with requests.get(region.url, stream=True) as result:
             result.raise_for_status()
             with open(pbf_file_name, "wb") as pbf_file:
@@ -80,7 +79,6 @@ class IndexBuilder:
                     pbf_file.write(chunk)
 
     def __buildPoiIndex(self) -> dict:
-
         logger.info("Building index structure ...")
 
         index: dict[int, dict[str, list]] = {}
@@ -143,7 +141,6 @@ class IndexBuilder:
                 sys.exit(1)  # Intentional exit for debugging
 
             if type_str == "n":
-
                 lat = obj.lat  # type: ignore
                 lon = obj.lon  # type: ignore
                 rank = calculate_rank(place=obj.tags.get("place"))
@@ -169,9 +166,9 @@ class IndexBuilder:
                 continue
 
             assert filter_item_id is not None, "Filter item ID should not be None"
-            assert (
-                filter_expression_id is not None
-            ), "Filter expression ID should not be None"
+            assert filter_expression_id is not None, (
+                "Filter expression ID should not be None"
+            )
 
             index[rank]["coords"].append((lat, lon))
             index[rank]["data"].append(

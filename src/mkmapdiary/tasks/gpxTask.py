@@ -3,14 +3,13 @@ import logging
 from datetime import datetime, timedelta
 from pathlib import PosixPath
 from typing import Any, Dict, Iterator, List
-from zoneinfo import ZoneInfo
 
 import gpxpy
 import gpxpy.gpx
 from doit import create_after
 from tabulate import tabulate
+from zoneinfo import ZoneInfo
 
-from mkmapdiary.geoCluster import GeoCluster
 from mkmapdiary.gpxCreator import GpxCreator
 from mkmapdiary.lib.asset import AssetMeta
 
@@ -87,7 +86,6 @@ class GPXTask(BaseTask):
 
     @create_after("pre_gpx", target_regex=r".*\.gpx")
     def task_gpx2gpx(self) -> Iterator[Dict[str, Any]]:
-
         # Collect all dates in all source files
         dates = set()
         for source in self.__sources:

@@ -4,7 +4,6 @@ from copy import deepcopy
 from typing import Any, List, Optional, Tuple
 
 import shapely
-import yaml
 
 from mkmapdiary.poi.indexBuilder import Region
 
@@ -36,14 +35,12 @@ class RegionFinder:
         return regions
 
     def _findBestRegion(self, geo_data, used_regions) -> Tuple[Optional[Region], Any]:
-
         best = None
         remaining_geo_data = geo_data
         return_geo_data = geo_data
         best_size = float("inf")
 
         for region in self.geofabrik_data["features"]:
-
             if any(r.id == region["properties"]["id"] for r in used_regions):
                 continue  # Skip already used regions
 

@@ -8,10 +8,15 @@ repos:
         language: system
         entry: yamllint --no-warnings
         types: [yaml]
-      - id: black
-        name: Python files must be formatted with black
+      - id: hatch run ruff:ruff-check
+        name: Python files must pass ruff checks
         language: system
-        entry: black --check
+        entry: hatch run ruff:ruff check
+        types: [python]
+      - id: ruff-format
+        name: Python files must be formatted with ruff
+        language: system
+        entry: hatch run ruff:ruff format --check
         types: [python]
       - id: mypy
         name: Python files must be type-checked with mypy
@@ -36,13 +41,3 @@ repos:
         language: system
         entry: gitlint --msg-filename
         stages: [commit-msg]
-      - id: isort
-        name: Python imports must be sorted with isort
-        language: system
-        entry: python -m isort --check-only
-        types: [python]
-      - id: autoflake
-        name: Python files must be free of unused imports and variables
-        language: system
-        entry: python -m autoflake -i -c
-        types: [python]

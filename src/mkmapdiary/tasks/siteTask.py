@@ -6,7 +6,6 @@ from typing import Any, Dict, Iterator
 import sass
 import yaml
 
-from .base.baseTask import BaseTask
 from .base.httpRequest import HttpRequest
 
 logger = logging.getLogger(__name__)
@@ -56,7 +55,6 @@ class SiteTask(HttpRequest):
         """Generate mkdocs config."""
 
         def _generate_mkdocs_config():
-
             script_dir = pathlib.Path(__file__).parent
             with open(script_dir.parent / "resources" / "site_config.yaml") as f:
                 config = yaml.safe_load(f)

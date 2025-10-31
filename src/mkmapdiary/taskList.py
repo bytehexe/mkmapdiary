@@ -2,13 +2,12 @@ import logging
 from datetime import timedelta
 from pathlib import Path
 from typing import Any, Dict, NamedTuple
-from zoneinfo import ZoneInfo
 
 import yaml
 from identify import identify
+from zoneinfo import ZoneInfo
 
 from mkmapdiary.cache import Cache
-from mkmapdiary.db import Db
 from mkmapdiary.lib.dirs import Dirs
 
 from .db import Db
@@ -123,7 +122,7 @@ class TaskList(*tasks):  # type: ignore
             return
 
         tags = identify.tags_from_path(str(source))
-        logger.info(f"Processing {source} [{" ".join(tags)}]", extra={"icon": "🔍"})
+        logger.info(f"Processing {source} [{' '.join(tags)}]", extra={"icon": "🔍"})
 
         if not tags:
             logger.warning(f"Warning: No tags for {source}")

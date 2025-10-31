@@ -1,5 +1,3 @@
-import pytest
-
 from mkmapdiary.util.locale import get_language
 from mkmapdiary.util.osm import calculate_rank, clip_rank
 

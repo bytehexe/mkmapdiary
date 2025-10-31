@@ -18,9 +18,9 @@ class BallTreeBuilder:
         for rank in range(min_rank, max_rank + 1):
             self.__coords.extend(index_data.get(rank, {}).get("coords", []))
             self.__pois.extend(index_data.get(rank, {}).get("data", []))
-            assert len(self.__coords) == len(
-                self.__pois
-            ), "Mismatch between coordinates and POI data lengths"
+            assert len(self.__coords) == len(self.__pois), (
+                "Mismatch between coordinates and POI data lengths"
+            )
 
     def __build(self) -> SkBallTree:
         logger.info("Generating ball tree ...")
