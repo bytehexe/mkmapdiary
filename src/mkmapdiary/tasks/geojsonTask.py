@@ -43,7 +43,7 @@ class GeojsonTask(GeoLookup):
         return self.make_unique_filename(source, filename)
 
     @classmethod
-    def __parseDate(cls, dt):
+    def _parseDate(cls, dt):
         if dt is None:
             return None
         else:
@@ -61,7 +61,7 @@ class GeojsonTask(GeoLookup):
                     if len(coordinates) > 2 and coordinates[2] is not None
                     else None
                 ),
-                time=cls.__parseDate(properties.get("timestamp")),
+                time=cls._parseDate(properties.get("timestamp")),
                 name=properties.get("name"),
                 type=properties.get("type"),
                 symbol=properties.get("symbol"),
@@ -80,7 +80,7 @@ class GeojsonTask(GeoLookup):
                     if len(coordinates) > 2 and coordinates[2] is not None
                     else None
                 ),
-                time=cls.__parseDate(properties.get("timestamp")),
+                time=cls._parseDate(properties.get("timestamp")),
                 name=properties.get("name"),
                 symbol=properties.get("symbol"),
                 position_dilution=properties.get("pdop"),

@@ -21,12 +21,12 @@ class QstarzTask(BaseTask):
 
     def __handle(self, source):
         self.__sources.append(source)
-        intermediate_file = self.__generate_destination_filename(source)
+        intermediate_file = self._generate_destination_filename(source)
 
         assets = list(self.handle_gpx(intermediate_file))
         return assets
 
-    def __generate_destination_filename(self, source):
+    def _generate_destination_filename(self, source):
         filename = (self.dirs.files_dir / source.stem).with_suffix(
             f"{source.suffix[0:2]}.gpx"
         )
@@ -34,7 +34,7 @@ class QstarzTask(BaseTask):
 
     def task_qstarz2gpx(self) -> Iterator[Dict[str, Any]]:
         for source in self.__sources:
-            dst = self.__generate_destination_filename(source)
+            dst = self._generate_destination_filename(source)
             yield {
                 "name": f"{source}",
                 "file_dep": [source],

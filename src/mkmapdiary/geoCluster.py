@@ -102,7 +102,7 @@ class GeoCluster:
         return max(min(level, 18), 3)
 
     @staticmethod
-    def __greatcircle_angle(lat1, lon1, lat2, lon2):
+    def _greatcircle_angle(lat1, lon1, lat2, lon2):
         """Angular distance (radians) between two points on a sphere."""
         return np.arccos(
             np.clip(
@@ -114,7 +114,7 @@ class GeoCluster:
         )
 
     @staticmethod
-    def __greatcircle_midpoint(lat1, lon1, lat2, lon2):
+    def _greatcircle_midpoint(lat1, lon1, lat2, lon2):
         """Midpoint in radians between two points on a sphere. Returns (lat, lon) for internal calculations."""
         dlon = lon2 - lon1
         bx = np.cos(lat2) * np.cos(dlon)
@@ -143,8 +143,8 @@ class GeoCluster:
             # Convert from (lon, lat) interface to internal calculation format
             lon1, lat1 = np.radians(pts[0])
             lon2, lat2 = np.radians(pts[1])
-            ang = self.__greatcircle_angle(lat1, lon1, lat2, lon2)
-            mid_lat, mid_lon = self.__greatcircle_midpoint(lat1, lon1, lat2, lon2)
+            ang = self._greatcircle_angle(lat1, lon1, lat2, lon2)
+            mid_lat, mid_lon = self._greatcircle_midpoint(lat1, lon1, lat2, lon2)
             separation_m = ang * self.EARTH_RADIUS_M
             # Return midpoint as (lon, lat) to match interface format
             return (
@@ -179,7 +179,7 @@ class GeoCluster:
         separation_m = ang * self.EARTH_RADIUS_M
 
         # Step 4: Compute midpoint
-        mid_lat, mid_lon = self.__greatcircle_midpoint(lat[i], lon[i], lat[j], lon[j])
+        mid_lat, mid_lon = self._greatcircle_midpoint(lat[i], lon[i], lat[j], lon[j])
         mid_lat_deg = np.degrees(mid_lat)
         mid_lon_deg = (np.degrees(mid_lon) + 540) % 360 - 180  # normalize [-180, 180]
 
