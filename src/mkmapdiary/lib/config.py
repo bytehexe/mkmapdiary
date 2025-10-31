@@ -56,7 +56,7 @@ ConfigLoader.add_constructor("!duration", duration_constructor)
 
 
 def load_config_file(path: pathlib.Path) -> dict:
-    with open(path, "r") as file:
+    with open(path) as file:
         config = yaml.load(file, Loader=ConfigLoader)
 
     return load_config_data(config)
@@ -64,7 +64,7 @@ def load_config_file(path: pathlib.Path) -> dict:
 
 def load_config_data(config: dict) -> dict:
     with open(
-        pathlib.Path(__file__).parent.parent / "resources" / "config_schema.yaml", "r"
+        pathlib.Path(__file__).parent.parent / "resources" / "config_schema.yaml",
     ) as defaults_file:
         schema = yaml.load(defaults_file, Loader=ConfigLoader)
 
@@ -115,11 +115,13 @@ def write_config(source_dir: pathlib.Path, params: list) -> None:
         logger.info(f"Wrote configuration to {config_path}")
     else:
         logger.info(
-            f"No parameters provided; configuration file {config_path} not modified."
+            f"No parameters provided; configuration file {config_path} not modified.",
         )
 
     if config_path.is_file():
-        with open(config_path, "r") as file:
+        with open(config_path) as file:
             logger.debug(
-                "Configuration file contents:\n%s", file.read(), extra={"icon": "📄"}
+                "Configuration file contents:\n%s",
+                file.read(),
+                extra={"icon": "📄"},
             )

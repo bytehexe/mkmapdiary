@@ -34,7 +34,7 @@ class Index:
         with open(
             pathlib.Path(__file__).parent.parent
             / "resources"
-            / "poi_filter_config.yaml"
+            / "poi_filter_config.yaml",
         ) as config_file:
             self.filter_config = yaml.safe_load(config_file)
 
@@ -51,7 +51,7 @@ class Index:
 
             if not poi_index_path.exists():
                 logger.info(
-                    f"POI index for region {region.name} does not exist. Building..."
+                    f"POI index for region {region.name} does not exist. Building...",
                 )
                 IndexBuilder(region, cache_dir, keep_pbf=keep_pbf).build_index()
                 continue
@@ -59,13 +59,13 @@ class Index:
             region_index = IndexFileReader(poi_index_path)
             if not region_index.is_up_to_date(31536000):
                 logger.info(
-                    f"POI index for region {region.name} is outdated. Rebuilding..."
+                    f"POI index for region {region.name} is outdated. Rebuilding...",
                 )
                 IndexBuilder(region, cache_dir, keep_pbf=keep_pbf).build_index()
                 continue
             if not region_index.is_valid(self.filter_config):
                 logger.info(
-                    f"POI index for region {region.name} is invalid. Rebuilding..."
+                    f"POI index for region {region.name} is invalid. Rebuilding...",
                 )
                 IndexBuilder(region, cache_dir, keep_pbf=keep_pbf).build_index()
                 continue
@@ -81,13 +81,13 @@ class Index:
 
         logger.debug("Calculating center...")
         self.center = local_projection.to_wgs(
-            shapely.centroid(local_projection.to_local(geo_data))
+            shapely.centroid(local_projection.to_local(geo_data)),
         )
 
         logger.debug("Calculating bounding radius...")
         if local_geo_data.area == 0:
             logger.debug(
-                "Area is zero, buffering geometry by 50 meters to avoid issues..."
+                "Area is zero, buffering geometry by 50 meters to avoid issues...",
             )
             try:
                 # Compute convex hull to simplify geometry before buffering

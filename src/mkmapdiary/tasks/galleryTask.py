@@ -41,7 +41,7 @@ class GalleryTask(BaseTask):
             gpx = self.db.get_assets_by_date(date, "gpx")
             assert len(gpx) <= 1
             if len(gpx) == 1:
-                with open(gpx[0][0], "r") as f:
+                with open(gpx[0][0]) as f:
                     gpx_data = f.read()
             else:
                 gpx_data = None
@@ -56,7 +56,7 @@ class GalleryTask(BaseTask):
                         geo_items=geo_items,
                         gpx_data=gpx_data,
                         gpx_file=gpx[0][0].split("/")[-1] if gpx else None,
-                    )
+                    ),
                 )
 
         for date in self.db.get_all_dates():

@@ -35,7 +35,7 @@ class GeojsonTask(GeoLookup):
 
     def __generate_destination_filename(self, source):
         filename = (self.dirs.files_dir / source.stem).with_suffix(
-            f"{source.suffix[0:2]}.gpx"
+            f"{source.suffix[0:2]}.gpx",
         )
         return self.make_unique_filename(source, filename)
 
@@ -96,7 +96,7 @@ class GeojsonTask(GeoLookup):
                 properties.get("types", []),
                 properties.get("symbols", []),
                 fillvalue=None,
-            )
+            ),
         )
         for coord, name, ts, ty, sym in items:
             pt = cls.__addPoint(
@@ -165,7 +165,7 @@ class GeojsonTask(GeoLookup):
                         feature["geometry"] = {
                             "type": "Point",
                             "coordinates": self.__lookup(
-                                feature["properties"]["lookup"]
+                                feature["properties"]["lookup"],
                             ),
                         }
                 if feature["geometry"]["type"] == "Point":

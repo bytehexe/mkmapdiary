@@ -13,7 +13,7 @@ def load_geofabrik_data():
     pathlib.Path(".test-cache").mkdir(parents=True, exist_ok=True)
     index_path = pathlib.Path(".test-cache") / "geofabrik_index.json"
     if index_path.exists():
-        with open(index_path, "r") as f:
+        with open(index_path) as f:
             geofabrik_data = json.load(f)
     else:
         response = requests.get("https://download.geofabrik.de/index-v1.json")

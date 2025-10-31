@@ -221,12 +221,15 @@ select = [
     "W",     # pycodestyle warnings  
     "F",     # pyflakes
     "I",     # isort
-    #"UP",    # pyupgrade
-    #"B",     # flake8-bugbear
-    #"SIM",   # flake8-simplify
-    #"C4",    # flake8-comprehensions
+    "UP",    # pyupgrade
+    "B",     # flake8-bugbear
+    "A",     # flake8-builtins	
+    "COM",   # flake8-commas
 ]
-ignore = ["E501"]  # Ignore line too long
+ignore = [
+  "E501",  # Ignore line too long
+  "COM812", # trailing commas
+]
 
 # Allow autofix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]

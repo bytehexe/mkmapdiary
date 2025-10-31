@@ -75,7 +75,7 @@ class TaskList(*tasks):  # type: ignore
             Calibration(
                 timezone=config["site"]["timezone"],
                 offset=0,
-            )
+            ),
         ]
 
         # Store assets by date and then type
@@ -151,7 +151,7 @@ class TaskList(*tasks):  # type: ignore
             return
 
         logger.warning(
-            f"No handler for {source} with tags {tags} and extension '{ext}'"
+            f"No handler for {source} with tags {tags} and extension '{ext}'",
         )
 
     def handle_directory(self, source: Path):

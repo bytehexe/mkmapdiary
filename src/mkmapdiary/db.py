@@ -26,13 +26,14 @@ class Db:
                 longitude REAL,
                 approx INTEGER DEFAULT NULL
             )
-        """
+        """,
         )
         self.conn.commit()
 
-    def add_asset(self, path: Union[str, PosixPath], type: str, meta: AssetMeta):
+    def add_asset(self, path: Union[str, PosixPath], asset_type: str, meta: AssetMeta):
         assert meta.timestamp is None or isinstance(
-            meta.timestamp, datetime.datetime
+            meta.timestamp,
+            datetime.datetime,
         ), "Meta 'timestamp' must be a datetime object or None"
 
         with self.lock:
@@ -45,7 +46,7 @@ class Db:
                 """,
                 (
                     str(path),
-                    type,
+                    asset_type,
                     meta.timestamp,
                     meta.latitude,
                     meta.longitude,
@@ -69,7 +70,7 @@ class Db:
                 FROM assets
                 GROUP BY DATE(datetime)
                 ORDER BY DATE(datetime) ASC
-            """
+            """,
             )
             return dict(cursor.fetchall())
 
@@ -83,7 +84,7 @@ class Db:
         with self.lock:
             cursor = self.conn.cursor()
             cursor.execute(
-                "SELECT DISTINCT DATE(datetime) as date FROM assets ORDER BY DATE(datetime) ASC"
+                "SELECT DISTINCT DATE(datetime) as date FROM assets ORDER BY DATE(datetime) ASC",
             )
             return list(row[0] for row in cursor.fetchall())
 
@@ -145,7 +146,7 @@ class Db:
         with self.lock:
             cursor = self.conn.cursor()
             cursor.execute(
-                'SELECT id, datetime FROM assets WHERE latitude IS NULL OR longitude IS NULL AND type != "gpx"'
+                'SELECT id, datetime FROM assets WHERE latitude IS NULL OR longitude IS NULL AND type != "gpx"',
             )
             return list(row for row in cursor.fetchall())
 
@@ -153,7 +154,7 @@ class Db:
         with self.lock:
             cursor = self.conn.cursor()
             cursor.execute(
-                'SELECT path FROM assets WHERE latitude IS NULL OR longitude IS NULL AND type != "gpx"'
+                'SELECT path FROM assets WHERE latitude IS NULL OR longitude IS NULL AND type != "gpx"',
             )
             return list(row[0] for row in cursor.fetchall())
 
@@ -175,7 +176,7 @@ class Db:
         with self.lock:
             cursor = self.conn.cursor()
             cursor.execute(
-                'SELECT DISTINCT DATE(datetime) as date FROM assets WHERE latitude IS NOT NULL AND longitude IS NOT NULL AND type IN ("markdown", "audio")'
+                'SELECT DISTINCT DATE(datetime) as date FROM assets WHERE latitude IS NOT NULL AND longitude IS NOT NULL AND type IN ("markdown", "audio")',
             )
             return list(row[0] for row in cursor.fetchall())
 

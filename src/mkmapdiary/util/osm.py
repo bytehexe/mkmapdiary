@@ -10,7 +10,8 @@ def clip_rank(rank: int) -> int:
 
 
 def calculate_rank(
-    place: Optional[str] = None, radius: Optional[float] = None
+    place: Optional[str] = None,
+    radius: Optional[float] = None,
 ) -> Optional[int]:
     # Use nominatim ranking based on radius as a reference
     # see: https://nominatim.org/release-docs/latest/customize/Ranking/

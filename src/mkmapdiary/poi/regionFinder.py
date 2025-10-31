@@ -21,7 +21,8 @@ class RegionFinder:
         while self.geo_data.is_empty is False:
             logger.info("Next iteration to find best matching Geofabrik region...")
             best_region, remaining_geo_data = self._findBestRegion(
-                self.geo_data, regions
+                self.geo_data,
+                regions,
             )
             if best_region is None:
                 break
@@ -51,7 +52,7 @@ class RegionFinder:
                 continue  # No intersection
 
             size = shapely.area(
-                shape
+                shape,
             )  # Note: size is only an approximation, not meaningful due to projections
 
             if best is None or size < best_size:

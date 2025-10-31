@@ -28,7 +28,7 @@ def test_config_validation():
             "geo_correlation": {
                 "time_offset": "123",  # Should be int
             },
-        }
+        },
     }
 
     with pytest.raises(jsonschema.exceptions.ValidationError):

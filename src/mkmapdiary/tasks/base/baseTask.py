@@ -22,7 +22,7 @@ def debug(func):
         print(f"DEBUG: Calling {func.__name__} with args={args}, kwargs={kwargs}")
         result = func(*args, **kwargs)
         print(
-            f"DEBUG: Called {func.__name__} with args={args}, kwargs={kwargs}, returned {result}"
+            f"DEBUG: Called {func.__name__} with args={args}, kwargs={kwargs}, returned {result}",
         )
         return result
 
@@ -88,7 +88,9 @@ class BaseTask(ABC):
         return template.render(**params)
 
     def make_unique_filename(
-        self, source: PosixPath, destination: PosixPath
+        self,
+        source: PosixPath,
+        destination: PosixPath,
     ) -> PosixPath:
         """Generate a unique filename by appending a counter if necessary."""
         candidate = destination
@@ -102,16 +104,16 @@ class BaseTask(ABC):
                 break
 
             candidate = base_path.with_name(f"{base_path.stem}_{counter}").with_suffix(
-                suffix
+                suffix,
             )
             counter += 1
 
         self.__unique_paths[candidate] = source
         return candidate
 
-    def ai(self, key, format) -> str:
+    def ai(self, key, format_args) -> str:
         return self.__ai(
-            self.config["llm_prompts"][key]["prompt"].format(**format),
+            self.config["llm_prompts"][key]["prompt"].format(**format_args),
             options=self.config["llm_prompts"][key]["options"],
         )
 
@@ -122,7 +124,9 @@ class BaseTask(ABC):
 
         with ai_lock:
             response = ollama.chat(
-                model=model, messages=[{"role": "user", "content": prompt}], **params
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
+                **params,
             )
 
         return response["message"]["content"].strip()

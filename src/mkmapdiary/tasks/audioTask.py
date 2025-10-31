@@ -28,7 +28,9 @@ class AudioTask(BaseTask):
 
         yield Asset(self.__generate_destination_filename(source, ".mp3"), "audio", meta)
         yield Asset(
-            self.__generate_destination_filename(source, ".mp3.md"), "transcript", meta
+            self.__generate_destination_filename(source, ".mp3.md"),
+            "transcript",
+            meta,
         )
 
     def __generate_destination_filename(self, source, suffix):
@@ -63,7 +65,7 @@ class AudioTask(BaseTask):
         import whisper
 
         with whisper_lock:
-            with ThisMayTakeAWhile(logger, "Transcribing audio: %s" % src.name):
+            with ThisMayTakeAWhile(logger, f"Transcribing audio: {src.name}"):
                 if not hasattr(self, "_model"):
                     # Loading the model seems to leak memory; therefore, we
                     # load it only once and reuse it.
@@ -108,7 +110,7 @@ class AudioTask(BaseTask):
                         start=int(segment["start"]),
                         end=int(segment["end"]),
                         text=segment["text"].strip(),
-                    )
+                    ),
                 )
                 text.append(segment["text"].strip())
 

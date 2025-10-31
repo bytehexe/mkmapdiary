@@ -34,7 +34,7 @@ class GpxCreator:
         self.__add_journal_markers()
 
     def __load_source(self, source):
-        with open(source, "r", encoding="utf-8") as f:
+        with open(source, encoding="utf-8") as f:
             gpx = gpxpy.parse(f)
         for mwpt in gpx.waypoints:
             if mwpt.time is not None and mwpt.time.date() == self.__date:
@@ -71,7 +71,9 @@ class GpxCreator:
         eps = 10  # meters
         eps_rad = eps / 6371008.8  # convert to radians
         clusterer = hdbscan.HDBSCAN(
-            min_cluster_size=1000, cluster_selection_epsilon=eps_rad, metric="haversine"
+            min_cluster_size=1000,
+            cluster_selection_epsilon=eps_rad,
+            metric="haversine",
         )
         with warnings.catch_warnings():
             warnings.simplefilter(action="ignore", category=FutureWarning)
@@ -135,7 +137,7 @@ class GpxCreator:
                 cluster_envelope = shapely.MultiPoint(cluster_coords).convex_hull
 
                 if nearest_pois and shapely.Point(nearest_pois[0].coords).intersects(
-                    cluster_envelope
+                    cluster_envelope,
                 ):
                     poi = nearest_pois[0]
                     pwpt = gpxpy.gpx.GPXWaypoint(
@@ -150,7 +152,8 @@ class GpxCreator:
 
     def __add_journal_markers(self):
         for asset, asset_type in self.__db.get_assets_by_date(
-            self.__date, ("markdown", "audio")
+            self.__date,
+            ("markdown", "audio"),
         ):
             geo = self.__db.get_geo_by_name(asset)
             if geo is None:

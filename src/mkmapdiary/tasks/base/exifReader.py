@@ -29,7 +29,8 @@ class ExifReader(ABC):
         try:
             create_date = exif_data["EXIF:CreateDate"]
             meta["timestamp"] = datetime.datetime.strptime(
-                create_date, "%Y:%m:%d %H:%M:%S"
+                create_date,
+                "%Y:%m:%d %H:%M:%S",
             )
         except KeyError:
             meta["timestamp"] = self.extract_meta_datetime(source)

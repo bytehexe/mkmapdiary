@@ -109,7 +109,7 @@ class GeoCluster:
                 + np.cos(lat1) * np.cos(lat2) * np.cos(lon1 - lon2),
                 -1,
                 1,
-            )
+            ),
         )
 
     @staticmethod
@@ -119,7 +119,8 @@ class GeoCluster:
         bx = np.cos(lat2) * np.cos(dlon)
         by = np.cos(lat2) * np.sin(dlon)
         lat3 = np.arctan2(
-            np.sin(lat1) + np.sin(lat2), np.sqrt((np.cos(lat1) + bx) ** 2 + by**2)
+            np.sin(lat1) + np.sin(lat2),
+            np.sqrt((np.cos(lat1) + bx) ** 2 + by**2),
         )
         lon3 = lon1 + np.arctan2(by, np.cos(lat1) + bx)
         return lat3, lon3
@@ -169,7 +170,7 @@ class GeoCluster:
                 + cos_lat[:, None] * cos_lat[None, :] * np.cos(dlon),
                 -1,
                 1,
-            )
+            ),
         )
 
         # Step 3: Find maximum distance

@@ -76,7 +76,7 @@ def add_file_logging(build_dir: pathlib.Path):
 
     # Set formatter
     formatter = logging.Formatter(
-        "%(asctime)s: %(name)s, %(task)s [%(levelname)s] %(message)s"
+        "%(asctime)s: %(name)s, %(task)s [%(levelname)s] %(message)s",
     )
     file_handler.setFormatter(formatter)
 

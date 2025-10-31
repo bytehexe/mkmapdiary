@@ -22,8 +22,8 @@ class ImageTask(BaseTask, ExifReader):
         yield Asset(self.__generate_destination_filename(source), "image", meta)
 
     def __generate_destination_filename(self, source):
-        format = self.config.get("image_format", "jpg")
-        filename = (self.dirs.assets_dir / source.stem).with_suffix(f".{format}")
+        image_format = self.config.get("image_format", "jpg")
+        filename = (self.dirs.assets_dir / source.stem).with_suffix(f".{image_format}")
         return self.make_unique_filename(source, filename)
 
     def task_convert_image(self) -> Iterator[Dict[str, Any]]:

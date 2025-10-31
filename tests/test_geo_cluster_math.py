@@ -92,7 +92,10 @@ class TestGeoClusterMathematicalFunctions:
         london_lat, london_lon = math.radians(51.5074), math.radians(-0.1278)
 
         mid_lat, mid_lon = GeoCluster._greatcircle_midpoint(
-            nyc_lat, nyc_lon, london_lat, london_lon
+            nyc_lat,
+            nyc_lon,
+            london_lat,
+            london_lon,
         )
 
         # Convert back to degrees for verification
@@ -141,13 +144,19 @@ class TestGeoClusterMathematicalFunctions:
         equator_lat, equator_lon = math.radians(0.0), math.radians(0.0)
 
         angle = GeoCluster._greatcircle_angle(
-            north_lat, north_lon, equator_lat, equator_lon
+            north_lat,
+            north_lon,
+            equator_lat,
+            equator_lon,
         )
         assert abs(angle - math.pi / 2) < 1e-10  # Should be 90°
 
         # South Pole
         south_lat, south_lon = math.radians(-90.0), math.radians(0.0)
         angle = GeoCluster._greatcircle_angle(
-            south_lat, south_lon, equator_lat, equator_lon
+            south_lat,
+            south_lon,
+            equator_lat,
+            equator_lon,
         )
         assert abs(angle - math.pi / 2) < 1e-10  # Should be 90°

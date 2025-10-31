@@ -39,7 +39,7 @@ class IndexBuilder:
             / "resources"
             / "poi_filter_config.yaml"
         )
-        with open(config_path, "r") as config_file:
+        with open(config_path) as config_file:
             self.filter_config = yaml.safe_load(config_file)
 
         self.pbf_path = self.cachedir / f"{self.region.id}.pbf"
@@ -109,9 +109,9 @@ class IndexBuilder:
                 continue
 
             found = False
-            for filter_item_id, filter_item in enumerate(self.filter_config):
-                for filter_expression_id, filter_expression in enumerate(
-                    filter_item["filters"]
+            for filter_item_id, filter_item in enumerate(self.filter_config):  # noqa: B007
+                for filter_expression_id, filter_expression in enumerate(  # noqa: B007
+                    filter_item["filters"],
                 ):
                     poi_tags = obj.tags
                     matches = [
@@ -161,7 +161,7 @@ class IndexBuilder:
 
             if rank is None:
                 logger.debug(
-                    f"Skipping: {poi_name} (invalid rank); place={obj.tags.get('place', '')}, radius={radius}"
+                    f"Skipping: {poi_name} (invalid rank); place={obj.tags.get('place', '')}, radius={radius}",
                 )
                 continue
 
@@ -172,7 +172,7 @@ class IndexBuilder:
 
             index[rank]["coords"].append((lat, lon))
             index[rank]["data"].append(
-                (poi_id, poi_name, (filter_item_id, filter_expression_id), rank)
+                (poi_id, poi_name, (filter_item_id, filter_expression_id), rank),
             )
 
         return index

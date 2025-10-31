@@ -38,16 +38,16 @@ class SiteTask(HttpRequest):
     def task_create_directory(self) -> Iterator[Dict[str, Any]]:
         """Create a directory if it doesn't exist."""
 
-        def _create_directory(dir):
-            dir.mkdir(parents=True, exist_ok=True)
+        def _create_directory(dir_name: pathlib.Path):
+            dir_name.mkdir(parents=True, exist_ok=True)
 
-        for dir in self.__site_dirs:
+        for dir_name in self.__site_dirs:
             yield dict(
-                name=dir,
-                actions=[(_create_directory, (dir,))],
-                targets=[dir],
+                name=dir_name,
+                actions=[(_create_directory, (dir_name,))],
+                targets=[dir_name],
                 uptodate=[
-                    True
+                    True,
                 ],  # Always consider this task up-to-date after the first run
             )
 
@@ -63,16 +63,16 @@ class SiteTask(HttpRequest):
 
             # compute paths relative to mkdocs.yml location
             config["docs_dir"] = str(
-                self.dirs.docs_dir.relative_to(self.dirs.build_dir)
+                self.dirs.docs_dir.relative_to(self.dirs.build_dir),
             )
             config["site_dir"] = str(
-                self.dirs.dist_dir.relative_to(self.dirs.build_dir, walk_up=True)
+                self.dirs.dist_dir.relative_to(self.dirs.build_dir, walk_up=True),
             )
 
             language = self.config["site"]["locale"].split("_")[0]
             config["theme"]["language"] = language
             config["markdown_extensions"][0]["pymdownx.snippets"]["base_path"] = [
-                self.dirs.build_dir
+                self.dirs.build_dir,
             ]
 
             with open(self.dirs.build_dir / "mkdocs.yml", "w") as f:
@@ -100,7 +100,7 @@ class SiteTask(HttpRequest):
                         home_title=self.config["strings"]["home_title"],
                         gallery_title=self.config["strings"]["gallery_title"],
                         grid_items=images,
-                    )
+                    ),
                 )
 
         yield dict(
@@ -129,13 +129,13 @@ class SiteTask(HttpRequest):
                 return None  # Not a special import, use default behavior
 
             sources = {
-                "material-color.scss": "https://unpkg.com/material-design-color@2.3.2/material-color.scss"
+                "material-color.scss": "https://unpkg.com/material-design-color@2.3.2/material-color.scss",
             }
 
             try:
                 url = sources[name]
-            except KeyError:
-                raise ImportError(f"Unknown import source: {name}")
+            except KeyError as e:
+                raise ImportError(f"Unknown import source: {name}") from e
 
             response = self.httpRequest(url, data={}, headers={}, json=False)
 
@@ -159,13 +159,13 @@ class SiteTask(HttpRequest):
             shutil.copy2(input_js, output_js)
 
         for asset in simple_assets:
-            input = self.dirs.resources_dir / asset
+            input_file = self.dirs.resources_dir / asset
             output = self.dirs.docs_dir / asset
 
             yield dict(
                 name=asset,
-                actions=[(_generate, (input, output))],
-                file_dep=[input],
+                actions=[(_generate, (input_file, output))],
+                file_dep=[input_file],
                 targets=[output],
             )
 
@@ -187,7 +187,7 @@ class SiteTask(HttpRequest):
         return dict(
             actions=[
                 "mkdocs build --clean --config-file "
-                + str(self.dirs.build_dir / "mkdocs.yml")
+                + str(self.dirs.build_dir / "mkdocs.yml"),
             ],
             file_dep=list(_generate_file_deps()),
             task_dep=[

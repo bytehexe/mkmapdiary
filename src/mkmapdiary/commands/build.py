@@ -68,7 +68,8 @@ def main(
     if user_config_file.exists():
         try:
             config_data = util.deep_update(
-                config_data, load_config_file(user_config_file)
+                config_data,
+                load_config_file(user_config_file),
             )
         except ValidationError as e:
             logger.error(f"User configuration is invalid: {e.message}")
@@ -83,7 +84,8 @@ def main(
     if project_config_file.is_file():
         try:
             config_data = util.deep_update(
-                config_data, load_config_file(project_config_file)
+                config_data,
+                load_config_file(project_config_file),
             )
         except ValidationError as e:
             logger.error(f"Project configuration is invalid: {e.message}")
@@ -137,7 +139,7 @@ def main(
             import whisper  # noqa: F401, I001
         except ImportError:
             logger.error(
-                "Error: Transcription feature requires the 'whisper' package to be installed."
+                "Error: Transcription feature requires the 'whisper' package to be installed.",
             )
             sys.exit(1)
 
@@ -145,7 +147,7 @@ def main(
     # Sanity checks
     if not source_dir.is_dir():
         logger.error(
-            f"Error: Source directory '{source_dir}' does not exist or is not a directory."
+            f"Error: Source directory '{source_dir}' does not exist or is not a directory.",
         )
         sys.exit(1)
     if build_dir.is_file():
@@ -169,7 +171,7 @@ def main(
         and not dirs.build_dir_marker_file.is_file()
     ):
         logger.error(
-            f"Error: Build directory '{build_dir}' is not empty and does not contain a .mkmapdiary_build_dir file."
+            f"Error: Build directory '{build_dir}' is not empty and does not contain a .mkmapdiary_build_dir file.",
         )
         sys.exit(1)
     if (
@@ -178,7 +180,7 @@ def main(
         and not (dist_dir / "index.html").is_file()
     ):
         logger.error(
-            f"Error: Distribution directory '{dist_dir}' is not empty and does not contain an index.html file."
+            f"Error: Distribution directory '{dist_dir}' is not empty and does not contain an index.html file.",
         )
         sys.exit(1)
 
@@ -194,7 +196,8 @@ def main(
     # Clean build directory if needed
     if always_execute:
         util.clean_dir(
-            build_dir, keep_files=["mkmapdiary.log", ".mkmapdiary_build_dir"]
+            build_dir,
+            keep_files=["mkmapdiary.log", ".mkmapdiary_build_dir"],
         )
 
     logger.info("Generating tasks ...", extra={"icon": "📝", "is_step": True})
@@ -218,7 +221,7 @@ def main(
     else:
         asset_str = ""
     logger.debug(
-        f"Found {n_assets} assets" + (f":\n{asset_str}" if n_assets > 0 else ".")
+        f"Found {n_assets} assets" + (f":\n{asset_str}" if n_assets > 0 else "."),
     )
 
     proccess_args = []
@@ -250,7 +253,7 @@ def main(
             "backend": "sqlite3",
             "dep_file": str(dirs.doit_db_path),
             "reporter": CustomReporter,
-        }
+        },
     }
     exitcode = DoitMain(
         ModuleTaskLoader(taskList.toDict()),

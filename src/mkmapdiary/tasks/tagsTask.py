@@ -19,11 +19,12 @@ class TagsTask(BaseTask):
             content = []
 
             for asset, asset_type in self.db.get_assets_by_date(
-                date, ("markdown", "audio")
+                date,
+                ("markdown", "audio"),
             ):
                 if asset_type == "audio":
                     asset = str(asset) + ".md"
-                with open(asset, "r") as f:
+                with open(asset) as f:
                     file_content = f.read()
                 if asset_type == "audio":
                     # Remove first line (title)
@@ -50,7 +51,7 @@ class TagsTask(BaseTask):
                     self.template(
                         "day_tags.j2",
                         tags=tags,
-                    )
+                    ),
                 )
 
         for date in self.db.get_all_dates():

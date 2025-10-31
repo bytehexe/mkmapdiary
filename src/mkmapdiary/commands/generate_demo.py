@@ -14,7 +14,7 @@ def generate_demo_data(demo_data_dir: pathlib.Path):
         demo_data_dir.mkdir(parents=True, exist_ok=True)
     elif any(demo_data_dir.iterdir()):
         click.echo(
-            f"Source directory '{demo_data_dir}' must be empty to generate demo data."
+            f"Source directory '{demo_data_dir}' must be empty to generate demo data.",
         )
         sys.exit(1)
 
@@ -50,7 +50,7 @@ def create_demo_markdown_files(demo_data_dir: pathlib.Path):
                 random_text(
                     "markdown",
                     additional_instructions="Your text should start with a level one heading.",
-                )
+                ),
             )
 
 
@@ -89,11 +89,11 @@ def create_demo_map_files(demo_data_dir: pathlib.Path):
     trackpoints = []
     for _ in range(random.randint(5, 15)):
         trackpoints.append(
-            '<trkpt lat="{0}" lon="{1}"><time>{2}</time></trkpt>'.format(
+            '<trkpt lat="{}" lon="{}"><time>{}</time></trkpt>'.format(
                 location[0] + random.uniform(-0.1, 0.1),
                 location[1] + random.uniform(-0.1, 0.1),
                 timestamp.isoformat() + "Z",
-            )
+            ),
         )
 
     nl = "\n"
@@ -121,15 +121,16 @@ def random_coords():
     return (lat, lon)
 
 
-def random_text(format="plain text", additional_instructions=""):
+def random_text(text_format="plain text", additional_instructions=""):
     location = random_place()
     prompt = f"""Generate a short travel diary entry about visiting {location}.
-    One paragraph, use {format}.
+    One paragraph, use {text_format}.
     Do not explain. Do not include phrases like "Here is" etc.
     {additional_instructions}
     """
     response = ollama.chat(
-        model="llama3:8b", messages=[{"role": "user", "content": prompt}]
+        model="llama3:8b",
+        messages=[{"role": "user", "content": prompt}],
     )
     return response["message"]["content"].strip()
 
@@ -145,7 +146,7 @@ def random_place():
             "Avalon",
             "Narnia",
             "Fairyland",
-        ]
+        ],
     )
 
 

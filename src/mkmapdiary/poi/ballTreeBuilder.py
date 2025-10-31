@@ -26,7 +26,7 @@ class BallTreeBuilder:
         logger.info("Generating ball tree ...")
         ball_tree = SkBallTree(
             np.radians(
-                self.__coords
+                self.__coords,
             ),  # coords are (lat, lon), sklearn haversine expects (lat, lon)
             leaf_size=40,
             metric="haversine",

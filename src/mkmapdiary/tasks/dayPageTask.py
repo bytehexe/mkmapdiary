@@ -20,7 +20,7 @@ class DayPageTask(BaseTask):
             day_page_path = self.dirs.docs_dir / f"{date}.md"
             with open(day_page_path, "w") as f:
                 formatted_date = datetime.datetime.strptime(date, "%Y-%m-%d").strftime(
-                    formatter
+                    formatter,
                 )
                 f.write(
                     self.template(
@@ -28,7 +28,7 @@ class DayPageTask(BaseTask):
                         formatted_date=formatted_date,
                         journal_title=self.config["strings"]["journal_title"],
                         date=date,
-                    )
+                    ),
                 )
 
         for date in self.db.get_all_dates():

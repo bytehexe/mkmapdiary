@@ -25,7 +25,7 @@ class Cache(collections.abc.MutableMapping):
                     value TEXT NOT NULL,
                     PRIMARY KEY (section, parameters)
                 )
-            """
+            """,
             )
             self.__conn.commit()
 

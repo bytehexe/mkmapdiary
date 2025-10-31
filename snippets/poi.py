@@ -11,7 +11,7 @@ osm = pyrosm.OSM(fp)
 
 print("Applying custom filter for POI extraction...")
 
-with open("snippets/filter_config.yaml", "r") as f:
+with open("snippets/filter_config.yaml") as f:
     filter_config = yaml.safe_load(f)
 
 # Pre-filtering to reduce data size
@@ -20,8 +20,8 @@ custom_filter = {}
 
 for entry in filter_config:
     filters = entry.get("filters", [])
-    for filter in filters:
-        for key, value in filter.items():
+    for filter_item in filters:
+        for key, value in filter_item.items():
             if value is True:
                 custom_filter[key] = True
                 continue
@@ -57,10 +57,10 @@ print("Number of POIs found:", len(pois))
 for entry in filter_config:
     symbol = entry.get("symbol", "unknown")
     filters = entry.get("filters", [])
-    for filter in filters:
+    for filter_item in filters:
         try:
             filter_expression = None
-            for key, value in filter.items():
+            for key, value in filter_item.items():
                 if value is True:
                     new_filter = pois[key].notnull()
                 else:

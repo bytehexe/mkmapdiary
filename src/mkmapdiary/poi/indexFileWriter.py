@@ -16,8 +16,8 @@ class IndexFileWriter:
                         "version": 1,
                         "filter_hash": get_hash(filter_config),
                         "build_time": time.time(),
-                    }
-                )
+                    },
+                ),
             )
 
     def write(self, index):

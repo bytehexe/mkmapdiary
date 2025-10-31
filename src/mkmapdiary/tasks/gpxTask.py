@@ -35,7 +35,7 @@ class GPXTask(BaseTask):
     def __get_contained_dates(self, source):
         # Collect all dates in the gpx file
         dates = set()
-        with open(source, "r", encoding="utf-8") as f:
+        with open(source, encoding="utf-8") as f:
             gpx = gpxpy.parse(f)
         for wpt in gpx.waypoints:
             dates.add(wpt.time.date() if wpt.time is not None else None)
@@ -56,7 +56,7 @@ class GPXTask(BaseTask):
 
     def __generate_destination_filename(self, date):
         filename = (self.dirs.assets_dir / date.strftime("%Y-%m-%d")).with_suffix(
-            ".gpx"
+            ".gpx",
         )
         return filename
 
@@ -170,12 +170,12 @@ class GPXTask(BaseTask):
         def _update_positions():
             tz = ZoneInfo(self.config["site"]["timezone"])
             offset = timedelta(
-                seconds=self.config["features"]["geo_correlation"]["time_offset"]
+                seconds=self.config["features"]["geo_correlation"]["time_offset"],
             )
 
             coords = []
             for path in self.__sources:
-                with open(path, "r", encoding="utf-8") as f:
+                with open(path, encoding="utf-8") as f:
                     gpx = gpxpy.parse(f)
                 self.__get_timed_coords(gpx, coords)
             coords.sort(key=lambda x: x[0])

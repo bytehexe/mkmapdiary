@@ -21,15 +21,15 @@ class MarkdownTask(BaseTask):
         )
 
     def __generate_destination_filename(self, source):
-        format = "md"
-        filename = (self.dirs.assets_dir / source.stem).with_suffix(f".{format}")
+        file_format = "md"
+        filename = (self.dirs.assets_dir / source.stem).with_suffix(f".{file_format}")
         return self.make_unique_filename(source, filename)
 
     def task_markdown2markdown(self) -> Iterator[Dict[str, Any]]:
         """Copy text files to the assets directory."""
 
         def _to_md(src, dst):
-            with open(src, "r") as f_src, open(dst, "w") as f_dst:
+            with open(src) as f_src, open(dst, "w") as f_dst:
                 content = f_src.readlines()
 
                 # Check if there is a title

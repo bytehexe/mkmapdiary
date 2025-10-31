@@ -21,7 +21,8 @@ class JournalTask(BaseTask):
             assets = []
 
             for asset, asset_type in self.db.get_assets_by_date(
-                date, ("markdown", "audio")
+                date,
+                ("markdown", "audio"),
             ):
                 metadata = self.db.get_metadata(asset)
 
@@ -53,7 +54,7 @@ class JournalTask(BaseTask):
                         journal_title=self.config["strings"]["journal_title"],
                         audio_title=self.config["strings"]["audio_title"],
                         assets=assets,
-                    )
+                    ),
                 )
 
         for date in self.db.get_all_dates():
