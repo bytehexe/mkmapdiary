@@ -7,5 +7,5 @@ if not pathlib.PosixPath("demo").is_dir():
     p = subprocess.run(["mkmapdiary", "-T", "demo"] + sys.argv[1:])
     sys.exit(p.returncode)
 
-p = subprocess.run(["mkmapdiary", "-Ba", "demo"] + sys.argv[1:])
+p = subprocess.run(["mkmapdiary", "build", "-Ba", "demo"] + sys.argv[1:])
 sys.exit(p.returncode)

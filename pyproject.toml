@@ -78,7 +78,7 @@ Source = "https://github.com/bytehexe/mkmapdiary"
 test = { help = "Run linters and unittests", cmd = "pre-commit run -a" }
 serve = { help = "Start mkdocs server", cmd = "hatch run mkdocs:serve" }
 demo = { help="Create (if needed) and run the demo", cmd = "hatch run ./tools/demo.py" }
-example = { help="Run on the example directory", cmd="hatch run mkmapdiary -Ba ./example" }
+example = { help="Run on the example directory", cmd="hatch run mkmapdiary build -Ba ./example" }
 translate = { help="Update translation mo files", cmd = "./tools/update_translations.py" }
 lint = { help="An alias for 'test'", cmd="task test" }
 run = { help="Run mkmapdiary with the given arguments", cmd="hatch run mkmapdiary" }
