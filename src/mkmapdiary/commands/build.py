@@ -15,7 +15,6 @@ from tabulate import tabulate
 
 from .. import util
 from ..cache import Cache
-from ..generate_demo import generate_demo_data as generate_demo
 from ..lib.config import load_config_file, load_config_param
 from ..lib.dirs import Dirs
 from ..taskList import TaskList
@@ -35,7 +34,6 @@ def main(
     verbose,
     quiet,
     no_cache,
-    generate_demo_data,
 ):
     # Add file logging for build command (console logging already configured at CLI level)
     add_file_logging(build_dir)
@@ -44,10 +42,6 @@ def main(
 
     if not source_dir:
         raise click.BadParameter("Source directory is required.")
-
-    if generate_demo_data:
-        generate_demo(source_dir)
-        return
 
     dirs = Dirs(source_dir, build_dir, dist_dir, create_dirs=False)
 
@@ -313,12 +307,6 @@ def validate_param(ctx, param, value):
     is_flag=True,
     help="Disable cache in the home directory (not recommended)",
 )
-@click.option(
-    "-T",
-    "--generate-demo-data",
-    is_flag=True,
-    help="Do not compile. Generate demo data in the source directory; for testing purposes only; directory must be empty",
-)
 @click.argument(
     "source_dir",
     type=click.Path(path_type=pathlib.Path),
@@ -340,7 +328,6 @@ def build(
     always_execute,
     num_processes,
     no_cache,
-    generate_demo_data,
 ):
     """Build the map diary from source directory to distribution directory."""
     # Get verbosity settings from CLI group context
@@ -366,7 +353,6 @@ def build(
         verbose=verbose,
         quiet=quiet,
         no_cache=no_cache,
-        generate_demo_data=generate_demo_data,
     )
 
     if build_dir is None:

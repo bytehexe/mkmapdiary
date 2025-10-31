@@ -35,7 +35,7 @@ For the full reference of commandline options run `mkmapdiary --help` or `mkmapd
 Mkmapdiary can generate a project with placeholder data:
 
 ```bash
-mkmapdiary build -T demo
+mkmapdiary generate-demo demo
 mkmapdiary build demo
 x-www-browser demo_dist/index.html
 ```

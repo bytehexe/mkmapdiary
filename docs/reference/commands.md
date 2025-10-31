@@ -1,6 +1,6 @@
 # Command Reference
 
-mkmapdiary uses a command-based interface with two main subcommands: `build` and `config`.
+mkmapdiary uses a command-based interface with three main subcommands: `build`, `config`, and `generate-demo`.
 
 ## Global Options
 
@@ -43,7 +43,6 @@ mkmapdiary build [OPTIONS] SOURCE_DIR [DIST_DIR]
 - `-a, --always-execute`: Always execute tasks, even if up-to-date
 - `-n, --num-processes INTEGER`: Number of parallel processes (default: CPU count)
 - `--no-cache`: Disable cache in home directory
-- `-T, --generate-demo-data`: Generate demo data in source directory (for testing)
 
 ### Examples
 
@@ -56,10 +55,6 @@ mkmapdiary build my_travel_data my_website
 
 # Build with configuration overrides
 mkmapdiary build -x site.title="My Trip" my_travel_data
-
-# Generate demo data and build
-mkmapdiary build -T demo
-mkmapdiary build demo
 
 # Verbose build with persistent build directory
 mkmapdiary -v build -B my_travel_data
@@ -94,6 +89,28 @@ mkmapdiary config -x site.title="My Trip" -x site.author="John Doe" my_project
 # Set user-wide configuration (affects all projects)
 mkmapdiary config --user -x features.llms.enabled=false
 ```
+
+## generate-demo
+
+Generate demo data in a directory for testing purposes.
+
+```bash
+mkmapdiary generate-demo SOURCE_DIR
+```
+
+### Arguments
+
+- `SOURCE_DIR`: Directory where demo data will be generated (must be empty)
+
+### Examples
+
+```bash
+# Generate demo data and build
+mkmapdiary generate-demo demo
+mkmapdiary build demo
+```
+
+Note: This command is primarily for testing and development purposes. The target directory must be empty.
 
 ## Configuration Parameter Format
 

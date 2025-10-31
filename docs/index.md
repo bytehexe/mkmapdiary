@@ -36,7 +36,7 @@ x-www-browser your_travel_data_dist/index.html
 Want to see mkmapdiary in action? Generate a demo project with sample data:
 
 ```bash
-mkmapdiary build -T demo
+mkmapdiary generate-demo demo
 mkmapdiary build demo
 x-www-browser demo_dist/index.html
 ```

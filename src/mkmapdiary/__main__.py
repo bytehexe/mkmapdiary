@@ -4,6 +4,7 @@ import click
 
 from .commands.build import build
 from .commands.config import config
+from .commands.generate_demo import generate_demo
 from .util.log import StepFilter, setup_logging
 
 
@@ -56,6 +57,7 @@ def cli(ctx, verbose, quiet):
 # Add subcommands
 cli.add_command(build)
 cli.add_command(config)
+cli.add_command(generate_demo)
 
 
 if __name__ == "__main__":
