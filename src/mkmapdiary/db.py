@@ -2,7 +2,9 @@ import datetime
 import sqlite3
 import threading
 from pathlib import PosixPath
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, List, Tuple, Union
+
+from mkmapdiary.lib.asset import AssetMeta
 
 
 class Db:
@@ -28,12 +30,10 @@ class Db:
         )
         self.conn.commit()
 
-    def add_asset(self, path: Union[str, PosixPath], type: str, meta: Dict[str, Any]):
-        assert (
-            "date" not in meta
-            or meta["date"] is None
-            or isinstance(meta["date"], datetime.datetime)
-        ), "Meta 'date' must be a datetime object or None"
+    def add_asset(self, path: Union[str, PosixPath], type: str, meta: AssetMeta):
+        assert meta.timestamp is None or isinstance(
+            meta.timestamp, datetime.datetime
+        ), "Meta 'timestamp' must be a datetime object or None"
 
         with self.lock:
             cursor = self.conn.cursor()
@@ -46,9 +46,9 @@ class Db:
                 (
                     str(path),
                     type,
-                    meta.get("date"),
-                    meta.get("latitude"),
-                    meta.get("longitude"),
+                    meta.timestamp,
+                    meta.latitude,
+                    meta.longitude,
                 ),
             )
 

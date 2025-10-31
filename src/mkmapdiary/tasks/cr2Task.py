@@ -3,6 +3,8 @@ from typing import Any, Dict, Iterator
 import imageio.v2 as imageio
 import rawpy
 
+from mkmapdiary.lib.asset import Asset, AssetMeta
+
 from .base.baseTask import BaseTask
 from .base.exifReader import ExifReader
 

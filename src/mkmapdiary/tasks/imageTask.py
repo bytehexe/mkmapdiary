@@ -2,6 +2,8 @@ from typing import Any, Dict, Iterator
 
 from PIL import Image
 
+from mkmapdiary.lib.asset import Asset, AssetMeta
+
 from .base.baseTask import BaseTask
 from .base.exifReader import ExifReader
 
@@ -15,10 +17,9 @@ class ImageTask(BaseTask, ExifReader):
         # Create task to convert image to target format
         self.__sources.append(source)
 
-        meta = {}
-        meta.update(self.read_exif(source))
+        meta = AssetMeta(**self.read_exif(source))
 
-        yield self.Asset(self.__generate_destination_filename(source), "image", meta)
+        yield Asset(self.__generate_destination_filename(source), "image", meta)
 
     def __generate_destination_filename(self, source):
         format = self.config.get("image_format", "jpg")

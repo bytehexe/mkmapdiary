@@ -12,6 +12,7 @@ from tabulate import tabulate
 
 from mkmapdiary.geoCluster import GeoCluster
 from mkmapdiary.gpxCreator import GpxCreator
+from mkmapdiary.lib.asset import AssetMeta
 
 from .base.baseTask import BaseTask
 
@@ -100,9 +101,9 @@ class GPXTask(BaseTask):
             self.db.add_asset(
                 str(dst),
                 "gpx",
-                {
-                    "date": datetime.combine(date, datetime.min.time()),
-                },
+                AssetMeta(
+                    timestamp=datetime.combine(date, datetime.min.time()),
+                ),
             )
 
             yield {

@@ -1,5 +1,5 @@
 import json
-from collections import namedtuple
+from typing import List, NamedTuple
 
 
 def get_hash(map_data: dict) -> str:
@@ -9,6 +9,11 @@ def get_hash(map_data: dict) -> str:
     return hashlib.sha256(map_data_str.encode("utf-8")).hexdigest()
 
 
-Poi = namedtuple(
-    "Poi", ["coords", "osm_id", "name", "description", "symbol", "filter", "rank"]
-)
+class Poi(NamedTuple):
+    coords: List[float]
+    osm_id: str
+    name: str
+    description: str
+    symbol: str
+    filter: str
+    rank: int

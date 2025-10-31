@@ -2,7 +2,7 @@ import logging
 import pathlib
 import sys
 import tempfile
-from collections import namedtuple
+from typing import NamedTuple
 
 import msgpack
 import osmium
@@ -20,10 +20,11 @@ from ..util import calculate_rank
 
 logger = logging.getLogger(__name__)
 
-Region = namedtuple(
-    "Region",
-    ["id", "name", "url"],
-)
+
+class Region(NamedTuple):
+    id: str
+    name: str
+    url: str
 
 
 class IndexBuilder:

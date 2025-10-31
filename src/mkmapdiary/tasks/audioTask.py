@@ -5,6 +5,7 @@ from typing import Any, Dict, Iterator
 
 from pydub import AudioSegment
 
+from mkmapdiary.lib.asset import Asset, AssetMeta
 from mkmapdiary.util.log import ThisMayTakeAWhile
 
 from .base.baseTask import BaseTask
@@ -23,14 +24,10 @@ class AudioTask(BaseTask):
         # Create task to convert image to target format
         self.__sources.append(source)
 
-        meta = {
-            "date": self.extract_meta_datetime(source),
-        }
+        meta = AssetMeta(timestamp=self.extract_meta_datetime(source))
 
-        yield self.Asset(
-            self.__generate_destination_filename(source, ".mp3"), "audio", meta
-        )
-        yield self.Asset(
+        yield Asset(self.__generate_destination_filename(source, ".mp3"), "audio", meta)
+        yield Asset(
             self.__generate_destination_filename(source, ".mp3.md"), "transcript", meta
         )
 

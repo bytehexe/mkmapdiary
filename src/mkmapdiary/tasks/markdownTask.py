@@ -1,5 +1,7 @@
 from typing import Any, Dict, Iterator
 
+from mkmapdiary.lib.asset import Asset, AssetMeta
+
 from .base.baseTask import BaseTask
 
 
@@ -12,10 +14,10 @@ class MarkdownTask(BaseTask):
         # Create task to convert image to target format
         self.__sources.append(source)
 
-        yield self.Asset(
+        yield Asset(
             self.__generate_destination_filename(source),
             "markdown",
-            {"date": self.extract_meta_datetime(source)},
+            AssetMeta(timestamp=self.extract_meta_datetime(source)),
         )
 
     def __generate_destination_filename(self, source):

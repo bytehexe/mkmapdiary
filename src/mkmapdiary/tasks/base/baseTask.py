@@ -1,7 +1,6 @@
 import datetime
 import threading
 from abc import ABC, abstractmethod
-from collections import namedtuple
 from pathlib import PosixPath
 from typing import Any, List, Mapping, Optional, Tuple, Union
 
@@ -31,7 +30,6 @@ def debug(func):
 
 
 class BaseTask(ABC):
-    Asset = namedtuple("Asset", ["path", "type", "meta"])
 
     def __init__(self):
         super().__init__()
