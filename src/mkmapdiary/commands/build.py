@@ -5,9 +5,12 @@ import os
 import pathlib
 import sys
 import tempfile
+from collections.abc import MutableMapping
+from typing import Any, Optional, Tuple
 
 import click
 import doit.reporter
+import doit.task
 from doit.cmd_base import ModuleTaskLoader
 from doit.doit_cmd import DoitMain
 from jsonschema.exceptions import ValidationError
@@ -25,15 +28,15 @@ runner_logger = logging.getLogger(__name__ + ".runner")
 
 
 def main(
-    dist_dir,
-    build_dir,
-    params,
-    source_dir,
-    always_execute,
-    num_processes,
-    verbose,
-    quiet,
-    no_cache,
+    dist_dir: pathlib.Path,
+    build_dir: pathlib.Path,
+    params: Tuple[str, ...],
+    source_dir: pathlib.Path,
+    always_execute: bool,
+    num_processes: int,
+    verbose: bool,
+    quiet: bool,
+    no_cache: bool,
 ) -> None:
     # Add file logging for build command (console logging already configured at CLI level)
     add_file_logging(build_dir)
@@ -54,7 +57,7 @@ def main(
     # Load config defaults
     default_config = dirs.resources_dir / "defaults.yaml"
     try:
-        config_data = load_config_file(default_config)
+        config_data: MutableMapping[str, Any] = load_config_file(default_config)
     except ValidationError as e:
         logger.critical(f"Default configuration is invalid: {e.message}")
         logger.info(f"Path: {'.'.join(str(p) for p in e.path)}")
@@ -212,7 +215,7 @@ def main(
         cache = Cache(dirs.cache_db_path)
 
     dirs.create_dirs = True
-    taskList = TaskList(config_data, dirs, cache)
+    taskList = TaskList(dict(config_data), dirs, cache)
 
     n_assets = taskList.db.count_assets()
 
@@ -236,7 +239,7 @@ def main(
     logger.info("Running tasks ...", extra={"icon": "🚀", "is_step": True})
 
     class CustomReporter(doit.reporter.ConsoleReporter):
-        def execute_task(self, task) -> None:
+        def execute_task(self, task: doit.task.Task) -> None:
             display_name = task.name
             if "/" in display_name:
                 display_name = (
@@ -245,7 +248,7 @@ def main(
             current_task.set(display_name)
             super().execute_task(task)
 
-        def write(self, text) -> None:
+        def write(self, text: str) -> None:
             runner_logger.info(text.rstrip())
 
     doit_config = {
@@ -264,7 +267,9 @@ def main(
     sys.exit(exitcode)
 
 
-def validate_param(ctx, param, value):
+def validate_param(
+    ctx: click.Context, param: click.Parameter, value: Tuple[str, ...]
+) -> Tuple[str, ...]:
     for val in value:
         if "=" not in val:
             raise click.BadParameter("Parameters must be in the format key=value")
@@ -322,15 +327,15 @@ def validate_param(ctx, param, value):
 )
 @click.pass_context
 def build(
-    ctx,
-    source_dir,
-    dist_dir,
-    build_dir,
-    persistent_build,
-    params,
-    always_execute,
-    num_processes,
-    no_cache,
+    ctx: click.Context,
+    source_dir: pathlib.Path,
+    dist_dir: Optional[pathlib.Path],
+    build_dir: Optional[pathlib.Path],
+    persistent_build: bool,
+    params: Tuple[str, ...],
+    always_execute: bool,
+    num_processes: int,
+    no_cache: bool,
 ) -> None:
     """Build the map diary from source directory to distribution directory."""
     # Get verbosity settings from CLI group context
@@ -346,7 +351,21 @@ def build(
     if persistent_build and build_dir is None:
         build_dir = source_dir.with_name(source_dir.name + "_build")
 
-    def main_exec() -> None:
+    if build_dir is None:
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            temp_build_dir = pathlib.Path(tmpdirname)
+            main(
+                dist_dir=dist_dir,
+                build_dir=temp_build_dir,
+                source_dir=source_dir,
+                params=params,
+                always_execute=always_execute,
+                num_processes=num_processes,
+                verbose=verbose,
+                quiet=quiet,
+                no_cache=no_cache,
+            )
+    else:
         main(
             dist_dir=dist_dir,
             build_dir=build_dir,
@@ -358,10 +377,3 @@ def build(
             quiet=quiet,
             no_cache=no_cache,
         )
-
-    if build_dir is None:
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            build_dir = pathlib.Path(tmpdirname)
-            main_exec()
-    else:
-        main_exec()

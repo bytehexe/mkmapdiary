@@ -2,7 +2,7 @@ import datetime
 import threading
 from abc import ABC, abstractmethod
 from pathlib import PosixPath
-from typing import Any, List, Mapping, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Mapping, Optional, Tuple, Union
 
 import dateutil.parser
 import ollama
@@ -15,10 +15,10 @@ from mkmapdiary.util.cache import with_cache
 ai_lock = threading.Lock()
 
 
-def debug(func):
+def debug(func: Callable[..., Any]) -> Callable[..., Any]:
     """Decorator to print debug information for a function."""
 
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         print(f"DEBUG: Calling {func.__name__} with args={args}, kwargs={kwargs}")
         result = func(*args, **kwargs)
         print(
@@ -41,7 +41,7 @@ class BaseTask(ABC):
         )
 
     @abstractmethod
-    def handle(self, source):
+    def handle(self, source: PosixPath) -> Any:
         """Handle a source file or directory based on its tags."""
 
     @property
@@ -83,8 +83,8 @@ class BaseTask(ABC):
         # Fallback: Use the file's modification time
         return datetime.datetime.fromtimestamp(stat.st_mtime)
 
-    def template(self, template, **params) -> str:
-        template = self.__template_env.get_template(template)
+    def template(self, template_name: str, **params: Any) -> str:
+        template = self.__template_env.get_template(template_name)
         return template.render(**params)
 
     def make_unique_filename(
@@ -111,13 +111,13 @@ class BaseTask(ABC):
         self.__unique_paths[candidate] = source
         return candidate
 
-    def ai(self, key, format_args) -> str:
+    def ai(self, key: str, format_args: Dict[str, Any]) -> str:
         return self.__ai(
             self.config["llm_prompts"][key]["prompt"].format(**format_args),
             options=self.config["llm_prompts"][key]["options"],
         )
 
-    def __ai(self, prompt, **params) -> str:
+    def __ai(self, prompt: str, **params: Any) -> str:
         """Generate text using an AI model."""
 
         model = self.config["features"]["llms"]["text_model"]
@@ -131,7 +131,7 @@ class BaseTask(ABC):
 
         return response["message"]["content"].strip()
 
-    def with_cache(self, *args, **params) -> Any:
+    def with_cache(self, *args: Any, **params: Any) -> Any:
         """Get the value from cache or compute it if not present."""
 
         return with_cache(self.cache, *args, **params)

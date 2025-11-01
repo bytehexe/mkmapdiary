@@ -2,7 +2,7 @@ import logging
 import pathlib
 import sys
 import tempfile
-from typing import NamedTuple
+from typing import Any, Dict, List, NamedTuple
 
 import osmium
 import osmium.filter
@@ -45,7 +45,7 @@ class IndexBuilder:
         self.pbf_path = self.cachedir / f"{self.region.id}.pbf"
         self.idx_path = self.cachedir / f"{self.region.id}.idx"
 
-    def build_index(self):
+    def build_index(self) -> Dict[int, Dict[str, List[Any]]]:
         region = self.region
         logger.info(f"Building POI index for region: {region.name}")
 
@@ -78,7 +78,7 @@ class IndexBuilder:
                 for chunk in result.iter_content(chunk_size=8192):
                     pbf_file.write(chunk)
 
-    def __buildPoiIndex(self) -> dict:
+    def __buildPoiIndex(self) -> Dict[int, Dict[str, List[Any]]]:
         logger.info("Building index structure ...")
 
         index: dict[int, dict[str, list]] = {}

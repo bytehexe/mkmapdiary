@@ -1,6 +1,8 @@
 import logging
 import warnings
-from typing import Union
+from datetime import date
+from pathlib import Path, PosixPath
+from typing import Sequence, Union
 
 import gpxpy
 import gpxpy.gpx
@@ -9,6 +11,7 @@ import numpy as np
 import shapely
 from numpy.typing import NDArray
 
+from mkmapdiary.db import Db
 from mkmapdiary.geoCluster import GeoCluster
 from mkmapdiary.poi.index import Index
 from mkmapdiary.util.log import ThisMayTakeAWhile
@@ -17,7 +20,13 @@ logger = logging.getLogger(__name__)
 
 
 class GpxCreator:
-    def __init__(self, date, sources, db, region_cache_dir) -> None:
+    def __init__(
+        self,
+        date: date,
+        sources: Sequence[Union[str, PosixPath]],
+        db: Db,
+        region_cache_dir: Path,
+    ) -> None:
         # FIXME: Inconsistent types
         self.__coords: Union[list[list[float]], NDArray[np.floating]] = []
         self.__gpx_out = gpxpy.gpx.GPX()
@@ -37,7 +46,7 @@ class GpxCreator:
             self.__compute_clusters()
         self.__add_journal_markers()
 
-    def __load_source(self, source) -> None:
+    def __load_source(self, source: Union[str, PosixPath]) -> None:
         with open(source, encoding="utf-8") as f:
             gpx = gpxpy.parse(f)
         for mwpt in gpx.waypoints:
@@ -123,7 +132,9 @@ class GpxCreator:
                 extra={"icon": "📍"},
             )
 
-            index = Index(cluster.shape, self.__region_cache_dir, keep_pbf=True)
+            index = Index(
+                cluster.shape.__geo_interface__, self.__region_cache_dir, keep_pbf=True
+            )
             # Convert mass_point (lon, lat) to shapely.Point for Index.get_nearest
             mass_lon, mass_lat = cluster.mass_point
             if mass_lon is not None and mass_lat is not None:
@@ -157,7 +168,7 @@ class GpxCreator:
 
     def __add_journal_markers(self) -> None:
         for asset, asset_type in self.__db.get_assets_by_date(
-            self.__date,
+            str(self.__date),  # FIXME: Inconsistent types
             ("markdown", "audio"),
         ):
             geo = self.__db.get_geo_by_name(asset)
@@ -165,14 +176,26 @@ class GpxCreator:
                 continue
             metadata = self.__db.get_metadata(asset)
             # geo dict uses separate latitude/longitude keys - GPX format (lat, lon)
+            # Convert latitude/longitude to float if they're strings
+            latitude = geo["latitude"]
+            longitude = geo["longitude"]
+            assert type(latitude) in (float, int), (
+                f"Invalid latitude type: {type(latitude)}"
+            )
+            assert type(longitude) in (float, int), (
+                f"Invalid longitude type: {type(longitude)}"
+            )
+
+            comment = f"{metadata['id']}" if metadata is not None else ""
+
             wpt = gpxpy.gpx.GPXWaypoint(
-                latitude=geo["latitude"],
-                longitude=geo["longitude"],
+                latitude=float(latitude),
+                longitude=float(longitude),
                 name="Journal Entry",
-                comment=f"{metadata['id']}",
+                comment=comment,
                 symbol=f"{asset_type}-journal-entry",
             )
             self.__gpx_out.waypoints.append(wpt)
 
-    def to_xml(self):
+    def to_xml(self) -> str:
         return self.__gpx_out.to_xml()

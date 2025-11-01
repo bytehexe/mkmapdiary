@@ -14,7 +14,7 @@ class GalleryTask(BaseTask):
     def task_build_gallery(self) -> Iterator[Dict[str, Any]]:
         """Generate gallery pages."""
 
-        def _generate_gallery(date) -> None:
+        def _generate_gallery(date: str) -> None:
             gallery_path = self.dirs.docs_dir / "templates" / f"{date}_gallery.md"
 
             gallery_items = []

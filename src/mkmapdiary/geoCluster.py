@@ -1,4 +1,5 @@
 import copy
+from typing import List, Optional, Tuple
 
 import numpy as np
 from scipy import stats
@@ -9,7 +10,7 @@ from mkmapdiary.util.projection import LocalProjection
 
 
 class GeoCluster:
-    def __init__(self, locations) -> None:
+    def __init__(self, locations: List[Tuple[float, float]]) -> None:
         # Interface expects locations as (lon, lat) tuples for consistency with GeoJSON
         self.__locations = locations
         self.__remove_outliers()
@@ -34,28 +35,28 @@ class GeoCluster:
         self.__locations = proj.to_wgs_np(filtered_data).tolist()
 
     @property
-    def locations(self):
+    def locations(self) -> List[Tuple[float, float]]:
         return copy.deepcopy(self.__locations)
 
     @property
-    def separation_degrees(self):
+    def separation_degrees(self) -> float:
         return self.__degrees
 
     @property
-    def separation_meters(self):
+    def separation_meters(self) -> float:
         return self.__distance
 
     @property
-    def midpoint(self):
+    def midpoint(self) -> Tuple[Optional[float], Optional[float]]:
         return copy.deepcopy(self.__midpoint)
 
     @property
-    def shape(self):
+    def shape(self) -> MultiPoint:
         # MultiPoint expects (lon, lat) format which matches our interface
         return MultiPoint(self.__locations)
 
     @property
-    def mass_point(self):
+    def mass_point(self) -> Tuple[Optional[float], Optional[float]]:
         if len(self.__locations) == 0:
             return (None, None)
 
@@ -83,11 +84,11 @@ class GeoCluster:
         )
 
     @property
-    def radius(self):
+    def radius(self) -> float:
         return self.__distance / 2
 
     @property
-    def zoom_level(self):
+    def zoom_level(self) -> int:
         if len(self.__locations) == 0:
             return 18  # max zoom
 
@@ -101,7 +102,7 @@ class GeoCluster:
         return max(min(level, 18), 3)
 
     @staticmethod
-    def _greatcircle_angle(lat1, lon1, lat2, lon2):
+    def _greatcircle_angle(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
         """Angular distance (radians) between two points on a sphere."""
         return np.arccos(
             np.clip(
@@ -113,7 +114,9 @@ class GeoCluster:
         )
 
     @staticmethod
-    def _greatcircle_midpoint(lat1, lon1, lat2, lon2):
+    def _greatcircle_midpoint(
+        lat1: float, lon1: float, lat2: float, lon2: float
+    ) -> Tuple[float, float]:
         """Midpoint in radians between two points on a sphere. Returns (lat, lon) for internal calculations."""
         dlon = lon2 - lon1
         bx = np.cos(lat2) * np.cos(dlon)
@@ -125,7 +128,9 @@ class GeoCluster:
         lon3 = lon1 + np.arctan2(by, np.cos(lat1) + bx)
         return lat3, lon3
 
-    def __longest_greatcircle_separation(self):
+    def __longest_greatcircle_separation(
+        self,
+    ) -> Tuple[float, float, Tuple[Optional[float], Optional[float]]]:
         """
         Returns:
         - separation_deg: angular separation in degrees

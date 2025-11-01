@@ -1,7 +1,7 @@
 import logging
 import pathlib
 import sys
-from typing import Any, Dict
+from typing import Any, Dict, MutableMapping, Sequence
 
 import humanfriendly
 import jsonschema
@@ -14,7 +14,7 @@ from mkmapdiary.util.locale import auto_detect_locale, auto_detect_timezone
 logger = logging.getLogger(__name__)
 
 
-def auto_constructor(loader, node) -> Any:
+def auto_constructor(loader: yaml.SafeLoader, node: yaml.ScalarNode) -> Any:
     """Constructor for !auto tag that returns an AutoValue object"""
     value = loader.construct_scalar(node)
     if value == "site.timezone":
@@ -38,7 +38,7 @@ def auto_constructor(loader, node) -> Any:
         raise ValueError(f"Unknown auto value: {value}")
 
 
-def duration_constructor(loader, node):
+def duration_constructor(loader: yaml.SafeLoader, node: yaml.ScalarNode) -> int:
     """Constructor for !duration tag that converts ISO 8601 duration strings to seconds"""
     value = loader.construct_scalar(node)
     if isinstance(value, (int, float)):
@@ -55,14 +55,14 @@ ConfigLoader.add_constructor("!auto", auto_constructor)
 ConfigLoader.add_constructor("!duration", duration_constructor)
 
 
-def load_config_file(path: pathlib.Path) -> dict:
+def load_config_file(path: pathlib.Path) -> Dict[str, Any]:
     with open(path) as file:
         config = yaml.load(file, Loader=ConfigLoader)
 
     return load_config_data(config)
 
 
-def load_config_data(config: dict) -> dict:
+def load_config_data(config: Dict[str, Any]) -> Dict[str, Any]:
     with open(
         pathlib.Path(__file__).parent.parent / "resources" / "config_schema.yaml",
     ) as defaults_file:
@@ -86,12 +86,12 @@ def load_config_param(param: str) -> dict:
     return load_config_data(config_data)
 
 
-def write_config(source_dir: pathlib.Path, params: list) -> None:
+def write_config(source_dir: pathlib.Path, params: Sequence[str]) -> None:
     """Write configuration data to a YAML file at the specified path."""
 
     config_path = source_dir / "config.yaml"
     if config_path.is_file():
-        config_data = load_config_file(config_path)
+        config_data: MutableMapping[str, Any] = load_config_file(config_path)
     else:
         config_data = {}
 
@@ -108,7 +108,7 @@ def write_config(source_dir: pathlib.Path, params: list) -> None:
             sys.exit(1)
 
     if params:
-        load_config_data(config_data)  # Validate final config
+        load_config_data(dict(config_data))  # Validate final config
 
         with open(config_path, "w") as file:
             yaml.dump(config_data, file, sort_keys=False)

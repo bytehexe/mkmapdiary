@@ -21,7 +21,7 @@ class AudioTask(BaseTask):
         super().__init__()
         self.__sources: list[PosixPath] = []
 
-    def handle_audio(self, source):
+    def handle_audio(self, source: PosixPath) -> Iterator[Asset]:
         # Create task to convert image to target format
         self.__sources.append(source)
 
@@ -34,14 +34,16 @@ class AudioTask(BaseTask):
             meta,
         )
 
-    def __generate_destination_filename(self, source, suffix):
-        filename = (self.dirs.assets_dir / source.stem).with_suffix(suffix)
+    def __generate_destination_filename(
+        self, source: PosixPath, suffix: str
+    ) -> PosixPath:
+        filename = PosixPath(self.dirs.assets_dir / source.stem).with_suffix(suffix)
         return self.make_unique_filename(source, filename)
 
     def task_convert_audio(self) -> Iterator[Dict[str, Any]]:
         """Convert an image to a different format."""
 
-        def _convert(src, dst) -> None:
+        def _convert(src: PosixPath, dst: PosixPath) -> None:
             audio = AudioSegment.from_file(src)
             audio.export(dst, format="mp3")
 
@@ -55,14 +57,14 @@ class AudioTask(BaseTask):
                 targets=[dst],
             )
 
-    def __file_md5(self, path):
+    def __file_md5(self, path: PosixPath) -> str:
         hash_md5 = hashlib.md5()
         with open(path, "rb") as f:
             for chunk in iter(lambda: f.read(4096), b""):
                 hash_md5.update(chunk)
         return hash_md5.hexdigest()
 
-    def __transcribe_audio(self, src):
+    def __transcribe_audio(self, src: PosixPath) -> Dict[str, Any]:
         import whisper
 
         with whisper_lock:
@@ -77,7 +79,7 @@ class AudioTask(BaseTask):
     def task_transcribe_audio(self) -> Iterator[Dict[str, Any]]:
         """Transcribe audio to text."""
 
-        def _transcribe(src, dst) -> None:
+        def _transcribe(src: PosixPath, dst: PosixPath) -> None:
             audio_title = self.config["strings"]["audio_title"]
 
             if not self.config["features"]["transcription"]["enabled"]:

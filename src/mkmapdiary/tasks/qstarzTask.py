@@ -1,10 +1,10 @@
 from pathlib import PosixPath
 from typing import Any, Dict, Iterator, List
 
-from .base.baseTask import BaseTask
+from .gpxTask import GPXTask
 
 
-class QstarzTask(BaseTask):
+class QstarzTask(GPXTask):
     def __init__(self) -> None:
         super().__init__()
         self.__sources: list[PosixPath] = []
@@ -19,15 +19,15 @@ class QstarzTask(BaseTask):
         # Ignore .dat files, as they are not directly supported by gpsbabel
         return []
 
-    def __handle(self, source):
+    def __handle(self, source: PosixPath) -> List[Any]:
         self.__sources.append(source)
         intermediate_file = self._generate_destination_filename(source)
 
         assets = list(self.handle_gpx(intermediate_file))
         return assets
 
-    def _generate_destination_filename(self, source):
-        filename = (self.dirs.files_dir / source.stem).with_suffix(
+    def _generate_destination_filename(self, source: PosixPath) -> PosixPath:
+        filename = PosixPath(self.dirs.files_dir / source.stem).with_suffix(
             f"{source.suffix[0:2]}.gpx",
         )
         return self.make_unique_filename(source, filename)

@@ -1,8 +1,9 @@
 import bisect
 import logging
+from datetime import date as date_type
 from datetime import datetime, timedelta
-from pathlib import PosixPath
-from typing import Any, Dict, Iterator, List
+from pathlib import Path, PosixPath
+from typing import Any, Dict, Iterator, List, Set, Tuple
 
 import gpxpy
 import gpxpy.gpx
@@ -32,35 +33,33 @@ class GPXTask(BaseTask):
         # Instead we will resort to delayed task creation.
         return []
 
-    def __get_contained_dates(self, source):
+    def __get_contained_dates(self, source: PosixPath) -> Set[date_type]:
         # Collect all dates in the gpx file
         dates = set()
         with open(source, encoding="utf-8") as f:
             gpx = gpxpy.parse(f)
         for wpt in gpx.waypoints:
-            dates.add(wpt.time.date() if wpt.time is not None else None)
+            if wpt.time is not None:
+                dates.add(wpt.time.date())
         for trk in gpx.tracks:
             for seg in trk.segments:
                 for pt in seg.points:
-                    dates.add(pt.time.date() if pt.time is not None else None)
+                    if pt.time is not None:
+                        dates.add(pt.time.date())
         for rte in gpx.routes:
-            for pt in rte.points:
-                dates.add(pt.time.date() if pt.time is not None else None)
-
-        try:
-            dates.remove(None)
-        except KeyError:
-            pass
+            for rte_pt in rte.points:
+                if rte_pt.time is not None:
+                    dates.add(rte_pt.time.date())
 
         return dates
 
-    def __generate_destination_filename(self, date):
+    def __generate_destination_filename(self, date: date_type) -> Path:
         filename = (self.dirs.assets_dir / date.strftime("%Y-%m-%d")).with_suffix(
             ".gpx",
         )
         return filename
 
-    def __gpx2gpx(self, date, dst, gpx_source) -> None:
+    def __gpx2gpx(self, date: date_type, dst: Path, gpx_source: bool) -> None:
         if gpx_source:
             sources = self.__sources
         else:
@@ -139,7 +138,7 @@ class GPXTask(BaseTask):
         # - https://pydoit.org/task-creation.html#delayed-task-creation
         # - https://pydoit.org/dependencies.html#calculated-dependencies
 
-        def _gpx_deps():
+        def _gpx_deps() -> Dict[str, List[str]]:
             self.__debug_dump_gpx()
             return {
                 "file_dep": [x[0] for x in self.db.get_assets_by_type("gpx")],
@@ -151,7 +150,9 @@ class GPXTask(BaseTask):
             "actions": [_gpx_deps],
         }
 
-    def __get_timed_coords(self, gpx, coords) -> None:
+    def __get_timed_coords(
+        self, gpx: gpxpy.gpx.GPX, coords: List[Tuple[datetime, float, float]]
+    ) -> None:
         # Extract coordinates from GPX format (lat, lon) and store as (time, lon, lat) for internal use
         for wpt in gpx.waypoints:
             if wpt.time is not None:
@@ -162,9 +163,9 @@ class GPXTask(BaseTask):
                     if pt.time is not None:
                         coords.append((pt.time, pt.longitude, pt.latitude))
         for rte in gpx.routes:
-            for pt in rte.points:
-                if pt.time is not None:
-                    coords.append((pt.time, pt.longitude, pt.latitude))
+            for rte_pt in rte.points:
+                if rte_pt.time is not None:
+                    coords.append((rte_pt.time, rte_pt.longitude, rte_pt.latitude))
 
     def task_geo_correlation(self) -> Dict[str, Any]:
         def _update_positions() -> None:
@@ -181,29 +182,37 @@ class GPXTask(BaseTask):
             coords.sort(key=lambda x: x[0])
             for asset_id, asset_time in self.db.get_unpositioned_assets():
                 # Find closest coordinate by time
-                asset_time = (
-                    datetime.fromisoformat(asset_time).replace(tzinfo=tz) + offset
-                )
-                candidates = []
-                pos = bisect.bisect_left(coords, asset_time, key=lambda x: x[0])
-                if pos > 0:
-                    candidates.append(coords[pos - 1])
-                if pos < len(coords):
-                    candidates.append(coords[pos])
-                if candidates:
-                    closest = min(candidates, key=lambda x: abs(x[0] - asset_time))
-                    diff = (closest[0] - asset_time).total_seconds()
-                    if (
-                        abs(diff)
-                        < self.config["features"]["geo_correlation"]["max_time_diff"]
-                    ):
-                        # closest contains (time, lon, lat), database expects separate lat, lon parameters
-                        self.db.update_asset_position(
-                            asset_id,
-                            closest[2],
-                            closest[1],
-                            int(diff),  # lat, lon for database
+                if asset_time is not None:
+                    assert isinstance(asset_time, str), "Asset time should be a string"
+                    asset_datetime = (
+                        datetime.fromisoformat(asset_time).replace(tzinfo=tz) + offset
+                    )
+                    candidates = []
+                    pos = bisect.bisect_left(coords, asset_datetime, key=lambda x: x[0])
+                    if pos > 0:
+                        candidates.append(coords[pos - 1])
+                    if pos < len(coords):
+                        candidates.append(coords[pos])
+                    if candidates:
+                        closest = min(
+                            candidates, key=lambda x: abs(x[0] - asset_datetime)
                         )
+                        diff = (closest[0] - asset_datetime).total_seconds()
+                        if (
+                            abs(diff)
+                            < self.config["features"]["geo_correlation"][
+                                "max_time_diff"
+                            ]
+                        ):
+                            # closest contains (time, lon, lat), database expects separate lat, lon parameters
+                            self.db.update_asset_position(
+                                asset_id,
+                                closest[2],
+                                closest[1],
+                                bool(
+                                    diff
+                                ),  # Convert to bool as expected by the function
+                            )
             logger.debug(
                 "Asset positions updated:\n" + tabulate(*self.db.dump()),
                 extra={"icon": "🌐"},

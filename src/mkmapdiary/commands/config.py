@@ -1,4 +1,5 @@
 import pathlib
+from typing import Optional, Tuple
 
 import click
 import platformdirs
@@ -6,7 +7,9 @@ import platformdirs
 from ..lib.config import write_config
 
 
-def validate_param(ctx, param, value):
+def validate_param(
+    ctx: click.Context, param: click.Parameter, value: Tuple[str, ...]
+) -> Tuple[str, ...]:
     for val in value:
         if "=" not in val:
             raise click.BadParameter("Parameters must be in the format key=value")
@@ -32,7 +35,9 @@ def validate_param(ctx, param, value):
     type=click.Path(path_type=pathlib.Path),
     required=False,
 )
-def config(params, user, source_dir) -> None:
+def config(
+    params: Tuple[str, ...], user: bool, source_dir: Optional[pathlib.Path]
+) -> None:
     """Apply configuration from the --params options and write them to config.yaml."""
     # Logging is now set up at the group level
 

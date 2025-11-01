@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class RegionFinder:
-    def __init__(self, geo_data, geofabrik_data) -> None:
+    def __init__(self, geo_data: Any, geofabrik_data: Any) -> None:
         self.geo_data = deepcopy(geo_data)
         self.geofabrik_data = geofabrik_data
 
@@ -35,7 +35,9 @@ class RegionFinder:
             logger.info(f" - {region.name}")
         return regions
 
-    def _findBestRegion(self, geo_data, used_regions) -> Tuple[Optional[Region], Any]:
+    def _findBestRegion(
+        self, geo_data: Any, used_regions: List[Region]
+    ) -> Tuple[Optional[Region], Any]:
         best = None
         remaining_geo_data = geo_data
         return_geo_data = geo_data

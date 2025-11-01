@@ -3,6 +3,7 @@ import pathlib
 import random
 import subprocess
 import sys
+from typing import Tuple
 
 import click
 import ollama
@@ -115,13 +116,15 @@ def create_demo_map_files(demo_data_dir: pathlib.Path) -> None:
         f.write(gpx_content)
 
 
-def random_coords():
+def random_coords() -> Tuple[float, float]:
     lat = random.uniform(-90.0, 90.0)
     lon = random.uniform(-180.0, 180.0)
     return (lat, lon)
 
 
-def random_text(text_format="plain text", additional_instructions=""):
+def random_text(
+    text_format: str = "plain text", additional_instructions: str = ""
+) -> str:
     location = random_place()
     prompt = f"""Generate a short travel diary entry about visiting {location}.
     One paragraph, use {text_format}.
@@ -135,7 +138,7 @@ def random_text(text_format="plain text", additional_instructions=""):
     return response["message"]["content"].strip()
 
 
-def random_place():
+def random_place() -> str:
     return random.choice(
         [
             "Hades",
@@ -150,7 +153,7 @@ def random_place():
     )
 
 
-def random_datetime():
+def random_datetime() -> datetime.datetime:
     start = datetime.datetime(2020, 1, 1)
     end = datetime.datetime(2020, 1, 5)
     delta = end - start
@@ -165,7 +168,7 @@ def random_datetime():
     type=click.Path(path_type=pathlib.Path),
     required=True,
 )
-def generate_demo(source_dir) -> None:
+def generate_demo(source_dir: pathlib.Path) -> None:
     """Generate demo data in the source directory.
 
     This command generates demo data for testing purposes only.

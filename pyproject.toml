@@ -225,10 +225,13 @@ select = [
     "B",     # flake8-bugbear
     "A",     # flake8-builtins	
     "COM",   # flake8-commas
+    #"C90",   # mccabe
+    "ANN",   # flake8-annotations
 ]
 ignore = [
   "E501",  # Ignore line too long
   "COM812", # trailing commas
+  "ANN401", # Dynamically typed expressions
 ]
 
 # Allow autofix for all enabled rules (when `--fix`) is provided.
@@ -272,3 +275,6 @@ skip-magic-trailing-comma = false
 
 # Like Black, automatically detect the appropriate line ending.
 line-ending = "auto"
+
+[tool.ruff.lint.flake8-annotations]
+mypy-init-return = true

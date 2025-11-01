@@ -14,7 +14,7 @@ class DayPageTask(BaseTask):
     def task_build_day_page(self) -> Iterator[Dict[str, Any]]:
         """Generate day pages for each date with assets."""
 
-        def _generate_day_page(date) -> None:
+        def _generate_day_page(date: str) -> None:
             formatter = "%a, %x"
 
             day_page_path = self.dirs.docs_dir / f"{date}.md"

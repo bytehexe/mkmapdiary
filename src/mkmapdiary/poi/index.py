@@ -1,8 +1,9 @@
 import logging
 import pathlib
 from threading import Lock
-from typing import Optional
+from typing import Any, Dict, List, Optional, Tuple
 
+import numpy as np
 import requests
 import shapely
 import yaml
@@ -22,16 +23,20 @@ lock = Lock()
 class Index:
     def __init__(
         self,
-        geo_data,
+        geo_data: Dict[str, Any],
         cache_dir: pathlib.Path,
         keep_pbf: bool = False,
-        rank_offset=(-1, 1),
+        rank_offset: Tuple[int, int] = (-1, 1),
     ):
         with lock:
             self.__init(geo_data, cache_dir, keep_pbf, rank_offset)
 
     def __init(
-        self, geo_data, cache_dir: pathlib.Path, keep_pbf: bool, rank_offset
+        self,
+        geo_data: Dict[str, Any],
+        cache_dir: pathlib.Path,
+        keep_pbf: bool,
+        rank_offset: Tuple[int, int],
     ) -> None:
         with open(
             pathlib.Path(__file__).parent.parent
@@ -126,17 +131,19 @@ class Index:
         logger.info("Generating ball tree ... ")
         self.ball_tree = builder.build()
 
-    def get_all(self):
+    def get_all(self) -> List:
         logger.info("Querying ball tree ...")
         logger.debug("Bounding radius (meters): %s", self.bounding_radius)
         logger.debug("Center coordinates (WGS): %s", self.center)
         # Convert from Shapely Point (x=lon, y=lat) to BallTree expected (lat, lon) format
         return self.ball_tree.query_radius(
-            [self.center.y, self.center.x],
+            np.array([self.center.y, self.center.x]),
             r=self.bounding_radius,
         )
 
-    def get_nearest(self, n: int, point: Optional[shapely.Point] = None):
+    def get_nearest(
+        self, n: int, point: Optional[shapely.Point] = None
+    ) -> Tuple[List, List[float]]:
         if point is None:
             point = self.center
 

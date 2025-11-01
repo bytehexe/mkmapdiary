@@ -15,7 +15,7 @@ class JournalTask(BaseTask):
     def task_build_journal(self) -> Iterator[Dict[str, Any]]:
         """Generate journal pages."""
 
-        def _generate_journal(date) -> None:
+        def _generate_journal(date: str) -> None:
             gallery_path = self.dirs.docs_dir / "templates" / f"{date}_journal.md"
 
             assets = []
@@ -27,25 +27,41 @@ class JournalTask(BaseTask):
                 metadata = self.db.get_metadata(asset)
 
                 if (
-                    metadata["latitude"] is not None
+                    metadata is not None
+                    and metadata["latitude"] is not None
                     and metadata["longitude"] is not None
                 ):
-                    north_south = "N" if metadata["latitude"] >= 0 else "S"
-                    east_west = "E" if metadata["longitude"] >= 0 else "W"
-                    location = f"{abs(metadata['latitude']):.4f}° {north_south}, {abs(metadata['longitude']):.4f}° {east_west}"
+                    # Type assertions since we've checked metadata is not None
+                    latitude = metadata["latitude"]
+                    longitude = metadata["longitude"]
+                    assert isinstance(latitude, (int, float)), (
+                        "Latitude should be numeric"
+                    )
+                    assert isinstance(longitude, (int, float)), (
+                        "Longitude should be numeric"
+                    )
+
+                    north_south = "N" if latitude >= 0 else "S"
+                    east_west = "E" if longitude >= 0 else "W"
+                    location = f"{abs(latitude):.4f}° {north_south}, {abs(longitude):.4f}° {east_west}"
                 else:
                     location = None
 
-                item = dict(
-                    type=asset_type,
-                    path=pathlib.PosixPath(asset).name,
-                    time=datetime.fromisoformat(metadata["timestamp"]).strftime("%X"),
-                    latitude=metadata["latitude"],
-                    longitude=metadata["longitude"],
-                    location=location,
-                    id=metadata["id"],
-                )
-                assets.append(item)
+                # Ensure metadata is not None before creating item
+                if metadata is not None:
+                    timestamp = metadata["timestamp"]
+                    assert isinstance(timestamp, str), "Timestamp should be a string"
+
+                    item = dict(
+                        type=asset_type,
+                        path=pathlib.PosixPath(asset).name,
+                        time=datetime.fromisoformat(timestamp).strftime("%X"),
+                        latitude=metadata["latitude"],
+                        longitude=metadata["longitude"],
+                        location=location,
+                        id=metadata["id"],
+                    )
+                    assets.append(item)
 
             with open(gallery_path, "w") as f:
                 f.write(

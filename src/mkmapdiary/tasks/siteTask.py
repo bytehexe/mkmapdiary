@@ -1,7 +1,7 @@
 import logging
 import pathlib
 import shutil
-from typing import Any, Dict, Iterator
+from typing import Any, Dict, Iterator, List, Optional
 
 import sass
 import yaml
@@ -25,7 +25,7 @@ class SiteTask(HttpRequest):
         ]
 
     @property
-    def __site_dirs(self):
+    def __site_dirs(self) -> List[pathlib.Path]:
         return [
             self.dirs.build_dir,
             self.dirs.assets_dir,
@@ -119,7 +119,7 @@ class SiteTask(HttpRequest):
         input_sass = self.dirs.resources_dir / "extra.sass"
         output_css = self.dirs.docs_dir / "extra.css"
 
-        def _http_importer(path):
+        def _http_importer(path: str) -> Optional[List[tuple[str, str]]]:
             try:
                 prefix, name = path.split(":", 1)
             except ValueError:
@@ -139,6 +139,10 @@ class SiteTask(HttpRequest):
 
             response = self.httpRequest(url, data={}, headers={}, json=False)
 
+            # Ensure response is a string since json=False
+            assert isinstance(response, str), (
+                "Response should be a string when json=False"
+            )
             return [(name, response)]
 
         def _generate() -> None:
@@ -155,7 +159,7 @@ class SiteTask(HttpRequest):
     def task_copy_simple_asset(self) -> Iterator[Dict[str, Any]]:
         simple_assets = self.__simple_assets
 
-        def _generate(input_js, output_js) -> None:
+        def _generate(input_js: pathlib.Path, output_js: pathlib.Path) -> None:
             shutil.copy2(input_js, output_js)
 
         for asset in simple_assets:
@@ -172,7 +176,7 @@ class SiteTask(HttpRequest):
     def task_build_site(self) -> Dict[str, Any]:
         """Build the mkdocs site."""
 
-        def _generate_file_deps():
+        def _generate_file_deps() -> Iterator[Any]:
             yield self.dirs.build_dir / "mkdocs.yml"
             yield self.dirs.docs_dir / "index.md"
             yield from self.db.get_all_assets()

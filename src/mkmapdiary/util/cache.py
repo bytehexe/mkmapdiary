@@ -1,4 +1,13 @@
-def with_cache(cache, key, compute_func, *args, cache_args=None):
+from typing import Any, Callable, Optional, Tuple
+
+
+def with_cache(
+    cache: Any,
+    key: str,
+    compute_func: Callable[..., Any],
+    *args: Any,
+    cache_args: Optional[Tuple[Any, ...]] = None,
+) -> Any:
     """Get the value from cache or compute it if not present."""
 
     assert type(key) is str, "Key must be a string"

@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 import yaml
@@ -59,7 +59,7 @@ class TestAutoConstructor:
     """Test the auto_constructor function."""
 
     @patch("mkmapdiary.lib.config.auto_detect_timezone")
-    def test_auto_constructor_timezone(self, mock_auto_detect_timezone) -> None:
+    def test_auto_constructor_timezone(self, mock_auto_detect_timezone: Mock) -> None:
         """Test auto constructor for timezone detection."""
         mock_auto_detect_timezone.return_value = "Europe/Berlin"
 
@@ -72,7 +72,9 @@ class TestAutoConstructor:
         mock_auto_detect_timezone.assert_called_once()
 
     @patch("mkmapdiary.lib.config.auto_detect_timezone")
-    def test_auto_constructor_timezone_failure(self, mock_auto_detect_timezone) -> None:
+    def test_auto_constructor_timezone_failure(
+        self, mock_auto_detect_timezone: Mock
+    ) -> None:
         """Test auto constructor when timezone detection fails."""
         mock_auto_detect_timezone.return_value = None
 
@@ -84,7 +86,7 @@ class TestAutoConstructor:
             auto_constructor(loader, node)
 
     @patch("mkmapdiary.lib.config.auto_detect_locale")
-    def test_auto_constructor_locale(self, mock_auto_detect_locale) -> None:
+    def test_auto_constructor_locale(self, mock_auto_detect_locale: Mock) -> None:
         """Test auto constructor for locale detection."""
         mock_auto_detect_locale.return_value = "en_US.UTF-8"
 
@@ -97,7 +99,9 @@ class TestAutoConstructor:
         mock_auto_detect_locale.assert_called_once()
 
     @patch("mkmapdiary.lib.config.auto_detect_locale")
-    def test_auto_constructor_locale_failure(self, mock_auto_detect_locale) -> None:
+    def test_auto_constructor_locale_failure(
+        self, mock_auto_detect_locale: Mock
+    ) -> None:
         """Test auto constructor when locale detection fails."""
         mock_auto_detect_locale.return_value = None
 
@@ -156,7 +160,7 @@ class TestConfigLoaderIntegration:
         assert config["short_timeout"] == 30
 
     @patch("mkmapdiary.lib.config.auto_detect_timezone")
-    def test_config_loader_auto_tag(self, mock_auto_detect_timezone) -> None:
+    def test_config_loader_auto_tag(self, mock_auto_detect_timezone: Mock) -> None:
         """Test that ConfigLoader properly handles !auto tags."""
         mock_auto_detect_timezone.return_value = "America/New_York"
 

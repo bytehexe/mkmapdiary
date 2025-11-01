@@ -4,6 +4,7 @@ import json
 import pathlib
 import sqlite3
 import threading
+from typing import Any, Iterator, List, Tuple, Union
 
 lock = threading.Lock()
 
@@ -29,7 +30,7 @@ class Cache(collections.abc.MutableMapping):
             )
             self.__conn.commit()
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: Tuple[str, Union[List, Tuple]]) -> Any:
         section, parameters = key
         assert type(section) is str, "Section must be a string"
         assert type(parameters) in (tuple, list), "Parameters must be a tuple or list"
@@ -48,7 +49,7 @@ class Cache(collections.abc.MutableMapping):
                 raise KeyError(key)
             return json.loads(row[0])
 
-    def __setitem__(self, key, value) -> None:
+    def __setitem__(self, key: Tuple[str, Union[List, Tuple]], value: Any) -> None:
         section, parameters = key
         assert type(section) is str, "Section must be a string"
         assert type(parameters) in (tuple, list), "Parameters must be a tuple or list"
@@ -61,7 +62,7 @@ class Cache(collections.abc.MutableMapping):
             )
             self.__conn.commit()
 
-    def __delitem__(self, key) -> None:
+    def __delitem__(self, key: Tuple[str, Union[List, Tuple]]) -> None:
         section, parameters = key
         assert type(section) is str, "Section must be a string"
         assert type(parameters) in (tuple, list), "Parameters must be a tuple or list"
@@ -76,7 +77,7 @@ class Cache(collections.abc.MutableMapping):
                 raise KeyError(key)
             self.__conn.commit()
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Tuple[str, Any]]:
         with lock:
             cursor = self.__conn.cursor()
             cursor.execute("SELECT section, parameters FROM cache")

@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class BallTreeBuilder:
     def __init__(self, filter_config: dict):
         self.__coords: list[tuple[float, float]] = []
-        self.__pois: list[dict] = []
+        self.__pois: list[list] = []
         self.__filter_config = filter_config
 
     def load(self, index_data: dict, min_rank: int, max_rank: int) -> None:

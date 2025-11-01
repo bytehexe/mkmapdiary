@@ -13,7 +13,7 @@ class TagsTask(BaseTask):
     def task_build_tags(self) -> Iterator[Dict[str, Any]]:
         """Generate tags list."""
 
-        def _generate_tags(date) -> None:
+        def _generate_tags(date: str) -> None:
             tags_path = self.dirs.docs_dir / "templates" / f"{date}_tags.md"
 
             content = []

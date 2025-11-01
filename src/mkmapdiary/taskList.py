@@ -107,7 +107,7 @@ class TaskList(*tasks):  # type: ignore
         """Property to access the cache."""
         return self.__cache
 
-    def toDict(self):
+    def toDict(self) -> Dict[str, Any]:
         """Convert this object to a dictionary so that doit can use it."""
         return dict((name, getattr(self, name)) for name in dir(self))
 
@@ -191,7 +191,7 @@ class TaskList(*tasks):  # type: ignore
         """Pop the last calibration from the stack."""
         self.__calibration.pop()
 
-    def handle_symlink(self, source) -> None:
+    def handle_symlink(self, source: Path) -> None:
         """Handle a symlink by resolving its target."""
         target = source.resolve()
         self.handle(target)

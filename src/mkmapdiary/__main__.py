@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 import click
 
@@ -22,7 +23,7 @@ from .util.log import StepFilter, setup_logging
     help="Decrease verbosity level. Can be used multiple times.",
 )
 @click.pass_context
-def cli(ctx, verbose, quiet) -> None:
+def cli(ctx: Any, verbose: int, quiet: int) -> None:
     """mkmapdiary - Create map diaries from GPS data and notes."""
     # Setup console logging only (no log file at CLI level)
     setup_logging()

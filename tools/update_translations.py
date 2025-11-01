@@ -5,11 +5,13 @@ import pathlib
 import subprocess
 import sys
 import tempfile
+from pathlib import Path
+from typing import Union
 
 import click
 
 
-def compute_sha1_checksum(file_path):
+def compute_sha1_checksum(file_path: Union[str, Path]) -> str:
     sha1 = hashlib.sha1()
     with open(file_path, "rb") as f:
         while True:
@@ -26,7 +28,7 @@ def compute_sha1_checksum(file_path):
     is_flag=True,
     help="Check if translation files are up to date.",
 )
-def cli(check) -> None:
+def cli(check: bool) -> None:
     locale_dir = pathlib.Path(".") / "src" / "mkmapdiary" / "locale"
 
     languages = [

@@ -1,5 +1,6 @@
 import threading
 import time
+from typing import Any
 
 from .httpRequest import HttpRequest
 
@@ -7,7 +8,7 @@ lock = threading.Lock()
 
 
 class GeoLookup(HttpRequest):
-    def geoSearch(self, location):
+    def geoSearch(self, location: str) -> Any:
         with lock:
             time.sleep(1)  # respect rate limit
 
@@ -16,7 +17,7 @@ class GeoLookup(HttpRequest):
             params = {"q": location, "format": "json", "limit": 1}
             return self.httpRequest(url, params, headers)
 
-    def __decimals_for_zoom(self, zoom):
+    def __decimals_for_zoom(self, zoom: int) -> int:
         if self.config["geo_lookup"]["high_precision"]:
             offset = 1
         else:
@@ -29,11 +30,11 @@ class GeoLookup(HttpRequest):
         else:
             return 2 + offset
 
-    def __round_coord(self, coord, zoom):
+    def __round_coord(self, coord: float, zoom: int) -> float:
         d = self.__decimals_for_zoom(zoom)
         return round(coord, d)
 
-    def geoReverse(self, lat, lon, zoom):
+    def geoReverse(self, lat: float, lon: float, zoom: int) -> Any:
         # Interface uses separate lat, lon parameters (not (lon, lat) tuple) for Nominatim API compatibility
         zoom = max(1, min(zoom, 10))  # Clamp zoom
 

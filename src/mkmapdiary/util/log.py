@@ -2,6 +2,7 @@ import contextvars
 import logging
 import logging.config
 import pathlib
+from typing import Any, Optional
 
 import yaml
 from wcwidth import wcswidth
@@ -14,7 +15,7 @@ class IconFilter(logging.Filter):
         pad = 2 + length - width
         return icon + " " * (pad)
 
-    def filter(self, record) -> bool:
+    def filter(self, record: logging.LogRecord) -> bool:
         if hasattr(record, "icon"):
             record.fmt_icon = self.__pad_icon(record.icon)
         else:
@@ -26,7 +27,7 @@ class IconFilter(logging.Filter):
 
 
 class StepFilter(logging.Filter):
-    def filter(self, record) -> bool:
+    def filter(self, record: logging.LogRecord) -> bool:
         if record.name == "mkmapdiary.main.runner":
             return True
         if record.name == "mkmapdiary.taskList":
@@ -38,7 +39,7 @@ class StepFilter(logging.Filter):
         return False
 
 
-def record_factory(*args, **kwargs):
+def record_factory(*args: Any, **kwargs: Any) -> logging.LogRecord:
     record = old_factory(*args, **kwargs)
     record.task = current_task.get()
     return record
@@ -86,18 +87,19 @@ def add_file_logging(build_dir: pathlib.Path) -> None:
 
 
 class ThisMayTakeAWhile:
-    def __init__(self, logger: logging.Logger, info=None):
+    def __init__(self, logger: logging.Logger, info: Optional[str] = None):
         self.logger = logger
         self.__info = info
 
-    def __enter__(self):
+    def __enter__(self) -> "ThisMayTakeAWhile":
         if self.__info:
             text = f"{self.__info} - This may take a while ..."
         else:
             text = "This may take a while ..."
         self.logger.info(text, extra={"icon": "⏳"})
+        return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
         if self.__info:
             text = f" {self.__info[0].lower()}{self.__info[1:]}"
         else:

@@ -63,7 +63,7 @@ class Db:
             cursor.execute("SELECT COUNT(*) FROM assets")
             return cursor.fetchone()[0]
 
-    def count_assets_by_date(self):
+    def count_assets_by_date(self) -> dict[str, int]:
         with self.lock:
             cursor = self.conn.cursor()
             cursor.execute(
@@ -90,11 +90,13 @@ class Db:
             )
             return list(row[0] for row in cursor.fetchall())
 
-    def get_assets_by_type(self, asset_type):
+    def get_assets_by_type(
+        self, asset_type: Union[str, List[str], Tuple[str, ...]]
+    ) -> List[Tuple[str, str]]:
         if type(asset_type) in (list, tuple):
             asset_placeholder = ",".join("?" for _ in asset_type)
         else:
-            asset_type = [asset_type]
+            asset_type = [asset_type]  # type: ignore
             asset_placeholder = "?"
 
         with self.lock:
@@ -105,11 +107,13 @@ class Db:
             )
             return list(cursor.fetchall())
 
-    def get_assets_by_date(self, date, asset_type):
+    def get_assets_by_date(
+        self, date: str, asset_type: Union[str, List[str], Tuple[str, ...]]
+    ) -> List[Tuple[str, str]]:
         if type(asset_type) in (list, tuple):
             asset_placeholder = ",".join("?" for _ in asset_type)
         else:
-            asset_type = [asset_type]
+            asset_type = [asset_type]  # type: ignore
             asset_placeholder = "?"
 
         with self.lock:
@@ -120,7 +124,7 @@ class Db:
             )
             return list(cursor.fetchall())
 
-    def get_geo_by_name(self, name):
+    def get_geo_by_name(self, name: str) -> Optional[dict[str, Union[str, float]]]:
         # Returns dictionary with separate latitude/longitude keys (not (lon, lat) tuple)
         with self.lock:
             cursor = self.conn.cursor()
@@ -144,7 +148,7 @@ class Db:
 
             return list(cursor.fetchall()), headers
 
-    def get_unpositioned_assets(self):
+    def get_unpositioned_assets(self) -> List[Tuple[int, Optional[str]]]:
         with self.lock:
             cursor = self.conn.cursor()
             cursor.execute(
@@ -152,7 +156,7 @@ class Db:
             )
             return list(row for row in cursor.fetchall())
 
-    def get_unpositioned_asset_paths(self):
+    def get_unpositioned_asset_paths(self) -> List[str]:
         with self.lock:
             cursor = self.conn.cursor()
             cursor.execute(
@@ -160,7 +164,9 @@ class Db:
             )
             return list(row[0] for row in cursor.fetchall())
 
-    def update_asset_position(self, asset_id, latitude, longitude, approx) -> None:
+    def update_asset_position(
+        self, asset_id: int, latitude: float, longitude: float, approx: bool
+    ) -> None:
         # Database stores coordinates in separate latitude/longitude columns
         with self.lock:
             cursor = self.conn.cursor()
@@ -182,7 +188,9 @@ class Db:
             )
             return list(row[0] for row in cursor.fetchall())
 
-    def get_metadata(self, asset_path):
+    def get_metadata(
+        self, asset_path: str
+    ) -> Optional[dict[str, Union[int, str, float]]]:
         with self.lock:
             cursor = self.conn.cursor()
             cursor.execute(

@@ -1,4 +1,7 @@
-def tags_sort(tag):
+from typing import Any
+
+
+def tags_sort(tag: Any) -> str:
     str_tag = str(tag)
 
     if str_tag in ("identify", "extension"):

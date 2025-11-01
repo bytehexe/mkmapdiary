@@ -1,5 +1,6 @@
 import json
 import pathlib
+from typing import Any, Dict
 
 import pytest
 import requests
@@ -8,7 +9,7 @@ import shapely
 from mkmapdiary.poi.regionFinder import RegionFinder
 
 
-def load_geofabrik_data():
+def load_geofabrik_data() -> Dict[str, Any]:
     # Load geofabrik data
     pathlib.Path(".test-cache").mkdir(parents=True, exist_ok=True)
     index_path = pathlib.Path(".test-cache") / "geofabrik_index.json"

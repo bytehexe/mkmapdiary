@@ -11,7 +11,7 @@ class MarkdownTask(BaseTask):
         super().__init__()
         self.__sources: list[PosixPath] = []
 
-    def handle_markdown(self, source):
+    def handle_markdown(self, source: PosixPath) -> Iterator[Asset]:
         # Create task to convert image to target format
         self.__sources.append(source)
 
@@ -21,15 +21,17 @@ class MarkdownTask(BaseTask):
             AssetMeta(timestamp=self.extract_meta_datetime(source)),
         )
 
-    def __generate_destination_filename(self, source):
+    def __generate_destination_filename(self, source: PosixPath) -> PosixPath:
         file_format = "md"
-        filename = (self.dirs.assets_dir / source.stem).with_suffix(f".{file_format}")
+        filename = PosixPath(self.dirs.assets_dir / source.stem).with_suffix(
+            f".{file_format}"
+        )
         return self.make_unique_filename(source, filename)
 
     def task_markdown2markdown(self) -> Iterator[Dict[str, Any]]:
         """Copy text files to the assets directory."""
 
-        def _to_md(src, dst) -> None:
+        def _to_md(src: PosixPath, dst: PosixPath) -> None:
             with open(src) as f_src, open(dst, "w") as f_dst:
                 content = f_src.readlines()
 

@@ -14,7 +14,7 @@ class ImageTask(BaseTask, ExifReader):
         super().__init__()
         self.__sources: list[PosixPath] = []
 
-    def handle_image(self, source):
+    def handle_image(self, source: PosixPath) -> Iterator[Asset]:
         # Create task to convert image to target format
         self.__sources.append(source)
 
@@ -22,15 +22,17 @@ class ImageTask(BaseTask, ExifReader):
 
         yield Asset(self.__generate_destination_filename(source), "image", meta)
 
-    def __generate_destination_filename(self, source):
+    def __generate_destination_filename(self, source: PosixPath) -> PosixPath:
         image_format = self.config.get("image_format", "jpg")
-        filename = (self.dirs.assets_dir / source.stem).with_suffix(f".{image_format}")
+        filename = PosixPath(self.dirs.assets_dir / source.stem).with_suffix(
+            f".{image_format}"
+        )
         return self.make_unique_filename(source, filename)
 
     def task_convert_image(self) -> Iterator[Dict[str, Any]]:
         """Convert an image to a different format."""
 
-        def _convert(src, dst) -> None:
+        def _convert(src: PosixPath, dst: PosixPath) -> None:
             with Image.open(src) as img:
                 # apply image orientation if needed
                 self.read_exif(src)
