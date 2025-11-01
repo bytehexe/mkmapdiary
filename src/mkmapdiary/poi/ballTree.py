@@ -1,4 +1,4 @@
-from typing import Any, Dict, Generator, List, Tuple
+from typing import Any, Generator, List, Tuple
 
 import numpy as np
 from sklearn.neighbors import BallTree as SklearnBallTree
@@ -11,7 +11,7 @@ class BallTree:
         self,
         sklearn_ball_tree: SklearnBallTree,
         pois: List[List[Any]],
-        filter_config: Dict[str, Any],
+        filter_config: List,
     ) -> None:
         self.__sklearn_ball_tree = sklearn_ball_tree
         self.__pois = pois
@@ -46,7 +46,7 @@ class BallTree:
         assert type(poi_data[2][1]) is int, (
             f"POI filter expression ID should be an integer, but got {type(poi_data[2][1])}."
         )
-        filter_item = self.__filter_config[str(poi_data[2][0])]
+        filter_item = self.__filter_config[poi_data[2][0]]
         description = filter_item.get("description", "")
         symbol = filter_item.get("symbol", "unknown")
         filter_expression = filter_item["filters"][poi_data[2][1]]

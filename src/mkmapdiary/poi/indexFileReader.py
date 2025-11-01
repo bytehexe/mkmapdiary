@@ -19,7 +19,7 @@ class IndexFileReader:
     def header(self) -> Dict[str, Any]:
         return self.__header
 
-    def is_valid(self, filter_config: dict) -> bool:
+    def is_valid(self, filter_config: list) -> bool:
         expected_hash = get_hash(filter_config)
         return self.header.get("filter_hash") == expected_hash
 

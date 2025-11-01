@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class BallTreeBuilder:
-    def __init__(self, filter_config: dict):
+    def __init__(self, filter_config: list):
         self.__coords: list[tuple[float, float]] = []
         self.__pois: list[list] = []
         self.__filter_config = filter_config

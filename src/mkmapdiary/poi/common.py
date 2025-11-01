@@ -1,8 +1,8 @@
 import json
-from typing import List, NamedTuple
+from typing import Any, List, NamedTuple
 
 
-def get_hash(map_data: dict) -> str:
+def get_hash(map_data: Any) -> str:
     import hashlib
 
     map_data_str = json.dumps(map_data, sort_keys=True)

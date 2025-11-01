@@ -45,6 +45,10 @@ class Index:
             / "poi_filter_config.yaml",
         ) as config_file:
             self.filter_config = yaml.safe_load(config_file)
+            assert isinstance(self.filter_config, list), (
+                "POI filter configuration should be a list.",
+                self.filter_config,
+            )
 
         # Get the region index
         response = requests.get("https://download.geofabrik.de/index-v1.json")
