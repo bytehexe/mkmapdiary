@@ -11,7 +11,7 @@ class TagsTask(BaseTask):
     def __init__(self) -> None:
         super().__init__()
 
-    @create_after("gpx2gpx")
+    @create_after("geo_correlation")
     def task_build_tags(self) -> Iterator[Dict[str, Any]]:
         """Generate tags list."""
 

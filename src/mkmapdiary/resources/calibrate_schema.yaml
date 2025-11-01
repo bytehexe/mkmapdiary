@@ -1,0 +1,47 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: "Camera Calibration Configuration"
+description: "Configuration file for camera timestamp calibration in mkmapdiary"
+type: object
+
+properties:
+  calibration:
+    type: object
+    description: "Camera calibration settings"
+    properties:
+      timezone:
+        type: string
+        description: "Timezone of the camera timestamps (e.g., 'Europe/Berlin', 'Etc/GMT-1', or 'UTC')"
+        examples:
+          - "UTC"
+          - "Europe/Berlin"
+          - "America/New_York"
+          - "Etc/GMT-3"
+          - "Asia/Tokyo"
+      offset:
+        type: integer
+        description: "Time offset in seconds to apply to camera timestamps. Positive values mean camera time is ahead of reference time."
+        examples:
+          - 0
+          - -259
+          - 3600
+          - -1800
+    required:
+      - timezone
+      - offset
+    additionalProperties: false
+
+  # Alternative root-level format (for backward compatibility)
+  timezone:
+    type: string
+    description: "Timezone of the camera timestamps (root-level format)"
+    examples:
+      - "UTC"
+      - "Europe/Berlin"
+  offset:
+    type: integer
+    description: "Time offset in seconds (root-level format)"
+
+required:
+  - calibration
+
+additionalProperties: false

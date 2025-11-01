@@ -4,6 +4,7 @@ from typing import Any
 import click
 
 from .commands.build import build
+from .commands.calibrate import calibrate
 from .commands.config import config
 from .commands.generate_demo import generate_demo
 from .util.log import StepFilter, setup_logging
@@ -59,6 +60,7 @@ def cli(ctx: Any, verbose: int, quiet: int) -> None:
 cli.add_command(build)
 cli.add_command(config)
 cli.add_command(generate_demo)
+cli.add_command(calibrate)
 
 
 if __name__ == "__main__":

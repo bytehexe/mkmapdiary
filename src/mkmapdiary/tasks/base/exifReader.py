@@ -49,11 +49,12 @@ class ExifReader(ABC):
             return exif_data
 
         try:
-            create_date = exif_data_dict["EXIF:CreateDate"]
+            create_date = exif_data_dict["Composite:SubSecCreateDate"]
             py_datetime = datetime.datetime.strptime(
                 create_date,
-                "%Y:%m:%d %H:%M:%S",
+                "%Y:%m:%d %H:%M:%S.%f",
             )
+            logger.debug(f"EXIF CreateDate for {source}: {create_date} {py_datetime}")
             exif_data.create_date = self.calibrate(py_datetime)
         except KeyError as e:
             exif_data.create_date = self.extract_meta_datetime(source)

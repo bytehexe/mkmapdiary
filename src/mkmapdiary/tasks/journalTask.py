@@ -15,7 +15,7 @@ class JournalTask(BaseTask):
     def __init__(self) -> None:
         super().__init__()
 
-    @create_after("gpx2gpx")
+    @create_after("geo_correlation")
     def task_build_journal(self) -> Iterator[Dict[str, Any]]:
         """Generate journal pages."""
 

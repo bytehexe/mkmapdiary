@@ -10,7 +10,7 @@ class DayPageTask(BaseTask):
     def __init__(self) -> None:
         super().__init__()
 
-    @create_after("gpx2gpx")
+    @create_after("geo_correlation")
     def task_build_day_page(self) -> Iterator[Dict[str, Any]]:
         """Generate day pages for each date with assets."""
 

@@ -1,11 +1,11 @@
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Iterator, List, MutableMapping, Optional, Union
 
+import jsonschema
 import yaml
 from identify import identify
 
-from mkmapdiary.cache import Cache
 from mkmapdiary.lib.asset import AssetRecord
 from mkmapdiary.lib.calibration import Calibration
 from mkmapdiary.lib.dirs import Dirs
@@ -58,7 +58,8 @@ class TaskList(*tasks):  # type: ignore
         self,
         config: Dict[str, Any],
         dirs: Dirs,
-        cache: Cache,
+        cache: MutableMapping,
+        scan: bool = True,
     ):
         super().__init__()
 
@@ -75,7 +76,8 @@ class TaskList(*tasks):  # type: ignore
 
         # Store assets by date and then type
         self.__db = AssetRegistry()
-        self.__scan()
+        if scan:
+            self.__scan()
 
     @property
     def dirs(self) -> Dirs:
@@ -98,7 +100,7 @@ class TaskList(*tasks):  # type: ignore
         return self.__db
 
     @property
-    def cache(self) -> Cache:
+    def cache(self) -> MutableMapping:
         """Property to access the cache."""
         return self.__cache
 
@@ -110,18 +112,18 @@ class TaskList(*tasks):  # type: ignore
         """Scan the source directory and identify files and directories."""
         self.handle(self.dirs.source_dir)
 
-    def handle(self, source: Path) -> None:
+    def handle_path(self, source: Path) -> Union[Iterator, List[AssetRecord]]:
         """Handle a source file or directory based on its tags."""
 
         if source.is_file() and source.name == "config.yaml":
-            return
+            return []
 
         tags = identify.tags_from_path(str(source))
         logger.info(f"Processing {source} [{' '.join(tags)}]", extra={"icon": "🔍"})
 
         if not tags:
             logger.warning(f"Warning: No tags for {source}")
-            return
+            return []
 
         handler = None
         for tag in tags:
@@ -132,8 +134,11 @@ class TaskList(*tasks):  # type: ignore
                 continue
 
         if handler is not None:
-            self.add_assets(handler(source))
-            return
+            results = handler(source)
+            if results is not None:
+                return results
+            else:
+                return []
 
         ext = ("_".join(x[1:] for x in source.suffixes)).lower()
         try:
@@ -142,12 +147,21 @@ class TaskList(*tasks):  # type: ignore
             pass
 
         if handler is not None:
-            self.add_assets(handler(source))
-            return
+            results = handler(source)
+            if results is not None:
+                return results
+            else:
+                return []
 
         logger.warning(
             f"No handler for {source} with tags {tags} and extension '{ext}'",
         )
+        return []
+
+    def handle(self, source: Path) -> None:
+        results = self.handle_path(source)
+        if results:
+            self.add_assets(list(results))
 
     def handle_directory(self, source: Path) -> None:
         """Handle a directory by processing its contents."""
@@ -168,8 +182,18 @@ class TaskList(*tasks):  # type: ignore
         with open(calibration_file) as f:
             data = yaml.safe_load(f)
 
-        timezone = data.pop("timezone", self.__calibration[-1].timezone)
-        offset = data.pop("offset", self.__calibration[-1].offset)
+        schema_path = Path(__file__).parent / "resources" / "calibrate_schema.yaml"
+        with schema_path.open() as f:
+            schema = yaml.safe_load(f)
+
+        jsonschema.validate(instance=data, schema=schema)
+
+        timezone = data.get("calibration", {}).get(
+            "timezone", self.__calibration[-1].timezone
+        )
+        offset = data.get("calibration", {}).get(
+            "offset", self.__calibration[-1].offset
+        )
 
         if data:
             logger.warning(
