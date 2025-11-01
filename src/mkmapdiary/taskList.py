@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 from mkmapdiary.cache import Cache
 from mkmapdiary.lib.dirs import Dirs
 
-from .db import Db
+from .lib.assetRegistry import AssetRegistry
 from .tasks import (
     AudioTask,
     Cr2Task,
@@ -79,7 +79,7 @@ class TaskList(*tasks):  # type: ignore
         ]
 
         # Store assets by date and then type
-        self.__db = Db()
+        self.__db = AssetRegistry()
         self.__scan()
 
     @property
@@ -98,7 +98,7 @@ class TaskList(*tasks):  # type: ignore
         return self.__calibration[-1]
 
     @property
-    def db(self) -> Db:
+    def db(self) -> AssetRegistry:
         """Property to access the database."""
         return self.__db
 
@@ -207,4 +207,4 @@ class TaskList(*tasks):  # type: ignore
             asset.meta.timestamp.replace(tzinfo=ZoneInfo(self.calibration.timezone))
             asset.meta.timestamp += timedelta(seconds=self.calibration.offset)
             asset.meta.timestamp.astimezone(ZoneInfo("UTC"))
-            self.db.add_asset(asset.path, asset.type, asset.meta)
+            self.db.add_asset_legacy(asset.path, asset.type, asset.meta)

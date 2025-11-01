@@ -8,7 +8,7 @@ import dateutil.parser
 import ollama
 from jinja2 import Environment, PackageLoader, StrictUndefined, select_autoescape
 
-from mkmapdiary.db import Db
+from mkmapdiary.lib.assetRegistry import AssetRegistry
 from mkmapdiary.lib.dirs import Dirs
 from mkmapdiary.util.cache import with_cache
 
@@ -51,7 +51,7 @@ class BaseTask(ABC, metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def db(self) -> Db:
+    def db(self) -> AssetRegistry:
         """Property to access the database."""
 
     @property

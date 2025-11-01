@@ -95,7 +95,7 @@ class GPXTask(BaseTask):
         for date in dates:
             dst = self.__generate_destination_filename(date)
 
-            self.db.add_asset(
+            self.db.add_asset_legacy(
                 str(dst),
                 "gpx",
                 AssetMeta(

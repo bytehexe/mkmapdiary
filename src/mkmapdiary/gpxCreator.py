@@ -11,8 +11,8 @@ import numpy as np
 import shapely
 from numpy.typing import NDArray
 
-from mkmapdiary.db import Db
 from mkmapdiary.geoCluster import GeoCluster
+from mkmapdiary.lib.assetRegistry import AssetRegistry
 from mkmapdiary.poi.index import Index
 from mkmapdiary.util.log import ThisMayTakeAWhile
 
@@ -24,7 +24,7 @@ class GpxCreator:
         self,
         date: date,
         sources: Sequence[Union[str, PosixPath]],
-        db: Db,
+        db: AssetRegistry,
         region_cache_dir: Path,
     ) -> None:
         # FIXME: Inconsistent types
