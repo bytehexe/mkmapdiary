@@ -31,7 +31,8 @@ class GpxCreator:
         self.__coords: Union[list[list[float]], NDArray[np.floating]] = []
         self.__gpx_out = gpxpy.gpx.GPX()
         self.__sources = sources
-        self.__date = date
+        self.__date_w = date
+        self.__date = date.py_date()
         self.__db = db
         self.__region_cache_dir = region_cache_dir
 
@@ -166,13 +167,13 @@ class GpxCreator:
 
     def __add_journal_markers(self) -> None:
         for asset, asset_type in self.__db.get_assets_by_date(
-            str(self.__date),  # FIXME: Inconsistent types
+            self.__date_w,  # FIXME: Inconsistent types
             ("markdown", "audio"),
         ):
-            geo = self.__db.get_geo_by_name(asset)
+            geo = self.__db.get_geo_by_name(str(asset))
             if geo is None:
                 continue
-            metadata = self.__db.get_metadata(asset)
+            metadata = self.__db.get_metadata(str(asset))
             # geo dict uses separate latitude/longitude keys - GPX format (lat, lon)
             # Convert latitude/longitude to float if they're strings
             latitude = geo["latitude"]

@@ -1,6 +1,6 @@
-import datetime
 from typing import Any, Dict, Iterator
 
+import whenever
 from doit import create_after
 
 from .base.baseTask import BaseTask
@@ -14,12 +14,12 @@ class DayPageTask(BaseTask):
     def task_build_day_page(self) -> Iterator[Dict[str, Any]]:
         """Generate day pages for each date with assets."""
 
-        def _generate_day_page(date: str) -> None:
+        def _generate_day_page(date: whenever.Date) -> None:
             formatter = "%a, %x"
 
             day_page_path = self.dirs.docs_dir / f"{date}.md"
             with open(day_page_path, "w") as f:
-                formatted_date = datetime.datetime.strptime(date, "%Y-%m-%d").strftime(
+                formatted_date = date.py_date().strftime(
                     formatter,
                 )
                 f.write(

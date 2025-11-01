@@ -1,10 +1,14 @@
+import logging
 import pathlib
 from datetime import datetime
 from typing import Any, Dict, Iterator
 
+import whenever
 from doit import create_after
 
 from .base.baseTask import BaseTask
+
+logger = logging.getLogger(__name__)
 
 
 class JournalTask(BaseTask):
@@ -15,8 +19,10 @@ class JournalTask(BaseTask):
     def task_build_journal(self) -> Iterator[Dict[str, Any]]:
         """Generate journal pages."""
 
-        def _generate_journal(date: str) -> None:
-            gallery_path = self.dirs.docs_dir / "templates" / f"{date}_journal.md"
+        def _generate_journal(date: whenever.Date) -> None:
+            gallery_path = (
+                self.dirs.docs_dir / "templates" / f"{date.format_iso()}_journal.md"
+            )
 
             assets = []
 
@@ -24,7 +30,8 @@ class JournalTask(BaseTask):
                 date,
                 ("markdown", "audio"),
             ):
-                metadata = self.db.get_metadata(asset)
+                logger.debug(f"Processing asset: {asset} of type {asset_type}")
+                metadata = self.db.get_metadata(str(asset))
 
                 if (
                     metadata is not None
@@ -77,9 +84,14 @@ class JournalTask(BaseTask):
             yield dict(
                 name=str(date),
                 actions=[(_generate_journal, [date])],
-                targets=[self.dirs.docs_dir / "templates" / f"{date}_journal.md"],
+                targets=[
+                    self.dirs.docs_dir / "templates" / f"{date.format_iso()}_journal.md"
+                ],
                 file_dep=self.db.get_all_assets(),
                 calc_dep=["get_gpx_deps"],
-                task_dep=[f"create_directory:{self.dirs.templates_dir}"],
+                task_dep=[
+                    f"create_directory:{self.dirs.templates_dir}",
+                    "geo_correlation",
+                ],
                 uptodate=[True],
             )

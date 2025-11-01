@@ -1,4 +1,5 @@
 import dataclasses
+import pathlib
 import threading
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -59,7 +60,7 @@ class AssetRegistry:
             )
             return [str(asset.path) for asset in sorted_assets]
 
-    def get_all_dates(self) -> List[str]:
+    def get_all_dates(self) -> List[whenever.Date]:
         assert self._has_display_date, (
             "AssetRegistry must track display dates to get all dates"
         )
@@ -68,7 +69,7 @@ class AssetRegistry:
             dates = set()
             for asset in self._assets:
                 if asset.display_date:
-                    dates.add(asset.display_date.format_iso())
+                    dates.add(asset.display_date)
             return sorted(list(dates))
 
     def get_assets_by_type(
@@ -90,8 +91,15 @@ class AssetRegistry:
             return [(str(asset.path), asset.type) for asset in sorted_assets]
 
     def get_assets_by_date(
-        self, date: str, asset_type: Union[str, List[str], Tuple[str, ...]]
-    ) -> List[Tuple[str, str]]:
+        self,
+        date: whenever.Date,
+        asset_type: Union[str, List[str], Tuple[str, ...]],
+    ) -> List[Tuple[pathlib.Path, str]]:
+        if not self._has_display_date:
+            raise ValueError(
+                "AssetRegistry must track display dates to get assets by date"
+            )
+
         if isinstance(asset_type, str):
             asset_types = {asset_type}
         else:
@@ -102,7 +110,7 @@ class AssetRegistry:
             for asset in self._assets:
                 if (
                     asset.display_date
-                    and asset.display_date.format_iso() == date
+                    and asset.display_date == date
                     and asset.type in asset_types
                 ):
                     filtered_assets.append(asset)
@@ -111,7 +119,7 @@ class AssetRegistry:
             sorted_assets = sorted(
                 filtered_assets, key=lambda x: x.timestamp_utc or whenever.Instant.MIN
             )
-            return [(str(asset.path), asset.type) for asset in sorted_assets]
+            return [(asset.path, asset.type) for asset in sorted_assets]
 
     def get_geo_by_name(self, name: str) -> Optional[dict[str, Union[str, float]]]:
         with self.lock:
@@ -145,20 +153,16 @@ class AssetRegistry:
 
             return rows, headers
 
-    def get_unpositioned_assets(self) -> List[Tuple[int, Optional[str]]]:
+    def get_unpositioned_assets(self) -> List[Tuple[int, Optional[whenever.Instant]]]:
         with self.lock:
             result = []
             for asset in self._assets:
                 if (
                     asset.latitude is None or asset.longitude is None
                 ) and asset.type != "gpx":
-                    timestamp_str = (
-                        asset.timestamp_utc.format_iso()
-                        if asset.timestamp_utc
-                        else None
-                    )
+                    timestamp_val = asset.timestamp_utc if asset.timestamp_utc else None
                     assert asset.id is not None
-                    result.append((asset.id, timestamp_str))
+                    result.append((asset.id, timestamp_val))
             return result
 
     def get_unpositioned_asset_paths(self) -> List[str]:
@@ -200,7 +204,7 @@ class AssetRegistry:
     ) -> Optional[dict[str, Union[int, str, float, None]]]:
         with self.lock:
             for asset in self._assets:
-                if asset.path == asset_path:
+                if str(asset.path) == asset_path:
                     return {
                         "id": asset.id,
                         "timestamp": asset.timestamp_utc.format_iso()

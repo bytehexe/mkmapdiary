@@ -1,6 +1,5 @@
 import bisect
 import logging
-from datetime import datetime, timedelta
 from pathlib import Path, PosixPath
 from typing import Any, Dict, Iterator, List, Set, Tuple
 
@@ -11,7 +10,6 @@ import whenever
 from doit import create_after
 from tabulate import tabulate
 from whenever import Date
-from zoneinfo import ZoneInfo
 
 from mkmapdiary.gpxCreator import GpxCreator
 from mkmapdiary.lib.asset import AssetRecord
@@ -147,30 +145,43 @@ class GPXTask(BaseTask):
         }
 
     def __get_timed_coords(
-        self, gpx: gpxpy.gpx.GPX, coords: List[Tuple[datetime, float, float]]
+        self, gpx: gpxpy.gpx.GPX, coords: List[Tuple[whenever.Instant, float, float]]
     ) -> None:
         # Extract coordinates from GPX format (lat, lon) and store as (time, lon, lat) for internal use
         for wpt in gpx.waypoints:
             if wpt.time is not None:
-                coords.append((wpt.time, wpt.longitude, wpt.latitude))
+                coords.append(
+                    (
+                        whenever.Instant.from_py_datetime(wpt.time),
+                        wpt.longitude,
+                        wpt.latitude,
+                    )
+                )
         for trk in gpx.tracks:
             for seg in trk.segments:
                 for pt in seg.points:
                     if pt.time is not None:
-                        coords.append((pt.time, pt.longitude, pt.latitude))
+                        coords.append(
+                            (
+                                whenever.Instant.from_py_datetime(pt.time),
+                                pt.longitude,
+                                pt.latitude,
+                            )
+                        )
         for rte in gpx.routes:
             for rte_pt in rte.points:
                 if rte_pt.time is not None:
-                    coords.append((rte_pt.time, rte_pt.longitude, rte_pt.latitude))
+                    coords.append(
+                        (
+                            whenever.Instant.from_py_datetime(rte_pt.time),
+                            rte_pt.longitude,
+                            rte_pt.latitude,
+                        )
+                    )
 
     def task_geo_correlation(self) -> Dict[str, Any]:
         def _update_positions() -> None:
-            tz = ZoneInfo(self.config["site"]["timezone"])
-            offset = timedelta(
-                seconds=self.config["features"]["geo_correlation"]["time_offset"],
-            )
-
-            coords: list[tuple[datetime, float, float]] = []
+            coords: list[tuple[whenever.Instant, float, float]] = []
             for path in self.__sources:
                 with open(path, encoding="utf-8") as f:
                     gpx = gpxpy.parse(f)
@@ -179,10 +190,10 @@ class GPXTask(BaseTask):
             for asset_id, asset_time in self.db.get_unpositioned_assets():
                 # Find closest coordinate by time
                 if asset_time is not None:
-                    assert isinstance(asset_time, str), "Asset time should be a string"
-                    asset_datetime = (
-                        datetime.fromisoformat(asset_time).replace(tzinfo=tz) + offset
+                    assert isinstance(asset_time, whenever.Instant), (
+                        "Asset time should be a whenever.Instant"
                     )
+                    asset_datetime: whenever.Instant = asset_time
                     candidates = []
                     pos = bisect.bisect_left(coords, asset_datetime, key=lambda x: x[0])
                     if pos > 0:
@@ -193,7 +204,8 @@ class GPXTask(BaseTask):
                         closest = min(
                             candidates, key=lambda x: abs(x[0] - asset_datetime)
                         )
-                        diff = (closest[0] - asset_datetime).total_seconds()
+                        diff_w: whenever.TimeDelta = closest[0] - asset_datetime
+                        diff = diff_w.in_seconds()
                         if (
                             abs(diff)
                             < self.config["features"]["geo_correlation"][

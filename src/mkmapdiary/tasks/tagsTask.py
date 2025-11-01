@@ -1,5 +1,7 @@
+import pathlib
 from typing import Any, Dict, Iterator
 
+import whenever
 from doit import create_after
 
 from .base.baseTask import BaseTask
@@ -13,8 +15,10 @@ class TagsTask(BaseTask):
     def task_build_tags(self) -> Iterator[Dict[str, Any]]:
         """Generate tags list."""
 
-        def _generate_tags(date: str) -> None:
-            tags_path = self.dirs.docs_dir / "templates" / f"{date}_tags.md"
+        def _generate_tags(date: whenever.Date) -> None:
+            tags_path = (
+                self.dirs.docs_dir / "templates" / f"{date.format_iso()}_tags.md"
+            )
 
             content = []
 
@@ -23,7 +27,7 @@ class TagsTask(BaseTask):
                 ("markdown", "audio"),
             ):
                 if asset_type == "audio":
-                    asset = str(asset) + ".md"
+                    asset = pathlib.Path(str(asset) + ".md")
                 with open(asset) as f:
                     file_content_str = f.read()
                 if asset_type == "audio":
@@ -60,7 +64,9 @@ class TagsTask(BaseTask):
             yield dict(
                 name=str(date),
                 actions=[(_generate_tags, [date])],
-                targets=[self.dirs.docs_dir / "templates" / f"{date}_tags.md"],
+                targets=[
+                    self.dirs.docs_dir / "templates" / f"{date.format_iso()}_tags.md"
+                ],
                 file_dep=self.db.get_all_assets(),
                 calc_dep=["get_gpx_deps"],
                 task_dep=[

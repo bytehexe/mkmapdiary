@@ -1,6 +1,7 @@
 import pathlib
 from typing import Any, Dict, Iterator
 
+import whenever
 from doit import create_after
 
 from .base.baseTask import BaseTask
@@ -14,8 +15,10 @@ class GalleryTask(BaseTask):
     def task_build_gallery(self) -> Iterator[Dict[str, Any]]:
         """Generate gallery pages."""
 
-        def _generate_gallery(date: str) -> None:
-            gallery_path = self.dirs.docs_dir / "templates" / f"{date}_gallery.md"
+        def _generate_gallery(date: whenever.Date) -> None:
+            gallery_path = (
+                self.dirs.docs_dir / "templates" / f"{date.format_iso()}_gallery.md"
+            )
 
             gallery_items = []
             geo_items = []
@@ -27,11 +30,11 @@ class GalleryTask(BaseTask):
 
                 gallery_items.append(item)
 
-                geo_data_item = self.db.get_geo_by_name(asset)
+                geo_data_item = self.db.get_geo_by_name(str(asset))
                 if geo_data_item:
                     geo_item = dict(
-                        photo="assets/" + asset.split("/")[-1],
-                        thumbnail="assets/" + asset.split("/")[-1],
+                        photo="assets/" + str(asset).split("/")[-1],
+                        thumbnail="assets/" + str(asset).split("/")[-1],
                         lat=geo_data_item["latitude"],
                         lng=geo_data_item["longitude"],
                         index=i,
@@ -55,7 +58,7 @@ class GalleryTask(BaseTask):
                         gallery_items=gallery_items,
                         geo_items=geo_items,
                         gpx_data=gpx_data,
-                        gpx_file=gpx[0][0].split("/")[-1] if gpx else None,
+                        gpx_file=str(gpx[0][0]).split("/")[-1] if gpx else None,
                     ),
                 )
 
