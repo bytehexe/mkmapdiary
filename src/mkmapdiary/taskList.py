@@ -1,11 +1,9 @@
 import logging
-from datetime import timedelta
 from pathlib import Path
 from typing import Any, Dict, NamedTuple
 
 import yaml
 from identify import identify
-from zoneinfo import ZoneInfo
 
 from mkmapdiary.cache import Cache
 from mkmapdiary.lib.dirs import Dirs
@@ -204,7 +202,7 @@ class TaskList(*tasks):  # type: ignore
         # Adjust timestamps based on current calibration
 
         for asset in assets:
-            asset.meta.timestamp.replace(tzinfo=ZoneInfo(self.calibration.timezone))
-            asset.meta.timestamp += timedelta(seconds=self.calibration.offset)
-            asset.meta.timestamp.astimezone(ZoneInfo("UTC"))
-            self.db.add_asset_legacy(asset.path, asset.type, asset.meta)
+            # asset.datetime.replace(tzinfo=ZoneInfo(self.calibration.timezone))
+            # asset.datetime += timedelta(seconds=self.calibration.offset)
+            # asset.datetime = asset.datetime.astimezone(ZoneInfo("UTC"))
+            self.db.add_asset(asset)

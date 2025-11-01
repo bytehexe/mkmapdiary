@@ -1,23 +1,8 @@
 import datetime
 import threading
-from dataclasses import dataclass
-from pathlib import PosixPath
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-from mkmapdiary.lib.asset import AssetMeta
-
-
-@dataclass
-class AssetRecord:
-    """Model for storing asset data in the database."""
-
-    id: int
-    path: str
-    type: str
-    datetime: Optional[datetime.datetime]
-    latitude: Optional[float]
-    longitude: Optional[float]
-    approx: Optional[bool] = None
+from mkmapdiary.lib.asset import AssetRecord
 
 
 class AssetRegistry:
@@ -36,23 +21,13 @@ class AssetRegistry:
         with self.lock:
             return self._assets.copy()
 
-    def add_asset_legacy(
-        self, path: Union[str, PosixPath], asset_type: str, meta: AssetMeta
-    ) -> None:
-        assert meta.timestamp is None or isinstance(
-            meta.timestamp,
-            datetime.datetime,
-        ), "Meta 'timestamp' must be a datetime object or None"
-
+    def add_asset(self, asset_record: AssetRecord) -> None:
         with self.lock:
-            asset_record = AssetRecord(
-                id=self.next_id,
-                path=str(path),
-                type=asset_type,
-                datetime=meta.timestamp,
-                latitude=meta.latitude,
-                longitude=meta.longitude,
+            assert asset_record.id is None, (
+                "AssetRecord id must be None when adding a new asset"
             )
+            asset_record.id = self.next_id
+
             self._assets.append(asset_record)
 
     def count_assets(self) -> int:
@@ -74,7 +49,7 @@ class AssetRegistry:
             sorted_assets = sorted(
                 self._assets, key=lambda x: x.datetime or datetime.datetime.min
             )
-            return [asset.path for asset in sorted_assets]
+            return [str(asset.path) for asset in sorted_assets]
 
     def get_all_dates(self) -> List[str]:
         with self.lock:
@@ -100,7 +75,7 @@ class AssetRegistry:
             sorted_assets = sorted(
                 filtered_assets, key=lambda x: x.datetime or datetime.datetime.min
             )
-            return [(asset.path, asset.type) for asset in sorted_assets]
+            return [(str(asset.path), asset.type) for asset in sorted_assets]
 
     def get_assets_by_date(
         self, date: str, asset_type: Union[str, List[str], Tuple[str, ...]]
@@ -124,7 +99,7 @@ class AssetRegistry:
             sorted_assets = sorted(
                 filtered_assets, key=lambda x: x.datetime or datetime.datetime.min
             )
-            return [(asset.path, asset.type) for asset in sorted_assets]
+            return [(str(asset.path), asset.type) for asset in sorted_assets]
 
     def get_geo_by_name(self, name: str) -> Optional[dict[str, Union[str, float]]]:
         with self.lock:
@@ -135,7 +110,7 @@ class AssetRegistry:
                     and asset.longitude is not None
                 ):
                     return {
-                        "name": asset.path,
+                        "name": str(asset.path),
                         "latitude": asset.latitude,
                         "longitude": asset.longitude,
                     }
@@ -177,6 +152,7 @@ class AssetRegistry:
                     datetime_str = (
                         asset.datetime.isoformat() if asset.datetime else None
                     )
+                    assert asset.id is not None
                     result.append((asset.id, datetime_str))
             return result
 
@@ -187,7 +163,7 @@ class AssetRegistry:
                 if (
                     asset.latitude is None or asset.longitude is None
                 ) and asset.type != "gpx":
-                    result.append(asset.path)
+                    result.append(str(asset.path))
             return result
 
     def update_asset_position(

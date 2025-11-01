@@ -1,42 +1,35 @@
-import datetime
-from pathlib import PosixPath
-from typing import NamedTuple, Optional, Union
+import dataclasses
+import datetime as datetime_
+import pathlib
+from typing import Optional
 
 
-class AssetMeta:
-    def __init__(
-        self,
-        timestamp: Optional[datetime.datetime] = None,
-        latitude: Optional[float] = None,
-        longitude: Optional[float] = None,
-    ):
-        self.timestamp = timestamp
-        self.latitude = latitude
-        self.longitude = longitude
+@dataclasses.dataclass(kw_only=True)
+class AssetRecord:
+    """Model for storing asset data in the database."""
 
-    timestamp: Optional[datetime.datetime]
-    latitude: Optional[float]
-    longitude: Optional[float]
-
-    __slots__ = ["timestamp", "latitude", "longitude"]
-
-    def _asdict(self) -> dict:
-        return {
-            "timestamp": self.timestamp,
-            "latitude": self.latitude,
-            "longitude": self.longitude,
-        }
-
-    def update(self, other: Union[dict, "AssetMeta"]) -> None:
-        if isinstance(other, AssetMeta):
-            other = other._asdict()
-
-        for key, value in other.items():
-            if value is not None:
-                setattr(self, key, value)
-
-
-class Asset(NamedTuple):
-    path: PosixPath
+    id: Optional[int] = None
+    path: pathlib.Path
     type: str
-    meta: AssetMeta
+    datetime: Optional[datetime_.datetime] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    approx: Optional[bool] = None
+    orientation: Optional[int] = None
+
+
+@dataclasses.dataclass(kw_only=True)
+class AssetMetadata:
+    """Subset of AssetRecord for storing metadata key-value pairs."""
+
+    datetime: Optional[datetime_.datetime] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    orientation: Optional[int] = None
+
+
+def update_asset_metadata(
+    asset: AssetRecord,
+    asset_meta: AssetMetadata,
+) -> AssetRecord:
+    return dataclasses.replace(asset, **dataclasses.asdict(asset_meta))

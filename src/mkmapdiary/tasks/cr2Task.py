@@ -30,7 +30,12 @@ class Cr2Task(BaseTask, ExifReader):
         assert len(assets) == 1
         asset = assets[0]
 
-        asset.meta.update(self.read_exif(source))
+        exif = self.read_exif(source)
+        if exif.create_date:
+            asset.datetime = exif.create_date
+        if exif.latitude and exif.longitude:
+            asset.latitude = exif.latitude
+            asset.longitude = exif.longitude
         yield asset
 
     def task_convert_raw(self) -> Iterator[Dict[str, Any]]:

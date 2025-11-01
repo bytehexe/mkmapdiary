@@ -6,7 +6,7 @@ from typing import Any, Dict, Iterator
 
 from pydub import AudioSegment
 
-from mkmapdiary.lib.asset import Asset, AssetMeta
+from mkmapdiary.lib.asset import AssetRecord
 from mkmapdiary.util.log import ThisMayTakeAWhile
 
 from .base.baseTask import BaseTask
@@ -21,18 +21,26 @@ class AudioTask(BaseTask):
         super().__init__()
         self.__sources: list[PosixPath] = []
 
-    def handle_audio(self, source: PosixPath) -> Iterator[Asset]:
+    def handle_audio(self, source: PosixPath) -> Iterator[AssetRecord]:
         # Create task to convert image to target format
         self.__sources.append(source)
 
-        meta = AssetMeta(timestamp=self.extract_meta_datetime(source))
+        timestamp = self.extract_meta_datetime(source)
 
-        yield Asset(self.__generate_destination_filename(source, ".mp3"), "audio", meta)
-        yield Asset(
-            self.__generate_destination_filename(source, ".mp3.md"),
-            "transcript",
-            meta,
+        asset = AssetRecord(
+            path=self.__generate_destination_filename(source, ".mp3"),
+            type="audio",
+            datetime=timestamp,
         )
+
+        transcript_asset = AssetRecord(
+            path=self.__generate_destination_filename(source, ".mp3.md"),
+            type="transcript",
+            datetime=timestamp,
+        )
+
+        yield asset
+        yield transcript_asset
 
     def __generate_destination_filename(
         self, source: PosixPath, suffix: str

@@ -1,7 +1,7 @@
 from pathlib import PosixPath
 from typing import Any, Dict, Iterator
 
-from mkmapdiary.lib.asset import Asset, AssetMeta
+from mkmapdiary.lib.asset import AssetRecord
 
 from .base.baseTask import BaseTask
 
@@ -11,14 +11,14 @@ class MarkdownTask(BaseTask):
         super().__init__()
         self.__sources: list[PosixPath] = []
 
-    def handle_markdown(self, source: PosixPath) -> Iterator[Asset]:
+    def handle_markdown(self, source: PosixPath) -> Iterator[AssetRecord]:
         # Create task to convert image to target format
         self.__sources.append(source)
 
-        yield Asset(
-            self.__generate_destination_filename(source),
-            "markdown",
-            AssetMeta(timestamp=self.extract_meta_datetime(source)),
+        yield AssetRecord(
+            path=self.__generate_destination_filename(source),
+            type="markdown",
+            datetime=self.extract_meta_datetime(source),
         )
 
     def __generate_destination_filename(self, source: PosixPath) -> PosixPath:

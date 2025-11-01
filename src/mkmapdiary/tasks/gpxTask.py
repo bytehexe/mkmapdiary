@@ -12,7 +12,7 @@ from tabulate import tabulate
 from zoneinfo import ZoneInfo
 
 from mkmapdiary.gpxCreator import GpxCreator
-from mkmapdiary.lib.asset import AssetMeta
+from mkmapdiary.lib.asset import AssetRecord
 
 from .base.baseTask import BaseTask
 
@@ -95,13 +95,13 @@ class GPXTask(BaseTask):
         for date in dates:
             dst = self.__generate_destination_filename(date)
 
-            self.db.add_asset_legacy(
-                str(dst),
-                "gpx",
-                AssetMeta(
-                    timestamp=datetime.combine(date, datetime.min.time()),
-                ),
+            asset = AssetRecord(
+                path=dst,
+                type="gpx",
+                datetime=datetime.combine(date, datetime.min.time()),
             )
+
+            self.db.add_asset(asset)
 
             yield {
                 "name": date.isoformat(),
