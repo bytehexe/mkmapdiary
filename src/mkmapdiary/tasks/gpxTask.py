@@ -1,14 +1,16 @@
 import bisect
 import logging
-from datetime import date as date_type
 from datetime import datetime, timedelta
 from pathlib import Path, PosixPath
 from typing import Any, Dict, Iterator, List, Set, Tuple
 
 import gpxpy
 import gpxpy.gpx
+import tzfpy
+import whenever
 from doit import create_after
 from tabulate import tabulate
+from whenever import Date
 from zoneinfo import ZoneInfo
 
 from mkmapdiary.gpxCreator import GpxCreator
@@ -33,33 +35,33 @@ class GPXTask(BaseTask):
         # Instead we will resort to delayed task creation.
         return []
 
-    def __get_contained_dates(self, source: PosixPath) -> Set[date_type]:
+    def __get_contained_dates(self, source: PosixPath) -> Set[Date]:
         # Collect all dates in the gpx file
-        dates = set()
+        dates: Set[Date] = set()
         with open(source, encoding="utf-8") as f:
             gpx = gpxpy.parse(f)
         for wpt in gpx.waypoints:
             if wpt.time is not None:
-                dates.add(wpt.time.date())
+                dates.add(Date.from_py_date(wpt.time.date()))
         for trk in gpx.tracks:
             for seg in trk.segments:
                 for pt in seg.points:
                     if pt.time is not None:
-                        dates.add(pt.time.date())
+                        dates.add(Date.from_py_date(pt.time.date()))
         for rte in gpx.routes:
             for rte_pt in rte.points:
                 if rte_pt.time is not None:
-                    dates.add(rte_pt.time.date())
+                    dates.add(Date.from_py_date(rte_pt.time.date()))
 
         return dates
 
-    def __generate_destination_filename(self, date: date_type) -> Path:
-        filename = (self.dirs.assets_dir / date.strftime("%Y-%m-%d")).with_suffix(
+    def __generate_destination_filename(self, date: Date) -> Path:
+        filename = (self.dirs.assets_dir / date.format_iso()).with_suffix(
             ".gpx",
         )
         return filename
 
-    def __gpx2gpx(self, date: date_type, dst: Path, gpx_source: bool) -> None:
+    def __gpx2gpx(self, date: Date, dst: Path, gpx_source: bool) -> None:
         if gpx_source:
             sources = self.__sources
         else:
@@ -86,7 +88,7 @@ class GPXTask(BaseTask):
     @create_after("pre_gpx", target_regex=r".*\.gpx")
     def task_gpx2gpx(self) -> Iterator[Dict[str, Any]]:
         # Collect all dates in all source files
-        dates = set()
+        dates: Set[whenever.Date] = set()
         for source in self.__sources:
             if not source.exists():
                 raise FileNotFoundError(f"Source file not found: {source}")
@@ -98,13 +100,13 @@ class GPXTask(BaseTask):
             asset = AssetRecord(
                 path=dst,
                 type="gpx",
-                datetime=datetime.combine(date, datetime.min.time()),
+                display_date=date,
             )
 
             self.db.add_asset(asset)
 
             yield {
-                "name": date.isoformat(),
+                "name": date.format_iso(),
                 "actions": [(self.__gpx2gpx, [date, dst, True])],
                 "file_dep": [str(src) for src in self.__sources],
                 "task_dep": ["geo_correlation", "qstarz2gpx"],
@@ -112,17 +114,11 @@ class GPXTask(BaseTask):
                 "clean": True,
             }
 
-        journal_dates = (
-            set(
-                datetime.fromisoformat(date).date()
-                for date in self.db.get_geotagged_journals()
-            )
-            - dates
-        )
+        journal_dates = set(self.db.get_geotagged_journals()) - dates
         for date in journal_dates:
             dst = self.__generate_destination_filename(date)
             yield {
-                "name": date.isoformat(),
+                "name": date.format_iso(),
                 "actions": [(self.__gpx2gpx, [date, dst, False])],
                 "task_dep": ["geo_correlation"],
                 "targets": [str(dst)],
@@ -213,6 +209,53 @@ class GPXTask(BaseTask):
                                     diff
                                 ),  # Convert to bool as expected by the function
                             )
+
+            # Assigning timestamp_geo to assets
+            # FIXME: This is a hack
+            for asset in self.db._assets:
+                if asset.timestamp_utc is None:
+                    # No UTC timestamp to base geo timestamp on
+                    continue
+
+                if asset.latitude is None or asset.longitude is None:
+                    # Not enough data to determine timezone
+                    logger.warning(
+                        f"Asset {asset.id} is missing geo information, assigning localtime."
+                    )
+                    asset.timestamp_geo = asset.timestamp_utc.to_system_tz()
+                    continue
+
+                if asset.timestamp_geo is not None:
+                    # Already has a geo timestamp
+                    continue
+
+                asset_tz = tzfpy.get_tz(
+                    lng=asset.longitude,
+                    lat=asset.latitude,
+                )
+                asset.timestamp_geo = asset.timestamp_utc.to_tz(asset_tz)
+
+            # Assigning display date to assets
+            # FIXME: This is a hack
+            last_date = whenever.Date.MIN
+            for asset in sorted(
+                self.db._assets, key=lambda x: x.timestamp_utc or whenever.Instant.MIN
+            ):
+                if asset.timestamp_geo is None:
+                    continue
+
+                temp_date = asset.timestamp_geo.date()
+
+                # Ensure non-decreasing display dates (avoid going back in time)
+                if temp_date < last_date:
+                    asset.display_date = last_date
+                else:
+                    asset.display_date = temp_date
+                    last_date = temp_date
+
+            # FIXME: Another hack to signal that display dates are present
+            self.db._has_display_date = True
+
             logger.debug(
                 "Asset positions updated:\n" + tabulate(*self.db.dump()),
                 extra={"icon": "🌐"},

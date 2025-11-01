@@ -5,6 +5,8 @@ from typing import Any, Dict, Generator, Iterator
 import imageio.v2 as imageio
 import rawpy
 
+from mkmapdiary.lib.asset import AssetRecord
+
 from .base.exifReader import ExifReader
 from .imageTask import BaseTask
 
@@ -16,7 +18,7 @@ class Cr2Task(BaseTask, ExifReader):
 
     @abstractmethod
     def handle_image(self, source: PosixPath) -> Generator:
-        pass
+        raise NotImplementedError
 
     def __generate_intermediate_filename(self, source: PosixPath) -> PosixPath:
         filename = PosixPath(self.dirs.files_dir / source.stem).with_suffix(".jpeg")
@@ -31,9 +33,11 @@ class Cr2Task(BaseTask, ExifReader):
         asset = assets[0]
 
         exif = self.read_exif(source)
-        if exif.create_date:
-            asset.datetime = exif.create_date
-        if exif.latitude and exif.longitude:
+
+        assert isinstance(asset, AssetRecord)
+        if exif.create_date is not None:
+            asset.timestamp_utc = exif.create_date
+        if exif.latitude is not None and exif.longitude is not None:
             asset.latitude = exif.latitude
             asset.longitude = exif.longitude
         yield asset

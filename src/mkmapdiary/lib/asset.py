@@ -1,7 +1,8 @@
 import dataclasses
-import datetime as datetime_
 import pathlib
 from typing import Optional
+
+import whenever
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -11,7 +12,9 @@ class AssetRecord:
     id: Optional[int] = None
     path: pathlib.Path
     type: str
-    datetime: Optional[datetime_.datetime] = None
+    timestamp_utc: Optional[whenever.Instant] = None
+    timestamp_geo: Optional[whenever.ZonedDateTime] = None
+    display_date: Optional[whenever.Date] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     approx: Optional[bool] = None
@@ -22,7 +25,7 @@ class AssetRecord:
 class AssetMetadata:
     """Subset of AssetRecord for storing metadata key-value pairs."""
 
-    datetime: Optional[datetime_.datetime] = None
+    timestamp_utc: Optional[whenever.Instant] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     orientation: Optional[int] = None

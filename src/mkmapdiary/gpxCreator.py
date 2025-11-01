@@ -1,6 +1,5 @@
 import logging
 import warnings
-from datetime import date
 from pathlib import Path, PosixPath
 from typing import Sequence, Union
 
@@ -10,6 +9,7 @@ import hdbscan
 import numpy as np
 import shapely
 from numpy.typing import NDArray
+from whenever import Date
 
 from mkmapdiary.geoCluster import GeoCluster
 from mkmapdiary.lib.assetRegistry import AssetRegistry
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 class GpxCreator:
     def __init__(
         self,
-        date: date,
+        date: Date,
         sources: Sequence[Union[str, PosixPath]],
         db: AssetRegistry,
         region_cache_dir: Path,

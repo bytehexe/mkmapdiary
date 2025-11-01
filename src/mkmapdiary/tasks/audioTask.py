@@ -30,13 +30,13 @@ class AudioTask(BaseTask):
         asset = AssetRecord(
             path=self.__generate_destination_filename(source, ".mp3"),
             type="audio",
-            datetime=timestamp,
+            timestamp_utc=timestamp,
         )
 
         transcript_asset = AssetRecord(
             path=self.__generate_destination_filename(source, ".mp3.md"),
             type="transcript",
-            datetime=timestamp,
+            timestamp_utc=timestamp,
         )
 
         yield asset

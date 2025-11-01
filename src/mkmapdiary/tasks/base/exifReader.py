@@ -1,15 +1,19 @@
 import dataclasses
 import datetime
+import logging
 from abc import ABC, abstractmethod
 from pathlib import PosixPath
-from typing import Optional
+from typing import Optional, Union
 
 import exiftool
+import whenever
+
+logger = logging.getLogger(__name__)
 
 
 @dataclasses.dataclass
 class ExifData:
-    create_date: Optional[datetime.datetime] = None
+    create_date: Optional[whenever.Instant] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     orientation: Optional[int] = None
@@ -17,7 +21,13 @@ class ExifData:
 
 class ExifReader(ABC):
     @abstractmethod
-    def extract_meta_datetime(self, source: PosixPath) -> Optional[datetime.datetime]:
+    def extract_meta_datetime(self, source: PosixPath) -> Optional[whenever.Instant]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def calibrate(
+        self, dt: Union[whenever.PlainDateTime, datetime.datetime]
+    ) -> whenever.Instant:
         pass
 
     def read_exif(self, source: PosixPath) -> ExifData:
@@ -28,22 +38,26 @@ class ExifReader(ABC):
         with exiftool.ExifToolHelper() as et:
             try:
                 exif_data_dict = et.get_metadata([source])[0]
-            except exiftool.exceptions.ExifToolExecuteError:
+            except exiftool.exceptions.ExifToolExecuteError as e:
                 exif_data.create_date = self.extract_meta_datetime(source)
+                logger.debug(f"Failed to read EXIF data from {source} ({e})")
                 return exif_data
 
         if not exif_data_dict:
             exif_data.create_date = self.extract_meta_datetime(source)
+            logger.debug(f"Failed to read EXIF data from {source} (no data)")
             return exif_data
 
         try:
             create_date = exif_data_dict["EXIF:CreateDate"]
-            exif_data.create_date = datetime.datetime.strptime(
+            py_datetime = datetime.datetime.strptime(
                 create_date,
                 "%Y:%m:%d %H:%M:%S",
             )
-        except KeyError:
+            exif_data.create_date = self.calibrate(py_datetime)
+        except KeyError as e:
             exif_data.create_date = self.extract_meta_datetime(source)
+            logger.debug(f"Failed to read EXIF CreateDate from {source} ({e})")
 
         try:
             exif_data.latitude = exif_data_dict["Composite:GPSLatitude"]
@@ -56,4 +70,5 @@ class ExifReader(ABC):
         except KeyError:
             pass
 
+        logger.debug(f"EXIF data for {source}: {exif_data}")
         return exif_data

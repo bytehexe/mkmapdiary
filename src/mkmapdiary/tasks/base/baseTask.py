@@ -6,9 +6,11 @@ from typing import Any, Callable, Dict, List, Mapping, Optional, Tuple, Union
 
 import dateutil.parser
 import ollama
+import whenever
 from jinja2 import Environment, PackageLoader, StrictUndefined, select_autoescape
 
 from mkmapdiary.lib.assetRegistry import AssetRegistry
+from mkmapdiary.lib.calibration import Calibration
 from mkmapdiary.lib.dirs import Dirs
 from mkmapdiary.util.cache import with_cache
 
@@ -61,10 +63,34 @@ class BaseTask(ABC, metaclass=ABCMeta):
 
     @property
     @abstractmethod
+    def calibration(self) -> Calibration:
+        """Property to access the current calibration."""
+
+    @property
+    @abstractmethod
     def cache(self) -> Mapping[Tuple[str, Union[Tuple[Any], List[Any]]], Any]:
         """Property to access the cache."""
 
-    def extract_meta_datetime(self, source: PosixPath) -> Optional[datetime.datetime]:
+    def calibrate(
+        self, dt: Union[whenever.PlainDateTime, datetime.datetime]
+    ) -> whenever.Instant:
+        """Calibrate a PlainDateTime to an Instant using the current calibration."""
+        calibration = self.calibration
+        return self._calibrate(dt, calibration)
+
+    @staticmethod
+    def _calibrate(
+        dt: Union[whenever.PlainDateTime, datetime.datetime], calibration: Calibration
+    ) -> whenever.Instant:
+        if isinstance(dt, datetime.datetime):
+            dt = whenever.PlainDateTime.from_py_datetime(dt)
+        return (
+            dt.assume_tz(calibration.timezone)
+            .to_instant()
+            .subtract(seconds=calibration.offset)
+        )
+
+    def extract_meta_datetime(self, source: PosixPath) -> Optional[whenever.Instant]:
         """Extract metadata from the file's modification time."""
 
         # If the file does not exist, return None
@@ -76,12 +102,28 @@ class BaseTask(ABC, metaclass=ABCMeta):
         # Try to extract timestamp from filename
         timestr = "".join(x for x in str(source.stem) if x.isdigit())
         try:
-            return dateutil.parser.parse(f"<{timestr}>", fuzzy=True, ignoretz=True)
+            py_datetime = dateutil.parser.parse(
+                f"<{timestr}>", fuzzy=True, ignoretz=True
+            )
+            calibration = self.calibration
+            return (
+                whenever.PlainDateTime.from_py_datetime(py_datetime)
+                .assume_tz(calibration.timezone)
+                .to_instant()
+                .add(seconds=calibration.offset)
+            )
+
         except dateutil.parser.ParserError:
             pass  # Ignore and fallback to mtime
 
         # Fallback: Use the file's modification time
-        return datetime.datetime.fromtimestamp(stat.st_mtime)
+        py_datetime = datetime.datetime.fromtimestamp(stat.st_mtime)
+        return (
+            whenever.PlainDateTime.from_py_datetime(py_datetime)
+            .assume_tz(self.calibration.timezone)
+            .to_instant()
+            .add(seconds=self.calibration.offset)
+        )
 
     def template(self, template_name: str, **params: Any) -> str:
         template = self.__template_env.get_template(template_name)

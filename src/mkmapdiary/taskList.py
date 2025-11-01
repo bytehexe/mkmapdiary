@@ -1,11 +1,13 @@
 import logging
 from pathlib import Path
-from typing import Any, Dict, NamedTuple
+from typing import Any, Dict, List, Optional
 
 import yaml
 from identify import identify
 
 from mkmapdiary.cache import Cache
+from mkmapdiary.lib.asset import AssetRecord
+from mkmapdiary.lib.calibration import Calibration
 from mkmapdiary.lib.dirs import Dirs
 
 from .lib.assetRegistry import AssetRegistry
@@ -42,11 +44,6 @@ tasks = [
     QstarzTask,
     TagsTask,
 ]
-
-
-class Calibration(NamedTuple):
-    timezone: str
-    offset: int
 
 
 class TaskList(*tasks):  # type: ignore
@@ -194,8 +191,9 @@ class TaskList(*tasks):  # type: ignore
         target = source.resolve()
         self.handle(target)
 
-    def add_assets(self, assets: None) -> None:
+    def add_assets(self, assets: Optional[List[AssetRecord]]) -> None:
         """Add an asset to the list."""
+
         if assets is None:
             return
 

@@ -18,7 +18,7 @@ class TextTask(BaseTask):
         yield AssetRecord(
             path=self.__generate_destination_filename(source),
             type="markdown",
-            datetime=self.extract_meta_datetime(source),
+            timestamp_utc=self.extract_meta_datetime(source),
         )
 
     def __generate_destination_filename(self, source: PosixPath) -> PosixPath:

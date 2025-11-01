@@ -23,7 +23,7 @@ class ImageTask(BaseTask, ExifReader):
         asset = AssetRecord(
             path=self.__generate_destination_filename(source),
             type="image",
-            datetime=exif_data.create_date,
+            timestamp_utc=exif_data.create_date,
             latitude=exif_data.latitude,
             longitude=exif_data.longitude,
         )

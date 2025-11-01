@@ -1,6 +1,8 @@
-import datetime
+import dataclasses
 import threading
 from typing import Any, Dict, List, Optional, Tuple, Union
+
+import whenever
 
 from mkmapdiary.lib.asset import AssetRecord
 
@@ -10,6 +12,8 @@ class AssetRegistry:
         # Note: Asset list is append/update only; no delete!
         self._assets: List[AssetRecord] = []
         self.lock = threading.RLock()
+
+        self._has_display_date = False
 
     @property
     def next_id(self) -> int:
@@ -35,28 +39,36 @@ class AssetRegistry:
             return len(self._assets)
 
     def count_assets_by_date(self) -> dict[str, int]:
+        assert self._has_display_date, (
+            "AssetRegistry must track display dates to count by date"
+        )
+
         with self.lock:
             date_counts: Dict[str, int] = {}
             for asset in self._assets:
-                if asset.datetime:
-                    date_str = asset.datetime.date().isoformat()
+                if asset.display_date:
+                    date_str = asset.display_date.format_iso()
                     date_counts[date_str] = date_counts.get(date_str, 0) + 1
             return dict(sorted(date_counts.items()))
 
     def get_all_assets(self) -> List[str]:
         with self.lock:
-            # Sort by datetime, handling None values
+            # Sort by utc, handling None values
             sorted_assets = sorted(
-                self._assets, key=lambda x: x.datetime or datetime.datetime.min
+                self._assets, key=lambda x: x.timestamp_utc or whenever.Instant.MIN
             )
             return [str(asset.path) for asset in sorted_assets]
 
     def get_all_dates(self) -> List[str]:
+        assert self._has_display_date, (
+            "AssetRegistry must track display dates to get all dates"
+        )
+
         with self.lock:
             dates = set()
             for asset in self._assets:
-                if asset.datetime:
-                    dates.add(asset.datetime.date().isoformat())
+                if asset.display_date:
+                    dates.add(asset.display_date.format_iso())
             return sorted(list(dates))
 
     def get_assets_by_type(
@@ -71,9 +83,9 @@ class AssetRegistry:
             filtered_assets = [
                 asset for asset in self._assets if asset.type in asset_types
             ]
-            # Sort by datetime
+            # Sort by utc timestamp
             sorted_assets = sorted(
-                filtered_assets, key=lambda x: x.datetime or datetime.datetime.min
+                filtered_assets, key=lambda x: x.timestamp_utc or whenever.Instant.MIN
             )
             return [(str(asset.path), asset.type) for asset in sorted_assets]
 
@@ -89,15 +101,15 @@ class AssetRegistry:
             filtered_assets = []
             for asset in self._assets:
                 if (
-                    asset.datetime
-                    and asset.datetime.date().isoformat() == date
+                    asset.display_date
+                    and asset.display_date.format_iso() == date
                     and asset.type in asset_types
                 ):
                     filtered_assets.append(asset)
 
-            # Sort by datetime
+            # Sort by utc timestamp
             sorted_assets = sorted(
-                filtered_assets, key=lambda x: x.datetime or datetime.datetime.min
+                filtered_assets, key=lambda x: x.timestamp_utc or whenever.Instant.MIN
             )
             return [(str(asset.path), asset.type) for asset in sorted_assets]
 
@@ -117,7 +129,8 @@ class AssetRegistry:
             return None
 
     def dump(self, asset_type: Optional[str] = None) -> Tuple[List[Any], List[str]]:
-        headers = ["ID", "Path", "Type", "DateTime", "Latitude", "Longitude", "approx"]
+        # Get all fields of AssetRecord, in order of definition, get their names from __dataclass_fields__
+        headers = [field.name for field in AssetRecord.__dataclass_fields__.values()]
         with self.lock:
             if asset_type:
                 filtered_assets = [
@@ -128,17 +141,7 @@ class AssetRegistry:
 
             rows = []
             for asset in filtered_assets:
-                rows.append(
-                    [
-                        asset.id,
-                        asset.path,
-                        asset.type,
-                        asset.datetime,
-                        asset.latitude,
-                        asset.longitude,
-                        asset.approx,
-                    ]
-                )
+                rows.append(list(dataclasses.astuple(asset)))
 
             return rows, headers
 
@@ -149,11 +152,13 @@ class AssetRegistry:
                 if (
                     asset.latitude is None or asset.longitude is None
                 ) and asset.type != "gpx":
-                    datetime_str = (
-                        asset.datetime.isoformat() if asset.datetime else None
+                    timestamp_str = (
+                        asset.timestamp_utc.format_iso()
+                        if asset.timestamp_utc
+                        else None
                     )
                     assert asset.id is not None
-                    result.append((asset.id, datetime_str))
+                    result.append((asset.id, timestamp_str))
             return result
 
     def get_unpositioned_asset_paths(self) -> List[str]:
@@ -177,7 +182,7 @@ class AssetRegistry:
                     asset.approx = approx
                     break
 
-    def get_geotagged_journals(self) -> List[str]:
+    def get_geotagged_journals(self) -> List[whenever.Date]:
         with self.lock:
             dates = set()
             for asset in self._assets:
@@ -185,9 +190,9 @@ class AssetRegistry:
                     asset.latitude is not None
                     and asset.longitude is not None
                     and asset.type in ("markdown", "audio")
-                    and asset.datetime
+                    and asset.display_date
                 ):
-                    dates.add(asset.datetime.date().isoformat())
+                    dates.add(asset.display_date)
             return sorted(list(dates))
 
     def get_metadata(
@@ -198,8 +203,8 @@ class AssetRegistry:
                 if asset.path == asset_path:
                     return {
                         "id": asset.id,
-                        "timestamp": asset.datetime.isoformat()
-                        if asset.datetime
+                        "timestamp": asset.timestamp_utc.format_iso()
+                        if asset.timestamp_utc
                         else None,
                         "latitude": asset.latitude,
                         "longitude": asset.longitude,

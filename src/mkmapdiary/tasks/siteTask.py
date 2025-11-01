@@ -5,6 +5,7 @@ from typing import Any, Dict, Iterator, List, Optional
 
 import sass
 import yaml
+from doit import create_after
 
 from .base.httpRequest import HttpRequest
 
@@ -62,12 +63,16 @@ class SiteTask(HttpRequest):
             config["site_name"] = self.config["strings"]["site_name"]
 
             # compute paths relative to mkdocs.yml location
-            config["docs_dir"] = str(
-                self.dirs.docs_dir.relative_to(self.dirs.build_dir),
-            )
-            config["site_dir"] = str(
-                self.dirs.dist_dir.relative_to(self.dirs.build_dir, walk_up=True),
-            )
+            try:
+                config["docs_dir"] = str(
+                    self.dirs.docs_dir.relative_to(self.dirs.build_dir),
+                )
+                config["site_dir"] = str(
+                    self.dirs.dist_dir.relative_to(self.dirs.build_dir, walk_up=True),
+                )
+            except ValueError:
+                config["docs_dir"] = str(self.dirs.docs_dir.absolute())
+                config["site_dir"] = str(self.dirs.dist_dir.absolute())
 
             language = self.config["site"]["locale"].split("_")[0]
             config["theme"]["language"] = language
@@ -173,6 +178,22 @@ class SiteTask(HttpRequest):
                 targets=[output],
             )
 
+    def task_pre_build_site(self) -> Dict[str, Any]:
+        # Ensure that the site directories exist
+        return {
+            "actions": None,
+            "task_dep": [
+                f"create_directory:{self.dirs.build_dir}",
+                f"create_directory:{self.dirs.assets_dir}",
+                f"create_directory:{self.dirs.docs_dir}",
+                f"create_directory:{self.dirs.dist_dir}",
+                f"create_directory:{self.dirs.files_dir}",
+                f"create_directory:{self.dirs.templates_dir}",
+                "geo_correlation",
+            ],
+        }
+
+    @create_after("pre_build_site")
     def task_build_site(self) -> Dict[str, Any]:
         """Build the mkdocs site."""
 
@@ -203,6 +224,7 @@ class SiteTask(HttpRequest):
                 "build_gallery",
                 "build_journal",
                 "build_tags",
+                "geo_correlation",
             ],
             calc_dep=["get_gpx_deps"],
             targets=[
