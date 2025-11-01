@@ -1,10 +1,15 @@
+from abc import abstractmethod
 from pathlib import PosixPath
 from typing import Any, Dict, Iterator, List
 
-from .gpxTask import GPXTask
+from .gpxTask import BaseTask
 
 
-class QstarzTask(GPXTask):
+class QstarzTask(BaseTask):
+    @abstractmethod
+    def handle_gpx(self, source: PosixPath) -> List[Any]:
+        pass
+
     def __init__(self) -> None:
         super().__init__()
         self.__sources: list[PosixPath] = []

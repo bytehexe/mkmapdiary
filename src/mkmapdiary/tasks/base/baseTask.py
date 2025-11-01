@@ -1,6 +1,6 @@
 import datetime
 import threading
-from abc import ABC, abstractmethod
+from abc import ABC, ABCMeta, abstractmethod
 from pathlib import PosixPath
 from typing import Any, Callable, Dict, List, Mapping, Optional, Tuple, Union
 
@@ -29,7 +29,7 @@ def debug(func: Callable[..., Any]) -> Callable[..., Any]:
     return wrapper
 
 
-class BaseTask(ABC):
+class BaseTask(ABC, metaclass=ABCMeta):
     def __init__(self) -> None:
         super().__init__()
         self.__unique_paths: dict[PosixPath, PosixPath] = {}

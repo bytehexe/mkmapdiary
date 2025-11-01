@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from pathlib import PosixPath
 from typing import Any, Dict, Generator, Iterator
 
@@ -5,13 +6,17 @@ import imageio.v2 as imageio
 import rawpy
 
 from .base.exifReader import ExifReader
-from .imageTask import ImageTask
+from .imageTask import BaseTask
 
 
-class Cr2Task(ImageTask, ExifReader):
+class Cr2Task(BaseTask, ExifReader):
     def __init__(self) -> None:
         super().__init__()
         self.__sources: list[PosixPath] = []
+
+    @abstractmethod
+    def handle_image(self, source: PosixPath) -> Generator:
+        pass
 
     def __generate_intermediate_filename(self, source: PosixPath) -> PosixPath:
         filename = PosixPath(self.dirs.files_dir / source.stem).with_suffix(".jpeg")
