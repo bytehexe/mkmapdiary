@@ -132,9 +132,7 @@ class GpxCreator:
                 extra={"icon": "📍"},
             )
 
-            index = Index(
-                cluster.shape.__geo_interface__, self.__region_cache_dir, keep_pbf=True
-            )
+            index = Index(cluster.shape, self.__region_cache_dir, keep_pbf=True)
             # Convert mass_point (lon, lat) to shapely.Point for Index.get_nearest
             mass_lon, mass_lat = cluster.mass_point
             if mass_lon is not None and mass_lat is not None:

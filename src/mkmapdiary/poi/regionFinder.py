@@ -1,9 +1,10 @@
 import json
 import logging
 from copy import deepcopy
-from typing import Any, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import shapely
+from shapely.geometry.base import BaseGeometry
 
 from mkmapdiary.poi.indexBuilder import Region
 
@@ -11,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class RegionFinder:
-    def __init__(self, geo_data: Any, geofabrik_data: Any) -> None:
+    def __init__(self, geo_data: BaseGeometry, geofabrik_data: Dict[str, Any]) -> None:
         self.geo_data = deepcopy(geo_data)
         self.geofabrik_data = geofabrik_data
 

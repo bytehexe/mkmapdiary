@@ -1,12 +1,13 @@
 import logging
 import pathlib
 from threading import Lock
-from typing import Any, Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 import requests
 import shapely
 import yaml
+from shapely.geometry.base import BaseGeometry
 
 from mkmapdiary.poi.ballTreeBuilder import BallTreeBuilder
 from mkmapdiary.poi.indexBuilder import IndexBuilder
@@ -23,7 +24,7 @@ lock = Lock()
 class Index:
     def __init__(
         self,
-        geo_data: Dict[str, Any],
+        geo_data: BaseGeometry,
         cache_dir: pathlib.Path,
         keep_pbf: bool = False,
         rank_offset: Tuple[int, int] = (-1, 1),
@@ -33,7 +34,7 @@ class Index:
 
     def __init(
         self,
-        geo_data: Dict[str, Any],
+        geo_data: BaseGeometry,
         cache_dir: pathlib.Path,
         keep_pbf: bool,
         rank_offset: Tuple[int, int],

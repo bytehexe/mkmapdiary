@@ -5,6 +5,7 @@ from typing import Any, Dict
 import pytest
 import requests
 import shapely
+from shapely.geometry.base import BaseGeometry
 
 from mkmapdiary.poi.regionFinder import RegionFinder
 
@@ -37,6 +38,7 @@ def test_find_best_region_internal() -> None:
         [shapely.Point(2.3522, 48.8566), ["ile-de-france"]],
     ]
     for geo_data, expected_region_ids in geo_data_list:
+        assert isinstance(geo_data, BaseGeometry)
         finder = RegionFinder(geo_data, geofabrik_data)
         best_region, _ = finder._findBestRegion(geo_data, [])
         region_ids = [best_region.id] if best_region else []
@@ -58,6 +60,7 @@ def test_find_regions_with_cache() -> None:
         ],
     ]
     for geo_data, expected_region_ids in geo_data_list:
+        assert isinstance(geo_data, BaseGeometry)
         finder = RegionFinder(geo_data, geofabrik_data)
         regions = finder.find_regions()
         region_ids = [region.id for region in regions]
