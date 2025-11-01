@@ -4,7 +4,7 @@ from mkmapdiary.poi.common import Poi
 
 
 class BallTree:
-    def __init__(self, sklearn_ball_tree, pois, filter_config):
+    def __init__(self, sklearn_ball_tree, pois, filter_config) -> None:
         self.__sklearn_ball_tree = sklearn_ball_tree
         self.__pois = pois
         self.__filter_config = filter_config

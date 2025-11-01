@@ -3,7 +3,7 @@ import shutil
 from typing import List, Optional
 
 
-def clean_dir(build_dir: pathlib.Path, keep_files: Optional[List[str]] = None):
+def clean_dir(build_dir: pathlib.Path, keep_files: Optional[List[str]] = None) -> None:
     if keep_files is None:
         keep_files = []
     for item in build_dir.iterdir():

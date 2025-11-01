@@ -1,7 +1,7 @@
 import pytest
 
 
-def test_env():
+def test_env() -> None:
     """Make sure the environment is set up correctly."""
     with pytest.raises(ImportError):
         import whisper  # noqa: F401, I001

@@ -21,7 +21,7 @@ class LocalProjection:
         epsg_code = 32600 + zone if hemisphere == "north" else 32700 + zone
         return CRS.from_epsg(epsg_code)
 
-    def __init__(self, shape):
+    def __init__(self, shape) -> None:
         centroid = shape.centroid
 
         # pick CRS dynamically - centroid.x is longitude, centroid.y is latitude (Shapely uses (x=lon, y=lat))

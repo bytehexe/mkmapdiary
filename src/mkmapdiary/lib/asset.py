@@ -27,7 +27,7 @@ class AssetMeta:
             "longitude": self.longitude,
         }
 
-    def update(self, other: Union[dict, "AssetMeta"]):
+    def update(self, other: Union[dict, "AssetMeta"]) -> None:
         if isinstance(other, AssetMeta):
             other = other._asdict()
 

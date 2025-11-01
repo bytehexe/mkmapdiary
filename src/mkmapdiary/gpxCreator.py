@@ -1,10 +1,13 @@
 import logging
 import warnings
+from typing import Union
 
 import gpxpy
+import gpxpy.gpx
 import hdbscan
 import numpy as np
 import shapely
+from numpy.typing import NDArray
 
 from mkmapdiary.geoCluster import GeoCluster
 from mkmapdiary.poi.index import Index
@@ -14,8 +17,9 @@ logger = logging.getLogger(__name__)
 
 
 class GpxCreator:
-    def __init__(self, date, sources, db, region_cache_dir):
-        self.__coords = []
+    def __init__(self, date, sources, db, region_cache_dir) -> None:
+        # FIXME: Inconsistent types
+        self.__coords: Union[list[list[float]], NDArray[np.floating]] = []
         self.__gpx_out = gpxpy.gpx.GPX()
         self.__sources = sources
         self.__date = date
@@ -24,7 +28,7 @@ class GpxCreator:
 
         self.__init()
 
-    def __init(self):
+    def __init(self) -> None:
         logger.debug(f"Creating GPX for date {self.__date}")
         with ThisMayTakeAWhile(logger, "Parsing GPX sources"):
             for source in self.__sources:
@@ -33,7 +37,7 @@ class GpxCreator:
             self.__compute_clusters()
         self.__add_journal_markers()
 
-    def __load_source(self, source):
+    def __load_source(self, source) -> None:
         with open(source, encoding="utf-8") as f:
             gpx = gpxpy.parse(f)
         for mwpt in gpx.waypoints:
@@ -48,20 +52,21 @@ class GpxCreator:
                         new_seg.points.append(pt)
                         # Store coordinates as (lon, lat) for consistent interface format
                         # Converting from GPX format (lat, lon) to interface format (lon, lat)
-                        self.__coords.append([pt.longitude, pt.latitude])
+                        if isinstance(self.__coords, list):
+                            self.__coords.append([pt.longitude, pt.latitude])
                 if len(new_seg.points) > 0:
                     new_trk.segments.append(new_seg)
             if len(new_trk.segments) > 0:
                 self.__gpx_out.tracks.append(new_trk)
         for rte in gpx.routes:
             new_rte = gpxpy.gpx.GPXRoute(name=rte.name, description=rte.description)
-            for pt in rte.points:
-                if pt.time is not None and pt.time.date() == self.__date:
-                    new_rte.points.append(pt)
+            for rte_pt in rte.points:
+                if rte_pt.time is not None and rte_pt.time.date() == self.__date:
+                    new_rte.points.append(rte_pt)
             if len(new_rte.points) > 0:
                 self.__gpx_out.routes.append(new_rte)
 
-    def __compute_clusters(self):
+    def __compute_clusters(self) -> None:
         if len(self.__coords) < 10:
             return
 
@@ -150,7 +155,7 @@ class GpxCreator:
                     self.__gpx_out.waypoints.append(pwpt)
             del index
 
-    def __add_journal_markers(self):
+    def __add_journal_markers(self) -> None:
         for asset, asset_type in self.__db.get_assets_by_date(
             self.__date,
             ("markdown", "audio"),

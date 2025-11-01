@@ -7,14 +7,14 @@ from .base.baseTask import BaseTask
 
 
 class DayPageTask(BaseTask):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     @create_after("gpx2gpx")
     def task_build_day_page(self) -> Iterator[Dict[str, Any]]:
         """Generate day pages for each date with assets."""
 
-        def _generate_day_page(date):
+        def _generate_day_page(date) -> None:
             formatter = "%a, %x"
 
             day_page_path = self.dirs.docs_dir / f"{date}.md"

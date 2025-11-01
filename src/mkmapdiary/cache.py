@@ -14,7 +14,7 @@ class Cache(collections.abc.MutableMapping):
         self.__conn = sqlite3.connect(cache_file, check_same_thread=False)
         self.__initialize_db()
 
-    def __initialize_db(self):
+    def __initialize_db(self) -> None:
         with lock:
             cursor = self.__conn.cursor()
             cursor.execute(
@@ -48,7 +48,7 @@ class Cache(collections.abc.MutableMapping):
                 raise KeyError(key)
             return json.loads(row[0])
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key, value) -> None:
         section, parameters = key
         assert type(section) is str, "Section must be a string"
         assert type(parameters) in (tuple, list), "Parameters must be a tuple or list"
@@ -61,7 +61,7 @@ class Cache(collections.abc.MutableMapping):
             )
             self.__conn.commit()
 
-    def __delitem__(self, key):
+    def __delitem__(self, key) -> None:
         section, parameters = key
         assert type(section) is str, "Section must be a string"
         assert type(parameters) in (tuple, list), "Parameters must be a tuple or list"
@@ -84,7 +84,7 @@ class Cache(collections.abc.MutableMapping):
             for row in rows:
                 yield row[0], json.loads(row[1])
 
-    def __len__(self):
+    def __len__(self) -> int:
         with lock:
             cursor = self.__conn.cursor()
             cursor.execute("SELECT COUNT(*) FROM cache")

@@ -111,11 +111,11 @@ class TaskList(*tasks):  # type: ignore
         """Convert this object to a dictionary so that doit can use it."""
         return dict((name, getattr(self, name)) for name in dir(self))
 
-    def __scan(self):
+    def __scan(self) -> None:
         """Scan the source directory and identify files and directories."""
         self.handle(self.dirs.source_dir)
 
-    def handle(self, source: Path):
+    def handle(self, source: Path) -> None:
         """Handle a source file or directory based on its tags."""
 
         if source.is_file() and source.name == "config.yaml":
@@ -154,7 +154,7 @@ class TaskList(*tasks):  # type: ignore
             f"No handler for {source} with tags {tags} and extension '{ext}'",
         )
 
-    def handle_directory(self, source: Path):
+    def handle_directory(self, source: Path) -> None:
         """Handle a directory by processing its contents."""
 
         calibration_file = source / "calibration.yaml"
@@ -167,7 +167,7 @@ class TaskList(*tasks):  # type: ignore
         if calibration_file.is_file():
             self.__pop_calibration()
 
-    def __push_calibration(self, calibration_file: Path):
+    def __push_calibration(self, calibration_file: Path) -> None:
         """Push a new calibration onto the stack."""
 
         with open(calibration_file) as f:
@@ -187,16 +187,16 @@ class TaskList(*tasks):  # type: ignore
             extra={"icon": "🛠️"},
         )
 
-    def __pop_calibration(self):
+    def __pop_calibration(self) -> None:
         """Pop the last calibration from the stack."""
         self.__calibration.pop()
 
-    def handle_symlink(self, source):
+    def handle_symlink(self, source) -> None:
         """Handle a symlink by resolving its target."""
         target = source.resolve()
         self.handle(target)
 
-    def add_assets(self, assets: None):
+    def add_assets(self, assets: None) -> None:
         """Add an asset to the list."""
         if assets is None:
             return

@@ -30,7 +30,9 @@ class Index:
         with lock:
             self.__init(geo_data, cache_dir, keep_pbf, rank_offset)
 
-    def __init(self, geo_data, cache_dir: pathlib.Path, keep_pbf: bool, rank_offset):
+    def __init(
+        self, geo_data, cache_dir: pathlib.Path, keep_pbf: bool, rank_offset
+    ) -> None:
         with open(
             pathlib.Path(__file__).parent.parent
             / "resources"

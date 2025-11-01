@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class RegionFinder:
-    def __init__(self, geo_data, geofabrik_data):
+    def __init__(self, geo_data, geofabrik_data) -> None:
         self.geo_data = deepcopy(geo_data)
         self.geofabrik_data = geofabrik_data
 

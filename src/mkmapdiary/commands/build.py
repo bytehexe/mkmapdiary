@@ -34,7 +34,7 @@ def main(
     verbose,
     quiet,
     no_cache,
-):
+) -> None:
     # Add file logging for build command (console logging already configured at CLI level)
     add_file_logging(build_dir)
 
@@ -236,7 +236,7 @@ def main(
     logger.info("Running tasks ...", extra={"icon": "🚀", "is_step": True})
 
     class CustomReporter(doit.reporter.ConsoleReporter):
-        def execute_task(self, task):
+        def execute_task(self, task) -> None:
             display_name = task.name
             if "/" in display_name:
                 display_name = (
@@ -245,7 +245,7 @@ def main(
             current_task.set(display_name)
             super().execute_task(task)
 
-        def write(self, text):
+        def write(self, text) -> None:
             runner_logger.info(text.rstrip())
 
     doit_config = {
@@ -331,7 +331,7 @@ def build(
     always_execute,
     num_processes,
     no_cache,
-):
+) -> None:
     """Build the map diary from source directory to distribution directory."""
     # Get verbosity settings from CLI group context
     verbose = ctx.obj["verbose"]
@@ -346,7 +346,7 @@ def build(
     if persistent_build and build_dir is None:
         build_dir = source_dir.with_name(source_dir.name + "_build")
 
-    def main_exec():
+    def main_exec() -> None:
         main(
             dist_dir=dist_dir,
             build_dir=build_dir,

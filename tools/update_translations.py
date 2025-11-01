@@ -26,7 +26,7 @@ def compute_sha1_checksum(file_path):
     is_flag=True,
     help="Check if translation files are up to date.",
 )
-def cli(check):
+def cli(check) -> None:
     locale_dir = pathlib.Path(".") / "src" / "mkmapdiary" / "locale"
 
     languages = [

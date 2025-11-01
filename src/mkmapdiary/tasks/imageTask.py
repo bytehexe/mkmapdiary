@@ -1,3 +1,4 @@
+from pathlib import PosixPath
 from typing import Any, Dict, Iterator
 
 from PIL import Image
@@ -9,9 +10,9 @@ from .base.exifReader import ExifReader
 
 
 class ImageTask(BaseTask, ExifReader):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        self.__sources = []
+        self.__sources: list[PosixPath] = []
 
     def handle_image(self, source):
         # Create task to convert image to target format
@@ -29,7 +30,7 @@ class ImageTask(BaseTask, ExifReader):
     def task_convert_image(self) -> Iterator[Dict[str, Any]]:
         """Convert an image to a different format."""
 
-        def _convert(src, dst):
+        def _convert(src, dst) -> None:
             with Image.open(src) as img:
                 # apply image orientation if needed
                 self.read_exif(src)

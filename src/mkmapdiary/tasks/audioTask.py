@@ -1,6 +1,7 @@
 import hashlib
 import logging
 import threading
+from pathlib import PosixPath
 from typing import Any, Dict, Iterator
 
 from pydub import AudioSegment
@@ -16,9 +17,9 @@ logger = logging.getLogger(__name__)
 
 
 class AudioTask(BaseTask):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        self.__sources = []
+        self.__sources: list[PosixPath] = []
 
     def handle_audio(self, source):
         # Create task to convert image to target format
@@ -40,7 +41,7 @@ class AudioTask(BaseTask):
     def task_convert_audio(self) -> Iterator[Dict[str, Any]]:
         """Convert an image to a different format."""
 
-        def _convert(src, dst):
+        def _convert(src, dst) -> None:
             audio = AudioSegment.from_file(src)
             audio.export(dst, format="mp3")
 
@@ -76,7 +77,7 @@ class AudioTask(BaseTask):
     def task_transcribe_audio(self) -> Iterator[Dict[str, Any]]:
         """Transcribe audio to text."""
 
-        def _transcribe(src, dst):
+        def _transcribe(src, dst) -> None:
             audio_title = self.config["strings"]["audio_title"]
 
             if not self.config["features"]["transcription"]["enabled"]:
@@ -116,7 +117,7 @@ class AudioTask(BaseTask):
 
             title = self.ai(
                 "generate_title",
-                format=dict(locale=self.config["site"]["locale"], text=text),
+                dict(locale=self.config["site"]["locale"], text=text),
             )
 
             output.append("</div>")

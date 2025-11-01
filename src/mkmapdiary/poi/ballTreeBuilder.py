@@ -14,7 +14,7 @@ class BallTreeBuilder:
         self.__pois: list[dict] = []
         self.__filter_config = filter_config
 
-    def load(self, index_data: dict, min_rank: int, max_rank: int):
+    def load(self, index_data: dict, min_rank: int, max_rank: int) -> None:
         for rank in range(min_rank, max_rank + 1):
             self.__coords.extend(index_data.get(rank, {}).get("coords", []))
             self.__pois.extend(index_data.get(rank, {}).get("data", []))

@@ -20,7 +20,7 @@ class IndexFileWriter:
                 ),
             )
 
-    def write(self, index):
+    def write(self, index) -> None:
         with open(self.file_path, "ab") as f:
             f.write(self.packer.pack(index))
 

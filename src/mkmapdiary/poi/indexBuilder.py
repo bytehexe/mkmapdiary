@@ -70,7 +70,7 @@ class IndexBuilder:
 
         return index
 
-    def __downloadPbf(self, region: Region, pbf_file_name: pathlib.Path):
+    def __downloadPbf(self, region: Region, pbf_file_name: pathlib.Path) -> None:
         logger.info("Downloading PBF ...")
         with requests.get(region.url, stream=True) as result:
             result.raise_for_status()

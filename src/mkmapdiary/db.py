@@ -2,18 +2,18 @@ import datetime
 import sqlite3
 import threading
 from pathlib import PosixPath
-from typing import Any, List, Tuple, Union
+from typing import Any, List, Optional, Tuple, Union
 
 from mkmapdiary.lib.asset import AssetMeta
 
 
 class Db:
-    def __init__(self):
+    def __init__(self) -> None:
         self.conn = sqlite3.connect(":memory:", check_same_thread=False)
         self.create_tables()
         self.lock = threading.Lock()
 
-    def create_tables(self):
+    def create_tables(self) -> None:
         cursor = self.conn.cursor()
         cursor.execute(
             """
@@ -30,7 +30,9 @@ class Db:
         )
         self.conn.commit()
 
-    def add_asset(self, path: Union[str, PosixPath], asset_type: str, meta: AssetMeta):
+    def add_asset(
+        self, path: Union[str, PosixPath], asset_type: str, meta: AssetMeta
+    ) -> None:
         assert meta.timestamp is None or isinstance(
             meta.timestamp,
             datetime.datetime,
@@ -131,7 +133,7 @@ class Db:
                 return {"name": row[0], "latitude": row[1], "longitude": row[2]}
             return None
 
-    def dump(self, asset_type: None = None) -> Tuple[List[Any], List[str]]:
+    def dump(self, asset_type: Optional[str] = None) -> Tuple[List[Any], List[str]]:
         headers = ["ID", "Path", "Type", "DateTime", "Latitude", "Longitude", "approx"]
         with self.lock:
             cursor = self.conn.cursor()
@@ -158,7 +160,7 @@ class Db:
             )
             return list(row[0] for row in cursor.fetchall())
 
-    def update_asset_position(self, asset_id, latitude, longitude, approx):
+    def update_asset_position(self, asset_id, latitude, longitude, approx) -> None:
         # Database stores coordinates in separate latitude/longitude columns
         with self.lock:
             cursor = self.conn.cursor()

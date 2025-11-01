@@ -1,4 +1,4 @@
-def test_calculate_rank():
+def test_calculate_rank() -> None:
     from mkmapdiary.util import calculate_rank
 
     assert calculate_rank(radius=1000) == 20

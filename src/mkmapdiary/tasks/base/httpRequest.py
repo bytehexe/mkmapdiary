@@ -4,7 +4,7 @@ from .baseTask import BaseTask
 
 
 class HttpRequest(BaseTask):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     def httpRequest(self, url, data, headers, json=True):

@@ -9,7 +9,7 @@ import ollama
 import requests
 
 
-def generate_demo_data(demo_data_dir: pathlib.Path):
+def generate_demo_data(demo_data_dir: pathlib.Path) -> None:
     if not demo_data_dir.exists():
         demo_data_dir.mkdir(parents=True, exist_ok=True)
     elif any(demo_data_dir.iterdir()):
@@ -33,7 +33,7 @@ def generate_demo_data(demo_data_dir: pathlib.Path):
     click.echo("Demo data generation complete.")
 
 
-def create_demo_text_files(demo_data_dir: pathlib.Path):
+def create_demo_text_files(demo_data_dir: pathlib.Path) -> None:
     for _ in range(0, random.randint(3, 6)):
         timestamp = random_datetime().strftime("%Y%m%d_%H%M%S")
         file_path = demo_data_dir / f"note_{timestamp}.txt"
@@ -41,7 +41,7 @@ def create_demo_text_files(demo_data_dir: pathlib.Path):
             f.write(random_text())
 
 
-def create_demo_markdown_files(demo_data_dir: pathlib.Path):
+def create_demo_markdown_files(demo_data_dir: pathlib.Path) -> None:
     for _ in range(0, random.randint(3, 6)):
         timestamp = random_datetime().strftime("%Y%m%d_%H%M%S")
         file_path = demo_data_dir / f"note_{timestamp}.md"
@@ -54,7 +54,7 @@ def create_demo_markdown_files(demo_data_dir: pathlib.Path):
             )
 
 
-def create_demo_audio_files(demo_data_dir: pathlib.Path):
+def create_demo_audio_files(demo_data_dir: pathlib.Path) -> None:
     for _ in range(0, random.randint(3, 6)):
         timestamp = random_datetime().strftime("%Y%m%d_%H%M%S")
         file_path = demo_data_dir / f"note_{timestamp}.wav"
@@ -65,7 +65,7 @@ def create_demo_audio_files(demo_data_dir: pathlib.Path):
         )
 
 
-def create_demo_image_files(demo_data_dir: pathlib.Path):
+def create_demo_image_files(demo_data_dir: pathlib.Path) -> None:
     for _ in range(0, random.randint(3, 6)):
         timestamp = random_datetime().strftime("%Y%m%d_%H%M%S")
         file_path = demo_data_dir / f"photo_{timestamp}.jpg"
@@ -80,7 +80,7 @@ def create_demo_image_files(demo_data_dir: pathlib.Path):
             f.write(response.content)
 
 
-def create_demo_map_files(demo_data_dir: pathlib.Path):
+def create_demo_map_files(demo_data_dir: pathlib.Path) -> None:
     timestamp = random_datetime()
     file_path = demo_data_dir / "map.gpx"
 
@@ -165,7 +165,7 @@ def random_datetime():
     type=click.Path(path_type=pathlib.Path),
     required=True,
 )
-def generate_demo(source_dir):
+def generate_demo(source_dir) -> None:
     """Generate demo data in the source directory.
 
     This command generates demo data for testing purposes only.

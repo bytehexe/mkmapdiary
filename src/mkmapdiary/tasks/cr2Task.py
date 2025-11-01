@@ -1,3 +1,4 @@
+from pathlib import PosixPath
 from typing import Any, Dict, Iterator
 
 import imageio.v2 as imageio
@@ -8,9 +9,9 @@ from .base.exifReader import ExifReader
 
 
 class Cr2Task(BaseTask, ExifReader):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        self.__sources = []
+        self.__sources: list[PosixPath] = []
 
     def __generate_intermediate_filename(self, source):
         filename = (self.dirs.files_dir / source.stem).with_suffix(".jpeg")
@@ -30,7 +31,7 @@ class Cr2Task(BaseTask, ExifReader):
     def task_convert_raw(self) -> Iterator[Dict[str, Any]]:
         """Convert a RAW image to JPEG."""
 
-        def _convert(src, dst):
+        def _convert(src, dst) -> None:
             with rawpy.imread(str(src)) as raw:
                 rgb = raw.postprocess(
                     use_camera_wb=True,  # Kamera-Weißabgleich

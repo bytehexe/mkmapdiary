@@ -32,7 +32,7 @@ def validate_param(ctx, param, value):
     type=click.Path(path_type=pathlib.Path),
     required=False,
 )
-def config(params, user, source_dir):
+def config(params, user, source_dir) -> None:
     """Apply configuration from the --params options and write them to config.yaml."""
     # Logging is now set up at the group level
 

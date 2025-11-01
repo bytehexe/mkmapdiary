@@ -6,14 +6,14 @@ from .base.baseTask import BaseTask
 
 
 class TagsTask(BaseTask):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     @create_after("gpx2gpx")
     def task_build_tags(self) -> Iterator[Dict[str, Any]]:
         """Generate tags list."""
 
-        def _generate_tags(date):
+        def _generate_tags(date) -> None:
             tags_path = self.dirs.docs_dir / "templates" / f"{date}_tags.md"
 
             content = []
@@ -25,23 +25,25 @@ class TagsTask(BaseTask):
                 if asset_type == "audio":
                     asset = str(asset) + ".md"
                 with open(asset) as f:
-                    file_content = f.read()
+                    file_content_str = f.read()
                 if asset_type == "audio":
                     # Remove first line (title)
-                    content.append(file_content.split("\n", 1)[1])
+                    content.append(file_content_str.split("\n", 1)[1])
                 else:
                     # Remove raw text blocks
-                    file_content = file_content.split("\n")
-                    file_content = [
-                        line for line in file_content if not line.startswith("```")
+                    file_content_lines = file_content_str.split("\n")
+                    file_content_lines = [
+                        line
+                        for line in file_content_lines
+                        if not line.startswith("```")
                     ]
-                    content.append("\n".join(file_content))
+                    content.append("\n".join(file_content_lines))
 
             if content:
                 language = self.config["site"]["locale"].split(".")[0]
                 tags = self.ai(
                     "generate_tags",
-                    format=dict(locale=language, text="\n\n".join(content)),
+                    dict(locale=language, text="\n\n".join(content)),
                 )
             else:
                 tags = ""

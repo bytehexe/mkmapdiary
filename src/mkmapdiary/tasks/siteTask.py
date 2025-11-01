@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class SiteTask(HttpRequest):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
         self.__simple_assets = [
@@ -38,7 +38,7 @@ class SiteTask(HttpRequest):
     def task_create_directory(self) -> Iterator[Dict[str, Any]]:
         """Create a directory if it doesn't exist."""
 
-        def _create_directory(dir_name: pathlib.Path):
+        def _create_directory(dir_name: pathlib.Path) -> None:
             dir_name.mkdir(parents=True, exist_ok=True)
 
         for dir_name in self.__site_dirs:
@@ -54,7 +54,7 @@ class SiteTask(HttpRequest):
     def task_generate_mkdocs_config(self) -> Dict[str, Any]:
         """Generate mkdocs config."""
 
-        def _generate_mkdocs_config():
+        def _generate_mkdocs_config() -> None:
             script_dir = pathlib.Path(__file__).parent
             with open(script_dir.parent / "resources" / "site_config.yaml") as f:
                 config = yaml.safe_load(f)
@@ -86,7 +86,7 @@ class SiteTask(HttpRequest):
         )
 
     def task_build_static_pages(self) -> Iterator[Dict[str, Any]]:
-        def _generate_index_page():
+        def _generate_index_page() -> None:
             index_path = self.dirs.docs_dir / "index.md"
 
             images = [
@@ -141,7 +141,7 @@ class SiteTask(HttpRequest):
 
             return [(name, response)]
 
-        def _generate():
+        def _generate() -> None:
             css = sass.compile(
                 filename=str(input_sass),
                 output_style="compressed",
@@ -155,7 +155,7 @@ class SiteTask(HttpRequest):
     def task_copy_simple_asset(self) -> Iterator[Dict[str, Any]]:
         simple_assets = self.__simple_assets
 
-        def _generate(input_js, output_js):
+        def _generate(input_js, output_js) -> None:
             shutil.copy2(input_js, output_js)
 
         for asset in simple_assets:

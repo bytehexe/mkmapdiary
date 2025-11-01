@@ -9,7 +9,7 @@ from mkmapdiary.lib.config import ConfigLoader, auto_constructor, duration_const
 class TestDurationConstructor:
     """Test the duration_constructor function."""
 
-    def test_duration_constructor_integer(self):
+    def test_duration_constructor_integer(self) -> None:
         """Test duration constructor with integer values."""
         loader = MagicMock()
         node = MagicMock()
@@ -18,7 +18,7 @@ class TestDurationConstructor:
         result = duration_constructor(loader, node)
         assert result == 300
 
-    def test_duration_constructor_float(self):
+    def test_duration_constructor_float(self) -> None:
         """Test duration constructor with float values."""
         loader = MagicMock()
         node = MagicMock()
@@ -27,7 +27,7 @@ class TestDurationConstructor:
         result = duration_constructor(loader, node)
         assert result == 300  # Should be converted to int
 
-    def test_duration_constructor_humanfriendly_formats(self):
+    def test_duration_constructor_humanfriendly_formats(self) -> None:
         """Test duration constructor with human-friendly time formats."""
         test_cases = [
             ("5 minutes", 300),  # 5 * 60 = 300
@@ -45,7 +45,7 @@ class TestDurationConstructor:
             result = duration_constructor(loader, node)
             assert result == expected_seconds
 
-    def test_duration_constructor_zero(self):
+    def test_duration_constructor_zero(self) -> None:
         """Test duration constructor with zero values."""
         loader = MagicMock()
         node = MagicMock()
@@ -59,7 +59,7 @@ class TestAutoConstructor:
     """Test the auto_constructor function."""
 
     @patch("mkmapdiary.lib.config.auto_detect_timezone")
-    def test_auto_constructor_timezone(self, mock_auto_detect_timezone):
+    def test_auto_constructor_timezone(self, mock_auto_detect_timezone) -> None:
         """Test auto constructor for timezone detection."""
         mock_auto_detect_timezone.return_value = "Europe/Berlin"
 
@@ -72,7 +72,7 @@ class TestAutoConstructor:
         mock_auto_detect_timezone.assert_called_once()
 
     @patch("mkmapdiary.lib.config.auto_detect_timezone")
-    def test_auto_constructor_timezone_failure(self, mock_auto_detect_timezone):
+    def test_auto_constructor_timezone_failure(self, mock_auto_detect_timezone) -> None:
         """Test auto constructor when timezone detection fails."""
         mock_auto_detect_timezone.return_value = None
 
@@ -84,7 +84,7 @@ class TestAutoConstructor:
             auto_constructor(loader, node)
 
     @patch("mkmapdiary.lib.config.auto_detect_locale")
-    def test_auto_constructor_locale(self, mock_auto_detect_locale):
+    def test_auto_constructor_locale(self, mock_auto_detect_locale) -> None:
         """Test auto constructor for locale detection."""
         mock_auto_detect_locale.return_value = "en_US.UTF-8"
 
@@ -97,7 +97,7 @@ class TestAutoConstructor:
         mock_auto_detect_locale.assert_called_once()
 
     @patch("mkmapdiary.lib.config.auto_detect_locale")
-    def test_auto_constructor_locale_failure(self, mock_auto_detect_locale):
+    def test_auto_constructor_locale_failure(self, mock_auto_detect_locale) -> None:
         """Test auto constructor when locale detection fails."""
         mock_auto_detect_locale.return_value = None
 
@@ -108,7 +108,7 @@ class TestAutoConstructor:
         with pytest.raises(ValueError, match="Could not auto-detect locale"):
             auto_constructor(loader, node)
 
-    def test_auto_constructor_transcription_enabled(self):
+    def test_auto_constructor_transcription_enabled(self) -> None:
         """Test auto constructor for transcription capability detection."""
         loader = MagicMock()
         node = MagicMock()
@@ -119,7 +119,7 @@ class TestAutoConstructor:
             result = auto_constructor(loader, node)
             assert result is True
 
-    def test_auto_constructor_transcription_disabled(self):
+    def test_auto_constructor_transcription_disabled(self) -> None:
         """Test auto constructor when transcription is not available."""
         loader = MagicMock()
         node = MagicMock()
@@ -130,7 +130,7 @@ class TestAutoConstructor:
             result = auto_constructor(loader, node)
             assert result is False
 
-    def test_auto_constructor_unknown_value(self):
+    def test_auto_constructor_unknown_value(self) -> None:
         """Test auto constructor with unknown auto value."""
         loader = MagicMock()
         node = MagicMock()
@@ -143,7 +143,7 @@ class TestAutoConstructor:
 class TestConfigLoaderIntegration:
     """Test the ConfigLoader class with custom constructors."""
 
-    def test_config_loader_duration_tag(self):
+    def test_config_loader_duration_tag(self) -> None:
         """Test that ConfigLoader properly handles !duration tags."""
         yaml_content = """
         timeout: !duration 5 minutes
@@ -156,7 +156,7 @@ class TestConfigLoaderIntegration:
         assert config["short_timeout"] == 30
 
     @patch("mkmapdiary.lib.config.auto_detect_timezone")
-    def test_config_loader_auto_tag(self, mock_auto_detect_timezone):
+    def test_config_loader_auto_tag(self, mock_auto_detect_timezone) -> None:
         """Test that ConfigLoader properly handles !auto tags."""
         mock_auto_detect_timezone.return_value = "America/New_York"
 
@@ -168,7 +168,7 @@ class TestConfigLoaderIntegration:
 
         assert config["timezone"] == "America/New_York"
 
-    def test_config_loader_mixed_tags(self):
+    def test_config_loader_mixed_tags(self) -> None:
         """Test ConfigLoader with multiple custom tags."""
         yaml_content = """
         settings:

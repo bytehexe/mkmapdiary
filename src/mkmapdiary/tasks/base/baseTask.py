@@ -30,9 +30,9 @@ def debug(func):
 
 
 class BaseTask(ABC):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        self.__unique_paths = {}
+        self.__unique_paths: dict[PosixPath, PosixPath] = {}
 
         self.__template_env = Environment(
             loader=PackageLoader("mkmapdiary"),

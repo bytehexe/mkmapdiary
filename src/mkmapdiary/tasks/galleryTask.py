@@ -7,14 +7,14 @@ from .base.baseTask import BaseTask
 
 
 class GalleryTask(BaseTask):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     @create_after("gpx2gpx")
     def task_build_gallery(self) -> Iterator[Dict[str, Any]]:
         """Generate gallery pages."""
 
-        def _generate_gallery(date):
+        def _generate_gallery(date) -> None:
             gallery_path = self.dirs.docs_dir / "templates" / f"{date}_gallery.md"
 
             gallery_items = []

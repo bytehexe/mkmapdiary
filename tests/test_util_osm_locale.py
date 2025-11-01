@@ -5,7 +5,7 @@ from mkmapdiary.util.osm import calculate_rank, clip_rank
 class TestCalculateRank:
     """Test the calculate_rank function (expanding existing tests)."""
 
-    def test_calculate_rank_by_radius(self):
+    def test_calculate_rank_by_radius(self) -> None:
         """Test rank calculation based on radius."""
         # Test cases from existing test_rank.py
         assert calculate_rank(radius=1000) == 20
@@ -22,7 +22,7 @@ class TestCalculateRank:
         # Large radius should return None
         assert calculate_rank(radius=60000) in (13, 14, 15, 16)
 
-    def test_calculate_rank_by_place(self):
+    def test_calculate_rank_by_place(self) -> None:
         """Test rank calculation based on place type."""
         # Test cases from existing test_rank.py
         assert calculate_rank(place="city") == 13
@@ -50,7 +50,7 @@ class TestCalculateRank:
         assert calculate_rank(place="square") == 23
         assert calculate_rank(place="festival") == 23
 
-    def test_calculate_rank_defaults_and_unknowns(self):
+    def test_calculate_rank_defaults_and_unknowns(self) -> None:
         """Test default behavior and unknown place types."""
         # No arguments should return default rank
         assert calculate_rank() == 23
@@ -60,7 +60,7 @@ class TestCalculateRank:
         assert calculate_rank(place="nonexistent") is None
         assert calculate_rank(place="") is None
 
-    def test_calculate_rank_precedence(self):
+    def test_calculate_rank_precedence(self) -> None:
         """Test that radius takes precedence over place when both are provided."""
         # Radius should be used when both radius and place are provided
         assert (
@@ -71,19 +71,19 @@ class TestCalculateRank:
 class TestClipRank:
     """Test the clip_rank function."""
 
-    def test_clip_rank_within_bounds(self):
+    def test_clip_rank_within_bounds(self) -> None:
         """Test clipping ranks within valid bounds."""
         assert clip_rank(15) == 15
         assert clip_rank(13) == 13  # MIN_RANK
         assert clip_rank(23) == 23  # MAX_RANK
 
-    def test_clip_rank_below_minimum(self):
+    def test_clip_rank_below_minimum(self) -> None:
         """Test clipping ranks below minimum."""
         assert clip_rank(10) == 13
         assert clip_rank(0) == 13
         assert clip_rank(-5) == 13
 
-    def test_clip_rank_above_maximum(self):
+    def test_clip_rank_above_maximum(self) -> None:
         """Test clipping ranks above maximum."""
         assert clip_rank(25) == 23
         assert clip_rank(30) == 23
@@ -93,7 +93,7 @@ class TestClipRank:
 class TestGetLanguage:
     """Test the get_language function."""
 
-    def test_get_language_standard_locales(self):
+    def test_get_language_standard_locales(self) -> None:
         """Test language extraction from standard locale strings."""
         assert get_language("en_US") == "en"
         assert get_language("de_DE") == "de"
@@ -102,13 +102,13 @@ class TestGetLanguage:
         assert get_language("ja_JP") == "ja"
         assert get_language("zh_CN") == "zh"
 
-    def test_get_language_with_encoding(self):
+    def test_get_language_with_encoding(self) -> None:
         """Test language extraction from locales with encoding."""
         assert get_language("en_US.UTF-8") == "en"
         assert get_language("de_DE.UTF-8") == "de"
         assert get_language("fr_CA.ISO-8859-1") == "fr"
 
-    def test_get_language_variants(self):
+    def test_get_language_variants(self) -> None:
         """Test language extraction from locale variants."""
         assert get_language("en_GB") == "en"
         assert get_language("en_CA") == "en"
@@ -117,13 +117,13 @@ class TestGetLanguage:
         assert get_language("pt_BR") == "pt"
         assert get_language("zh_TW") == "zh"
 
-    def test_get_language_language_only(self):
+    def test_get_language_language_only(self) -> None:
         """Test language extraction when only language code is provided."""
         assert get_language("en") == "en"
         assert get_language("de") == "de"
         assert get_language("fr") == "fr"
 
-    def test_get_language_edge_cases(self):
+    def test_get_language_edge_cases(self) -> None:
         """Test edge cases for get_language."""
         # Empty string
         assert get_language("") == ""

@@ -19,9 +19,9 @@ logger = logging.getLogger(__name__)
 
 
 class GPXTask(BaseTask):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        self.__sources = []
+        self.__sources: list[PosixPath] = []
 
     def handle_gpx(self, source: PosixPath) -> List[Any]:
         self.__sources.append(source)
@@ -60,7 +60,7 @@ class GPXTask(BaseTask):
         )
         return filename
 
-    def __gpx2gpx(self, date, dst, gpx_source):
+    def __gpx2gpx(self, date, dst, gpx_source) -> None:
         if gpx_source:
             sources = self.__sources
         else:
@@ -151,7 +151,7 @@ class GPXTask(BaseTask):
             "actions": [_gpx_deps],
         }
 
-    def __get_timed_coords(self, gpx, coords):
+    def __get_timed_coords(self, gpx, coords) -> None:
         # Extract coordinates from GPX format (lat, lon) and store as (time, lon, lat) for internal use
         for wpt in gpx.waypoints:
             if wpt.time is not None:
@@ -167,13 +167,13 @@ class GPXTask(BaseTask):
                     coords.append((pt.time, pt.longitude, pt.latitude))
 
     def task_geo_correlation(self) -> Dict[str, Any]:
-        def _update_positions():
+        def _update_positions() -> None:
             tz = ZoneInfo(self.config["site"]["timezone"])
             offset = timedelta(
                 seconds=self.config["features"]["geo_correlation"]["time_offset"],
             )
 
-            coords = []
+            coords: list[tuple[datetime, float, float]] = []
             for path in self.__sources:
                 with open(path, encoding="utf-8") as f:
                     gpx = gpxpy.parse(f)
@@ -216,5 +216,5 @@ class GPXTask(BaseTask):
             "uptodate": [False],
         }
 
-    def __debug_dump_gpx(self):
+    def __debug_dump_gpx(self) -> None:
         logger.debug("GPX dump:\n" + tabulate(*self.db.dump("gpx")))

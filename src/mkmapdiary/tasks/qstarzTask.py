@@ -5,9 +5,9 @@ from .base.baseTask import BaseTask
 
 
 class QstarzTask(BaseTask):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        self.__sources = []
+        self.__sources: list[PosixPath] = []
 
     def handle_ext_bin(self, source: PosixPath) -> List[Any]:
         return self.__handle(source)

@@ -8,13 +8,13 @@ from mkmapdiary.geoCluster import GeoCluster
 class TestGeoClusterMathematicalFunctions:
     """Test the mathematical functions in GeoCluster."""
 
-    def test_greatcircle_angle_same_point(self):
+    def test_greatcircle_angle_same_point(self) -> None:
         """Test great circle angle between the same point."""
         lat1 = lon1 = lat2 = lon2 = math.radians(45.0)  # Convert to radians
         angle = GeoCluster._greatcircle_angle(lat1, lon1, lat2, lon2)
         assert abs(angle) < 1e-10  # Should be approximately 0
 
-    def test_greatcircle_angle_antipodal_points(self):
+    def test_greatcircle_angle_antipodal_points(self) -> None:
         """Test great circle angle between antipodal points."""
         # Points on opposite sides of the earth
         lat1, lon1 = math.radians(0.0), math.radians(0.0)  # Equator, Prime Meridian
@@ -22,7 +22,7 @@ class TestGeoClusterMathematicalFunctions:
         angle = GeoCluster._greatcircle_angle(lat1, lon1, lat2, lon2)
         assert abs(angle - math.pi) < 1e-10  # Should be π radians (180°)
 
-    def test_greatcircle_angle_quarter_circle(self):
+    def test_greatcircle_angle_quarter_circle(self) -> None:
         """Test great circle angle for quarter circle distance."""
         # North Pole to Equator should be π/2 radians (90°)
         lat1, lon1 = math.radians(90.0), math.radians(0.0)  # North Pole
@@ -30,7 +30,7 @@ class TestGeoClusterMathematicalFunctions:
         angle = GeoCluster._greatcircle_angle(lat1, lon1, lat2, lon2)
         assert abs(angle - math.pi / 2) < 1e-10
 
-    def test_greatcircle_angle_known_cities(self):
+    def test_greatcircle_angle_known_cities(self) -> None:
         """Test great circle angle between known cities."""
         # New York City (40.7128° N, 74.0060° W) to London (51.5074° N, 0.1278° W)
         # Expected great circle distance is approximately 5585 km
@@ -44,7 +44,7 @@ class TestGeoClusterMathematicalFunctions:
         angle_deg = math.degrees(angle)
         assert 49.0 < angle_deg < 51.0  # Approximate expected range
 
-    def test_greatcircle_angle_symmetry(self):
+    def test_greatcircle_angle_symmetry(self) -> None:
         """Test that great circle angle is symmetric."""
         lat1, lon1 = math.radians(40.0), math.radians(-74.0)
         lat2, lon2 = math.radians(51.0), math.radians(0.0)
@@ -54,7 +54,7 @@ class TestGeoClusterMathematicalFunctions:
 
         assert abs(angle1 - angle2) < 1e-10
 
-    def test_greatcircle_midpoint_same_point(self):
+    def test_greatcircle_midpoint_same_point(self) -> None:
         """Test midpoint calculation for the same point."""
         lat = lon = math.radians(45.0)
         mid_lat, mid_lon = GeoCluster._greatcircle_midpoint(lat, lon, lat, lon)
@@ -63,7 +63,7 @@ class TestGeoClusterMathematicalFunctions:
         assert abs(mid_lon - lon) < 1e-10
 
     @pytest.mark.skip("Needs investigation")
-    def test_greatcircle_midpoint_antipodal_points(self):
+    def test_greatcircle_midpoint_antipodal_points(self) -> None:
         """Test midpoint of antipodal points."""
         # Midpoint of antipodal points on the equator
         lat1, lon1 = math.radians(0.0), math.radians(0.0)  # Equator, Prime Meridian
@@ -74,7 +74,7 @@ class TestGeoClusterMathematicalFunctions:
         # Midpoint should be at one of the poles (North or South)
         assert abs(abs(mid_lat) - math.pi / 2) < 1e-10  # Should be ±π/2 (±90°)
 
-    def test_greatcircle_midpoint_equator_points(self):
+    def test_greatcircle_midpoint_equator_points(self) -> None:
         """Test midpoint of points on the equator."""
         lat1, lon1 = math.radians(0.0), math.radians(0.0)  # Equator, Prime Meridian
         lat2, lon2 = math.radians(0.0), math.radians(90.0)  # Equator, 90° East
@@ -85,7 +85,7 @@ class TestGeoClusterMathematicalFunctions:
         assert abs(mid_lat) < 1e-10  # Should be on equator (0°)
         assert abs(mid_lon - math.radians(45.0)) < 1e-10  # Should be at 45°
 
-    def test_greatcircle_midpoint_known_cities(self):
+    def test_greatcircle_midpoint_known_cities(self) -> None:
         """Test midpoint between known cities."""
         # New York City to London
         nyc_lat, nyc_lon = math.radians(40.7128), math.radians(-74.0060)
@@ -107,7 +107,7 @@ class TestGeoClusterMathematicalFunctions:
         assert 50.0 < mid_lat_deg < 60.0  # Reasonable latitude range
         assert -45.0 < mid_lon_deg < -30.0  # Reasonable longitude range
 
-    def test_greatcircle_midpoint_symmetry(self):
+    def test_greatcircle_midpoint_symmetry(self) -> None:
         """Test that midpoint calculation is symmetric."""
         lat1, lon1 = math.radians(40.0), math.radians(-74.0)
         lat2, lon2 = math.radians(51.0), math.radians(0.0)
@@ -118,7 +118,7 @@ class TestGeoClusterMathematicalFunctions:
         assert abs(mid1_lat - mid2_lat) < 1e-10
         assert abs(mid1_lon - mid2_lon) < 1e-10
 
-    def test_mathematical_consistency(self):
+    def test_mathematical_consistency(self) -> None:
         """Test consistency between angle and midpoint calculations."""
         # For any two points, the angle from point1 to midpoint should be
         # half the angle from point1 to point2
@@ -137,7 +137,7 @@ class TestGeoClusterMathematicalFunctions:
         # Half angle should be approximately half of full angle
         assert abs(2 * half_angle - full_angle) < 1e-8
 
-    def test_edge_case_poles(self):
+    def test_edge_case_poles(self) -> None:
         """Test behavior at the poles."""
         # North Pole
         north_lat, north_lon = math.radians(90.0), math.radians(0.0)

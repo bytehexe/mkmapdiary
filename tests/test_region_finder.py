@@ -24,7 +24,7 @@ def load_geofabrik_data():
 
 
 @pytest.mark.local
-def test_find_best_region_internal():
+def test_find_best_region_internal() -> None:
     # This test can be implemented to test the internal _findBestRegion method
     geofabrik_data = load_geofabrik_data()
 
@@ -43,7 +43,7 @@ def test_find_best_region_internal():
 
 
 @pytest.mark.local
-def test_find_regions_with_cache():
+def test_find_regions_with_cache() -> None:
     geofabrik_data = load_geofabrik_data()
 
     geo_data_list = [

@@ -8,14 +8,14 @@ from .base.baseTask import BaseTask
 
 
 class JournalTask(BaseTask):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     @create_after("gpx2gpx")
     def task_build_journal(self) -> Iterator[Dict[str, Any]]:
         """Generate journal pages."""
 
-        def _generate_journal(date):
+        def _generate_journal(date) -> None:
             gallery_path = self.dirs.docs_dir / "templates" / f"{date}_journal.md"
 
             assets = []

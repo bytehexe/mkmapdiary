@@ -6,7 +6,7 @@ from mkmapdiary.poi.common import get_hash
 
 
 class IndexFileReader:
-    def __init__(self, file_path):
+    def __init__(self, file_path) -> None:
         self.file_path = file_path
 
         with open(self.file_path, "rb") as f:

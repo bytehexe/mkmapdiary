@@ -9,7 +9,7 @@ from mkmapdiary.util.projection import LocalProjection
 
 
 class GeoCluster:
-    def __init__(self, locations):
+    def __init__(self, locations) -> None:
         # Interface expects locations as (lon, lat) tuples for consistency with GeoJSON
         self.__locations = locations
         self.__remove_outliers()
@@ -20,7 +20,7 @@ class GeoCluster:
 
     EARTH_RADIUS_M = 6371008.8  # mean Earth radius in meters
 
-    def __remove_outliers(self):
+    def __remove_outliers(self) -> None:
         if len(self.__locations) < 4:
             return  # Not enough points to determine outliers
 

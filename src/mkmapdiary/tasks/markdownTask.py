@@ -1,3 +1,4 @@
+from pathlib import PosixPath
 from typing import Any, Dict, Iterator
 
 from mkmapdiary.lib.asset import Asset, AssetMeta
@@ -6,9 +7,9 @@ from .base.baseTask import BaseTask
 
 
 class MarkdownTask(BaseTask):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        self.__sources = []
+        self.__sources: list[PosixPath] = []
 
     def handle_markdown(self, source):
         # Create task to convert image to target format
@@ -28,7 +29,7 @@ class MarkdownTask(BaseTask):
     def task_markdown2markdown(self) -> Iterator[Dict[str, Any]]:
         """Copy text files to the assets directory."""
 
-        def _to_md(src, dst):
+        def _to_md(src, dst) -> None:
             with open(src) as f_src, open(dst, "w") as f_dst:
                 content = f_src.readlines()
 

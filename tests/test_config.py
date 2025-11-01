@@ -4,7 +4,7 @@ import pytest
 from mkmapdiary.lib import config
 
 
-def test_config_validation():
+def test_config_validation() -> None:
     """Test that the configuration validation works correctly."""
 
     # Valid configuration
@@ -35,7 +35,7 @@ def test_config_validation():
         config.load_config_data(invalid_config)
 
 
-def test_config_param_loading():
+def test_config_param_loading() -> None:
     """Test loading configuration from a parameter string."""
 
     param = "site.timezone=UTC"

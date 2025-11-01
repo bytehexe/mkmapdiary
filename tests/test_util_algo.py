@@ -1,12 +1,14 @@
+from typing import Any, Dict
+
 import pytest
 
 from mkmapdiary.util.algo import deep_update
 
 
-def test_deep_update_simple():
+def test_deep_update_simple() -> None:
     """Test deep_update with simple dictionaries."""
     d = {"a": 1, "b": 2}
-    u = {"b": 3, "c": 4}
+    u: Dict[str, Any] = {"b": 3, "c": 4}
     result = deep_update(d, u)
 
     expected = {"a": 1, "b": 3, "c": 4}
@@ -14,7 +16,7 @@ def test_deep_update_simple():
     assert d == expected  # Original dict should be modified
 
 
-def test_deep_update_nested():
+def test_deep_update_nested() -> None:
     """Test deep_update with nested dictionaries."""
     d = {
         "level1": {
@@ -49,11 +51,11 @@ def test_deep_update_nested():
     assert result == expected
 
 
-def test_deep_update_empty_dicts():
+def test_deep_update_empty_dicts() -> None:
     """Test deep_update with empty dictionaries."""
     # Empty update dict
     d = {"a": 1, "b": 2}
-    u = {}
+    u: Dict[str, Any] = {}
     result = deep_update(d, u)
     assert result == {"a": 1, "b": 2}
 
@@ -70,7 +72,7 @@ def test_deep_update_empty_dicts():
     assert result == {}
 
 
-def test_deep_update_overwrites_non_dict():
+def test_deep_update_overwrites_non_dict() -> None:
     """Test that deep_update overwrites non-dict values with dict values."""
     d = {"key": "string_value"}
     u = {"key": {"nested": "dict_value"}}
@@ -78,7 +80,7 @@ def test_deep_update_overwrites_non_dict():
         deep_update(d, u)
 
 
-def test_deep_update_preserves_references():
+def test_deep_update_preserves_references() -> None:
     """Test that deep_update modifies the original dictionary in place."""
     original = {"a": 1}
     update = {"b": 2}

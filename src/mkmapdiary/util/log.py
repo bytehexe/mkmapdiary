@@ -14,7 +14,7 @@ class IconFilter(logging.Filter):
         pad = 2 + length - width
         return icon + " " * (pad)
 
-    def filter(self, record):
+    def filter(self, record) -> bool:
         if hasattr(record, "icon"):
             record.fmt_icon = self.__pad_icon(record.icon)
         else:
@@ -26,7 +26,7 @@ class IconFilter(logging.Filter):
 
 
 class StepFilter(logging.Filter):
-    def filter(self, record):
+    def filter(self, record) -> bool:
         if record.name == "mkmapdiary.main.runner":
             return True
         if record.name == "mkmapdiary.taskList":
@@ -50,7 +50,7 @@ logging.setLogRecordFactory(record_factory)
 current_task = contextvars.ContextVar("current_task", default="unknown")
 
 
-def setup_logging():
+def setup_logging() -> None:
     """Setup console logging configuration."""
     with open(pathlib.Path(__file__).parent.parent / "resources" / "logging.yaml") as f:
         logging_config = yaml.safe_load(f)
@@ -61,7 +61,7 @@ def setup_logging():
         console_handler.addFilter(IconFilter())
 
 
-def add_file_logging(build_dir: pathlib.Path):
+def add_file_logging(build_dir: pathlib.Path) -> None:
     """Add file logging to existing logging setup.
 
     Args:
