@@ -11,63 +11,76 @@ from mkmapdiary.lib.asset import AssetRecord
 class AssetRegistry:
     def __init__(self) -> None:
         # Note: Asset list is append/update only; no delete!
-        self._assets: List[AssetRecord] = []
+        self.__assets: List[AssetRecord] = []
         self.lock = threading.RLock()
 
-        self._has_display_date = False
+        self.has_display_date = False
 
     @property
     def next_id(self) -> int:
         with self.lock:
-            return len(self._assets) + 1
+            return len(self.__assets) + 1
 
     @property
     def assets(self) -> List[AssetRecord]:
+        """Get a copy of the list of all asset records.
+        Modifications to the returned list will not affect the registry.
+        Modifications to the asset records themselves will affect the registry."""
         with self.lock:
-            return self._assets.copy()
+            return self.__assets.copy()
 
     def add_asset(self, asset_record: AssetRecord) -> None:
+        """Add a new asset record to the registry."""
         with self.lock:
             assert asset_record.id is None, (
                 "AssetRecord id must be None when adding a new asset"
             )
             asset_record.id = self.next_id
 
-            self._assets.append(asset_record)
+            self.__assets.append(asset_record)
+
+    def update_asset(self, asset_record: Union[AssetRecord, Dict[str, Any]]) -> None:
+        """Update an existing asset record.
+        If a record is provided, only non-None fields in asset_record will be updated."""
+        if isinstance(asset_record, dict):
+            asset_dict = asset_record
+        else:
+            asset_dict = dataclasses.asdict(asset_record)
+            asset_dict = {k: v for k, v in asset_dict.items() if v is not None}
+
+        with self.lock:
+            assert asset_dict["id"] is not None, (
+                "AssetRecord id must not be None when updating an asset"
+            )
+            for idx, existing_asset in enumerate(self.__assets):
+                if existing_asset.id == asset_dict["id"]:
+                    self.__assets[idx] = dataclasses.replace(
+                        existing_asset, **asset_dict
+                    )
+                    return
+            raise ValueError(f"Asset with id {asset_dict['id']} not found")
 
     def count_assets(self) -> int:
+        """Get the total number of assets in the registry."""
         with self.lock:
-            return len(self._assets)
-
-    def count_assets_by_date(self) -> dict[str, int]:
-        assert self._has_display_date, (
-            "AssetRegistry must track display dates to count by date"
-        )
-
-        with self.lock:
-            date_counts: Dict[str, int] = {}
-            for asset in self._assets:
-                if asset.display_date:
-                    date_str = asset.display_date.format_iso()
-                    date_counts[date_str] = date_counts.get(date_str, 0) + 1
-            return dict(sorted(date_counts.items()))
+            return len(self.__assets)
 
     def get_all_assets(self) -> List[str]:
         with self.lock:
             # Sort by utc, handling None values
             sorted_assets = sorted(
-                self._assets, key=lambda x: x.timestamp_utc or whenever.Instant.MIN
+                self.__assets, key=lambda x: x.timestamp_utc or whenever.Instant.MIN
             )
             return [str(asset.path) for asset in sorted_assets]
 
     def get_all_dates(self) -> List[whenever.Date]:
-        assert self._has_display_date, (
+        assert self.has_display_date, (
             "AssetRegistry must track display dates to get all dates"
         )
 
         with self.lock:
             dates = set()
-            for asset in self._assets:
+            for asset in self.__assets:
                 if asset.display_date:
                     dates.add(asset.display_date)
             return sorted(list(dates))
@@ -82,7 +95,7 @@ class AssetRegistry:
 
         with self.lock:
             filtered_assets = [
-                asset for asset in self._assets if asset.type in asset_types
+                asset for asset in self.__assets if asset.type in asset_types
             ]
             # Sort by utc timestamp
             sorted_assets = sorted(
@@ -95,7 +108,7 @@ class AssetRegistry:
         date: whenever.Date,
         asset_type: Union[str, List[str], Tuple[str, ...]],
     ) -> List[Tuple[pathlib.Path, str]]:
-        if not self._has_display_date:
+        if not self.has_display_date:
             raise ValueError(
                 "AssetRegistry must track display dates to get assets by date"
             )
@@ -107,7 +120,7 @@ class AssetRegistry:
 
         with self.lock:
             filtered_assets = []
-            for asset in self._assets:
+            for asset in self.__assets:
                 if (
                     asset.display_date
                     and asset.display_date == date
@@ -123,7 +136,7 @@ class AssetRegistry:
 
     def get_geo_by_name(self, name: str) -> Optional[dict[str, Union[str, float]]]:
         with self.lock:
-            for asset in self._assets:
+            for asset in self.__assets:
                 if (
                     str(asset.path) == name
                     and asset.latitude is not None
@@ -142,10 +155,10 @@ class AssetRegistry:
         with self.lock:
             if asset_type:
                 filtered_assets = [
-                    asset for asset in self._assets if asset.type == asset_type
+                    asset for asset in self.__assets if asset.type == asset_type
                 ]
             else:
-                filtered_assets = self._assets
+                filtered_assets = self.__assets
 
             rows = []
             for asset in filtered_assets:
@@ -156,7 +169,7 @@ class AssetRegistry:
     def get_unpositioned_assets(self) -> List[Tuple[int, Optional[whenever.Instant]]]:
         with self.lock:
             result = []
-            for asset in self._assets:
+            for asset in self.__assets:
                 if (
                     asset.latitude is None or asset.longitude is None
                 ) and asset.type != "gpx":
@@ -168,7 +181,7 @@ class AssetRegistry:
     def get_unpositioned_asset_paths(self) -> List[str]:
         with self.lock:
             result = []
-            for asset in self._assets:
+            for asset in self.__assets:
                 if (
                     asset.latitude is None or asset.longitude is None
                 ) and asset.type != "gpx":
@@ -179,7 +192,7 @@ class AssetRegistry:
         self, asset_id: int, latitude: float, longitude: float, approx: bool
     ) -> None:
         with self.lock:
-            for asset in self._assets:
+            for asset in self.__assets:
                 if asset.id == asset_id:
                     asset.latitude = latitude
                     asset.longitude = longitude
@@ -189,7 +202,7 @@ class AssetRegistry:
     def get_geotagged_journals(self) -> List[whenever.Date]:
         with self.lock:
             dates = set()
-            for asset in self._assets:
+            for asset in self.__assets:
                 if (
                     asset.latitude is not None
                     and asset.longitude is not None
@@ -203,7 +216,7 @@ class AssetRegistry:
         self, asset_path: str
     ) -> Optional[dict[str, Union[int, str, float, None]]]:
         with self.lock:
-            for asset in self._assets:
+            for asset in self.__assets:
                 if str(asset.path) == asset_path:
                     return {
                         "id": asset.id,

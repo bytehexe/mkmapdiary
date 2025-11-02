@@ -226,8 +226,7 @@ class GPXTask(HttpRequest):
                             )
 
             # Assigning timestamp_geo to assets
-            # FIXME: This is a hack
-            for asset in self.db._assets:
+            for asset in self.db.assets:
                 if asset.timestamp_utc is None:
                     # No UTC timestamp to base geo timestamp on
                     continue
@@ -251,10 +250,9 @@ class GPXTask(HttpRequest):
                 asset.timestamp_geo = asset.timestamp_utc.to_tz(asset_tz)
 
             # Assigning display date to assets
-            # FIXME: This is a hack
             last_date = whenever.Date.MIN
             for asset in sorted(
-                self.db._assets, key=lambda x: x.timestamp_utc or whenever.Instant.MIN
+                self.db.assets, key=lambda x: x.timestamp_utc or whenever.Instant.MIN
             ):
                 if asset.timestamp_geo is None:
                     continue
@@ -268,8 +266,7 @@ class GPXTask(HttpRequest):
                     asset.display_date = temp_date
                     last_date = temp_date
 
-            # FIXME: Another hack to signal that display dates are present
-            self.db._has_display_date = True
+            self.db.has_display_date = True
 
             logger.debug(
                 "Asset positions updated:\n" + tabulate(*self.db.dump()),
