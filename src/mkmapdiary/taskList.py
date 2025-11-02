@@ -1,4 +1,5 @@
 import logging
+import sys
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, MutableMapping, Optional, Union
 
@@ -115,7 +116,18 @@ class TaskList(*tasks):  # type: ignore
     def handle_path(self, source: Path) -> Union[Iterator, List[AssetRecord]]:
         """Handle a source file or directory based on its tags."""
 
-        if source.is_file() and source.name == "config.yaml":
+        exclude = set(
+            [
+                # thumbnail files
+                ".DS_Store",
+                "Thumbs.db",
+                # mkmapdiary config files
+                "config.yaml",
+                "calibration.yaml",
+            ]
+        )
+
+        if source.is_file() and source.name in exclude:
             return []
 
         tags = identify.tags_from_path(str(source))
@@ -186,7 +198,11 @@ class TaskList(*tasks):  # type: ignore
         with schema_path.open() as f:
             schema = yaml.safe_load(f)
 
-        jsonschema.validate(instance=data, schema=schema)
+        try:
+            jsonschema.validate(instance=data, schema=schema)
+        except jsonschema.ValidationError as e:
+            logger.error(f"Validation error in {calibration_file}: {e.message}")
+            sys.exit(1)
 
         timezone = data.get("calibration", {}).get(
             "timezone", self.__calibration[-1].timezone
@@ -194,11 +210,6 @@ class TaskList(*tasks):  # type: ignore
         offset = data.get("calibration", {}).get(
             "offset", self.__calibration[-1].offset
         )
-
-        if data:
-            logger.warning(
-                f"Unknown calibration options in {calibration_file}: {list(data.keys())}",
-            )
 
         self.__calibration.append(Calibration(timezone=timezone, offset=offset))
         logger.debug(
