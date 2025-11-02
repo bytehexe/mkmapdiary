@@ -7,6 +7,7 @@ import humanfriendly
 import jsonschema
 import whenever
 import yaml
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from mkmapdiary.lib.asset import AssetRecord
 from mkmapdiary.lib.config import load_config_param
@@ -14,6 +15,12 @@ from mkmapdiary.lib.dirs import Dirs
 from mkmapdiary.taskList import TaskList
 
 logger = logging.getLogger(__name__)
+
+
+@click.group()
+def calibrate() -> None:
+    """Calibrate camera timestamps."""
+    pass
 
 
 @click.command()
@@ -36,12 +43,27 @@ logger = logging.getLogger(__name__)
     required=False,
     help="Path to the output file.",
 )
+@click.option(
+    "-n", "--dry-run", is_flag=True, help="Perform a dry run without writing output."
+)
 @click.argument("image", type=click.Path(path_type=Path), required=True)
 @click.argument("ref_time", type=str, required=True)
-def calibrate(
-    camera_tz: str, ref_tz: str, image: Path, ref_time: str, output: Path
+def file(
+    camera_tz: str, ref_tz: str, image: Path, ref_time: str, output: Path, dry_run: bool
 ) -> None:
-    """Calibrate input files."""
+    """Calibrate camera timestamps using a reference file."""
+
+    try:
+        ZoneInfo(camera_tz)
+    except ZoneInfoNotFoundError:
+        logger.error(f"Invalid camera timezone: {camera_tz}")
+        return
+
+    try:
+        ZoneInfo(ref_tz)
+    except ZoneInfoNotFoundError:
+        logger.error(f"Invalid reference timezone: {ref_tz}")
+        return
 
     with tempfile.TemporaryDirectory() as tempdir:
         tempdir_path = Path(tempdir)
@@ -99,13 +121,63 @@ def calibrate(
         }
     }
 
+    write_calibration_data(data, output, dry_run)
+
+
+def write_calibration_data(data: dict, output: Path, dry_run: bool) -> None:
     schema_path = Path(__file__).parent.parent / "resources" / "calibrate_schema.yaml"
     with schema_path.open() as f:
         schema = yaml.safe_load(f)
 
     jsonschema.validate(instance=data, schema=schema)
 
+    if dry_run:
+        logger.info(f"Dry run enabled; would write to {output}:", extra={"icon": "😎"})
+        return
+
     with output.open("w", encoding="utf-8") as f:
         yaml.dump(data, f, sort_keys=False)
 
     logger.info(f"Calibration data written to {output}", extra={"icon": "💾"})
+
+
+@click.command()
+@click.option("-o", "--output", type=click.Path(path_type=Path), required=True)
+@click.option("-x", "--offset", type=int, default=0, help="Offset in seconds.")
+@click.option(
+    "--camera-tz",
+    type=str,
+    default="localtime",
+    help="Timezone of the camera timestamps.",
+)
+def manual(output: Path, offset: int, camera_tz: str) -> None:
+    """Calibrate camera timestamps manually."""
+
+    try:
+        ZoneInfo(camera_tz)
+    except ZoneInfoNotFoundError:
+        logger.error(f"Invalid camera timezone: {camera_tz}")
+        return
+
+    data = {
+        "calibration": {
+            "timezone": camera_tz,
+            "offset": offset,
+        }
+    }
+
+    offset_minutes = round(offset / 60)
+
+    logger.info(f"Camera timezone: {camera_tz}")
+    logger.info(
+        f"Offset         : {offset} seconds (about {offset_minutes} minutes)",
+    )
+
+    if output.is_dir():
+        output = output / "calibration.yaml"
+
+    write_calibration_data(data, output, dry_run=False)
+
+
+calibrate.add_command(file)
+calibrate.add_command(manual)
