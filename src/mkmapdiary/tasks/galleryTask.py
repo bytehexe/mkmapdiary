@@ -23,20 +23,20 @@ class GalleryTask(BaseTask):
             gallery_items = []
             geo_items = []
 
-            for i, (asset, _) in enumerate(self.db.get_assets_by_date(date, "image")):
+            for i, asset in enumerate(self.db.get_assets_by_date(date, "image")):
                 item = dict(
-                    basename=pathlib.PosixPath(asset).name,
+                    basename=pathlib.PosixPath(asset.path).name,
                 )
 
                 gallery_items.append(item)
 
-                geo_data_item = self.db.get_geo_by_name(str(asset))
-                if geo_data_item:
+                geo_asset = self.db.get_geotagged_asset_by_path(asset.path)
+                if geo_asset:
                     geo_item = dict(
-                        photo="assets/" + str(asset).split("/")[-1],
-                        thumbnail="assets/" + str(asset).split("/")[-1],
-                        lat=geo_data_item["latitude"],
-                        lng=geo_data_item["longitude"],
+                        photo="assets/" + str(asset.path).split("/")[-1],
+                        thumbnail="assets/" + str(asset.path).split("/")[-1],
+                        lat=geo_asset.latitude,
+                        lng=geo_asset.longitude,
                         index=i,
                     )
                     geo_items.append(geo_item)
@@ -44,7 +44,7 @@ class GalleryTask(BaseTask):
             gpx = self.db.get_assets_by_date(date, "gpx")
             assert len(gpx) <= 1
             if len(gpx) == 1:
-                with open(gpx[0][0]) as f:
+                with open(gpx[0].path) as f:
                     gpx_data = f.read()
             else:
                 gpx_data = None
@@ -58,7 +58,7 @@ class GalleryTask(BaseTask):
                         gallery_items=gallery_items,
                         geo_items=geo_items,
                         gpx_data=gpx_data,
-                        gpx_file=str(gpx[0][0]).split("/")[-1] if gpx else None,
+                        gpx_file=str(gpx[0].path).split("/")[-1] if gpx else None,
                     ),
                 )
 
@@ -67,7 +67,7 @@ class GalleryTask(BaseTask):
                 name=str(date),
                 actions=[(_generate_gallery, [date])],
                 targets=[self.dirs.templates_dir / f"{date}_gallery.md"],
-                file_dep=self.db.get_all_assets(),
+                file_dep=[str(asset.path) for asset in self.db.get_all_assets()],
                 calc_dep=["get_gpx_deps"],
                 task_dep=[f"create_directory:{self.dirs.templates_dir}"],
                 uptodate=[True],

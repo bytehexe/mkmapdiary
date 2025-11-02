@@ -22,15 +22,16 @@ class TagsTask(BaseTask):
 
             content = []
 
-            for asset, asset_type in self.db.get_assets_by_date(
+            for asset in self.db.get_assets_by_date(
                 date,
                 ("markdown", "audio"),
             ):
-                if asset_type == "audio":
-                    asset = pathlib.Path(str(asset) + ".md")
-                with open(asset) as f:
+                asset_path = asset.path
+                if asset.type == "audio":
+                    asset_path = pathlib.Path(str(asset.path) + ".md")
+                with open(asset_path) as f:
                     file_content_str = f.read()
-                if asset_type == "audio":
+                if asset.type == "audio":
                     # Remove first line (title)
                     content.append(file_content_str.split("\n", 1)[1])
                 else:
@@ -67,7 +68,7 @@ class TagsTask(BaseTask):
                 targets=[
                     self.dirs.docs_dir / "templates" / f"{date.format_iso()}_tags.md"
                 ],
-                file_dep=self.db.get_all_assets(),
+                file_dep=[str(asset.path) for asset in self.db.get_all_assets()],
                 calc_dep=["get_gpx_deps"],
                 task_dep=[
                     f"create_directory:{self.dirs.templates_dir}",

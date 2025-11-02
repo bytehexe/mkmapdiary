@@ -65,13 +65,32 @@ class AssetRegistry:
         with self.lock:
             return len(self.__assets)
 
-    def get_all_assets(self) -> List[str]:
+    def get_asset_by_id(self, asset_id: int) -> Optional[AssetRecord]:
+        """Get an asset by its ID."""
+        with self.lock:
+            for asset in self.__assets:
+                if asset.id == asset_id:
+                    return asset
+            return None
+
+    def get_asset_by_path(
+        self, path: Union[str, pathlib.Path]
+    ) -> Optional[AssetRecord]:
+        """Get an asset by its path."""
+        path_str = str(path)
+        with self.lock:
+            for asset in self.__assets:
+                if str(asset.path) == path_str:
+                    return asset
+            return None
+
+    def get_all_assets(self) -> List[AssetRecord]:
         with self.lock:
             # Sort by utc, handling None values
             sorted_assets = sorted(
                 self.__assets, key=lambda x: x.timestamp_utc or whenever.Instant.MIN
             )
-            return [str(asset.path) for asset in sorted_assets]
+            return sorted_assets
 
     def get_all_dates(self) -> List[whenever.Date]:
         assert self.has_display_date, (
@@ -87,7 +106,7 @@ class AssetRegistry:
 
     def get_assets_by_type(
         self, asset_type: Union[str, List[str], Tuple[str, ...]]
-    ) -> List[Tuple[str, str]]:
+    ) -> List[AssetRecord]:
         if isinstance(asset_type, str):
             asset_types = {asset_type}
         else:
@@ -101,17 +120,21 @@ class AssetRegistry:
             sorted_assets = sorted(
                 filtered_assets, key=lambda x: x.timestamp_utc or whenever.Instant.MIN
             )
-            return [(str(asset.path), asset.type) for asset in sorted_assets]
+            return sorted_assets
 
     def get_assets_by_date(
         self,
-        date: whenever.Date,
+        date: Union[whenever.Date, str],
         asset_type: Union[str, List[str], Tuple[str, ...]],
-    ) -> List[Tuple[pathlib.Path, str]]:
+    ) -> List[AssetRecord]:
         if not self.has_display_date:
             raise ValueError(
                 "AssetRegistry must track display dates to get assets by date"
             )
+
+        # Convert string date to whenever.Date if needed
+        if isinstance(date, str):
+            date = whenever.Date.parse_iso(date)
 
         if isinstance(asset_type, str):
             asset_types = {asset_type}
@@ -132,22 +155,49 @@ class AssetRegistry:
             sorted_assets = sorted(
                 filtered_assets, key=lambda x: x.timestamp_utc or whenever.Instant.MIN
             )
-            return [(asset.path, asset.type) for asset in sorted_assets]
+            return sorted_assets
 
-    def get_geo_by_name(self, name: str) -> Optional[dict[str, Union[str, float]]]:
+    def get_geotagged_asset_by_path(
+        self, path: Union[str, pathlib.Path]
+    ) -> Optional[AssetRecord]:
+        path_str = str(path)
         with self.lock:
             for asset in self.__assets:
                 if (
-                    str(asset.path) == name
+                    str(asset.path) == path_str
                     and asset.latitude is not None
                     and asset.longitude is not None
                 ):
-                    return {
-                        "name": str(asset.path),
-                        "latitude": asset.latitude,
-                        "longitude": asset.longitude,
-                    }
+                    return asset
             return None
+
+    def get_geotagged_assets(
+        self, asset_type: Optional[Union[str, List[str], Tuple[str, ...]]] = None
+    ) -> List[AssetRecord]:
+        """Get all geotagged assets, optionally filtered by asset type(s)."""
+        if asset_type is not None:
+            if isinstance(asset_type, str):
+                asset_types = {asset_type}
+            else:
+                asset_types = set(asset_type)
+        else:
+            asset_types = None
+
+        with self.lock:
+            filtered_assets = []
+            for asset in self.__assets:
+                if (
+                    asset.latitude is not None
+                    and asset.longitude is not None
+                    and (asset_types is None or asset.type in asset_types)
+                ):
+                    filtered_assets.append(asset)
+
+            # Sort by utc timestamp
+            sorted_assets = sorted(
+                filtered_assets, key=lambda x: x.timestamp_utc or whenever.Instant.MIN
+            )
+            return sorted_assets
 
     def dump(self, asset_type: Optional[str] = None) -> Tuple[List[Any], List[str]]:
         # Get all fields of AssetRecord, in order of definition, get their names from __dataclass_fields__
@@ -166,40 +216,33 @@ class AssetRegistry:
 
             return rows, headers
 
-    def get_unpositioned_assets(self) -> List[Tuple[int, Optional[whenever.Instant]]]:
+    def get_unpositioned_assets(self) -> List[AssetRecord]:
         with self.lock:
             result = []
             for asset in self.__assets:
                 if (
                     asset.latitude is None or asset.longitude is None
                 ) and asset.type != "gpx":
-                    timestamp_val = asset.timestamp_utc if asset.timestamp_utc else None
-                    assert asset.id is not None
-                    result.append((asset.id, timestamp_val))
-            return result
-
-    def get_unpositioned_asset_paths(self) -> List[str]:
-        with self.lock:
-            result = []
-            for asset in self.__assets:
-                if (
-                    asset.latitude is None or asset.longitude is None
-                ) and asset.type != "gpx":
-                    result.append(str(asset.path))
-            return result
+                    result.append(asset)
+            # Sort by utc timestamp
+            sorted_assets = sorted(
+                result, key=lambda x: x.timestamp_utc or whenever.Instant.MIN
+            )
+            return sorted_assets
 
     def update_asset_position(
         self, asset_id: int, latitude: float, longitude: float, approx: bool
     ) -> None:
-        with self.lock:
-            for asset in self.__assets:
-                if asset.id == asset_id:
-                    asset.latitude = latitude
-                    asset.longitude = longitude
-                    asset.approx = approx
-                    break
+        self.update_asset(
+            {
+                "id": asset_id,
+                "latitude": latitude,
+                "longitude": longitude,
+                "approx": approx,
+            }
+        )
 
-    def get_geotagged_journals(self) -> List[whenever.Date]:
+    def get_geotagged_journal_dates(self) -> List[whenever.Date]:
         with self.lock:
             dates = set()
             for asset in self.__assets:
@@ -211,19 +254,3 @@ class AssetRegistry:
                 ):
                     dates.add(asset.display_date)
             return sorted(list(dates))
-
-    def get_metadata(
-        self, asset_path: str
-    ) -> Optional[dict[str, Union[int, str, float, None]]]:
-        with self.lock:
-            for asset in self.__assets:
-                if str(asset.path) == asset_path:
-                    return {
-                        "id": asset.id,
-                        "timestamp": asset.timestamp_utc.format_iso()
-                        if asset.timestamp_utc
-                        else None,
-                        "latitude": asset.latitude,
-                        "longitude": asset.longitude,
-                    }
-            return None

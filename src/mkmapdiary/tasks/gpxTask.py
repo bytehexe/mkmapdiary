@@ -115,7 +115,7 @@ class GPXTask(HttpRequest):
                 "clean": True,
             }
 
-        journal_dates = set(self.db.get_geotagged_journals()) - dates
+        journal_dates = set(self.db.get_geotagged_journal_dates()) - dates
         for date in journal_dates:
             dst = self.__generate_destination_filename(date)
             yield {
@@ -138,7 +138,9 @@ class GPXTask(HttpRequest):
         def _gpx_deps() -> Dict[str, List[str]]:
             self.__debug_dump_gpx()
             return {
-                "file_dep": [x[0] for x in self.db.get_assets_by_type("gpx")],
+                "file_dep": [
+                    str(asset.path) for asset in self.db.get_assets_by_type("gpx")
+                ],
             }
 
         return {
@@ -190,13 +192,13 @@ class GPXTask(HttpRequest):
                     gpx = gpxpy.parse(f)
                 self.__get_timed_coords(gpx, coords)
             coords.sort(key=lambda x: x[0])
-            for asset_id, asset_time in self.db.get_unpositioned_assets():
+            for asset in self.db.get_unpositioned_assets():
                 # Find closest coordinate by time
-                if asset_time is not None:
-                    assert isinstance(asset_time, whenever.Instant), (
+                if asset.timestamp_utc is not None:
+                    assert isinstance(asset.timestamp_utc, whenever.Instant), (
                         "Asset time should be a whenever.Instant"
                     )
-                    asset_datetime: whenever.Instant = asset_time
+                    asset_datetime: whenever.Instant = asset.timestamp_utc
                     candidates = []
                     pos = bisect.bisect_left(coords, asset_datetime, key=lambda x: x[0])
                     if pos > 0:
@@ -216,8 +218,9 @@ class GPXTask(HttpRequest):
                             ]
                         ):
                             # closest contains (time, lon, lat), database expects separate lat, lon parameters
+                            assert asset.id is not None, "Asset must have an ID"
                             self.db.update_asset_position(
-                                asset_id,
+                                asset.id,
                                 closest[2],
                                 closest[1],
                                 bool(
@@ -276,7 +279,7 @@ class GPXTask(HttpRequest):
         return {
             "actions": [_update_positions],
             "file_dep": [str(src) for src in self.__sources]
-            + self.db.get_unpositioned_asset_paths(),
+            + [str(asset.path) for asset in self.db.get_unpositioned_assets()],
             "uptodate": [False],
         }
 

@@ -26,21 +26,21 @@ class JournalTask(BaseTask):
 
             assets = []
 
-            for asset, asset_type in self.db.get_assets_by_date(
+            for asset in self.db.get_assets_by_date(
                 date,
                 ("markdown", "audio"),
             ):
-                logger.debug(f"Processing asset: {asset} of type {asset_type}")
-                metadata = self.db.get_metadata(str(asset))
+                logger.debug(f"Processing asset: {asset.path} of type {asset.type}")
+                asset_data = self.db.get_asset_by_path(asset.path)
 
                 if (
-                    metadata is not None
-                    and metadata["latitude"] is not None
-                    and metadata["longitude"] is not None
+                    asset_data is not None
+                    and asset_data.latitude is not None
+                    and asset_data.longitude is not None
                 ):
-                    # Type assertions since we've checked metadata is not None
-                    latitude = metadata["latitude"]
-                    longitude = metadata["longitude"]
+                    # Type assertions since we've checked asset_data is not None
+                    latitude = asset_data.latitude
+                    longitude = asset_data.longitude
                     assert isinstance(latitude, (int, float)), (
                         "Latitude should be numeric"
                     )
@@ -54,19 +54,27 @@ class JournalTask(BaseTask):
                 else:
                     location = None
 
-                # Ensure metadata is not None before creating item
-                if metadata is not None:
-                    timestamp = metadata["timestamp"]
-                    assert isinstance(timestamp, str), "Timestamp should be a string"
+                # Ensure asset_data is not None before creating item
+                if asset_data is not None:
+                    timestamp = (
+                        asset_data.timestamp_utc.format_iso()
+                        if asset_data.timestamp_utc
+                        else None
+                    )
+                    assert isinstance(timestamp, (str, type(None))), (
+                        "Timestamp should be a string or None"
+                    )
 
                     item = dict(
-                        type=asset_type,
-                        path=pathlib.PosixPath(asset).name,
-                        time=datetime.fromisoformat(timestamp).strftime("%X"),
-                        latitude=metadata["latitude"],
-                        longitude=metadata["longitude"],
+                        type=asset.type,
+                        path=pathlib.PosixPath(asset.path).name,
+                        time=datetime.fromisoformat(timestamp).strftime("%X")
+                        if timestamp
+                        else "",
+                        latitude=asset_data.latitude,
+                        longitude=asset_data.longitude,
                         location=location,
-                        id=metadata["id"],
+                        id=asset_data.id,
                     )
                     assets.append(item)
 
@@ -87,7 +95,7 @@ class JournalTask(BaseTask):
                 targets=[
                     self.dirs.docs_dir / "templates" / f"{date.format_iso()}_journal.md"
                 ],
-                file_dep=self.db.get_all_assets(),
+                file_dep=[str(asset.path) for asset in self.db.get_all_assets()],
                 calc_dep=["get_gpx_deps"],
                 task_dep=[
                     f"create_directory:{self.dirs.templates_dir}",

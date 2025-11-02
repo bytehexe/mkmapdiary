@@ -95,7 +95,8 @@ class SiteTask(HttpRequest):
             index_path = self.dirs.docs_dir / "index.md"
 
             images = [
-                pathlib.PosixPath(x[0]) for x in self.db.get_assets_by_type("image")
+                pathlib.PosixPath(asset.path)
+                for asset in self.db.get_assets_by_type("image")
             ]
 
             with open(index_path, "w") as f:
@@ -111,7 +112,7 @@ class SiteTask(HttpRequest):
         yield dict(
             name="index",
             actions=[_generate_index_page],
-            file_dep=self.db.get_all_assets(),
+            file_dep=[str(asset.path) for asset in self.db.get_all_assets()],
             calc_dep=["get_gpx_deps"],
             task_dep=[
                 f"create_directory:{self.dirs.dist_dir}",
@@ -200,7 +201,7 @@ class SiteTask(HttpRequest):
         def _generate_file_deps() -> Iterator[Any]:
             yield self.dirs.build_dir / "mkdocs.yml"
             yield self.dirs.docs_dir / "index.md"
-            yield from self.db.get_all_assets()
+            yield from (str(asset.path) for asset in self.db.get_all_assets())
             for date in self.db.get_all_dates():
                 yield self.dirs.docs_dir / f"{date}.md"
                 yield self.dirs.templates_dir / f"{date}_gallery.md"

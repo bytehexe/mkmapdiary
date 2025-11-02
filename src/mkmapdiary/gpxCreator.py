@@ -177,18 +177,20 @@ class GpxCreator:
 
     def __add_journal_markers(self) -> None:
         logger.debug("Adding journal markers")
-        for asset, asset_type in self.__db.get_assets_by_date(
+        for asset in self.__db.get_assets_by_date(
             self.__date_w,  # FIXME: Inconsistent types
             ("markdown", "audio"),
         ):
-            geo = self.__db.get_geo_by_name(str(asset))
-            if geo is None:
+            geo_asset = self.__db.get_geotagged_asset_by_path(asset.path)
+            if geo_asset is None:
                 continue
-            metadata = self.__db.get_metadata(str(asset))
-            # geo dict uses separate latitude/longitude keys - GPX format (lat, lon)
+            # geo asset uses latitude/longitude properties - GPX format (lat, lon)
             # Convert latitude/longitude to float if they're strings
-            latitude = geo["latitude"]
-            longitude = geo["longitude"]
+            latitude = geo_asset.latitude
+            longitude = geo_asset.longitude
+            assert latitude is not None and longitude is not None, (
+                "Geotagged asset must have valid coordinates"
+            )
             assert type(latitude) in (float, int), (
                 f"Invalid latitude type: {type(latitude)}"
             )
@@ -196,14 +198,14 @@ class GpxCreator:
                 f"Invalid longitude type: {type(longitude)}"
             )
 
-            comment = f"{metadata['id']}" if metadata is not None else ""
+            comment = f"{geo_asset.id}" if geo_asset.id is not None else ""
 
             wpt = gpxpy.gpx.GPXWaypoint(
                 latitude=float(latitude),
                 longitude=float(longitude),
                 name="Journal Entry",
                 comment=comment,
-                symbol=f"{asset_type}-journal-entry",
+                symbol=f"{asset.type}-journal-entry",
             )
             self.__gpx_out.waypoints.append(wpt)
 
