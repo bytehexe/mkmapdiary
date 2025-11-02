@@ -1,7 +1,7 @@
 import logging
 import warnings
 from pathlib import Path, PosixPath
-from typing import Sequence, Union
+from typing import Any, Dict, Sequence, Union
 
 import gpxpy
 import gpxpy.gpx
@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 class GpxCreator:
     def __init__(
         self,
+        index_data: Dict[str, Any],
         date: Date,
         sources: Sequence[Union[str, PosixPath]],
         db: AssetRegistry,
@@ -35,6 +36,7 @@ class GpxCreator:
         self.__date = date.py_date()
         self.__db = db
         self.__region_cache_dir = region_cache_dir
+        self.index_data = index_data
 
         self.__init()
 
@@ -48,6 +50,7 @@ class GpxCreator:
         self.__add_journal_markers()
 
     def __load_source(self, source: Union[str, PosixPath]) -> None:
+        logger.debug(f"Loading GPX source: {source}")
         with open(source, encoding="utf-8") as f:
             gpx = gpxpy.parse(f)
         for mwpt in gpx.waypoints:
@@ -77,6 +80,7 @@ class GpxCreator:
                 self.__gpx_out.routes.append(new_rte)
 
     def __compute_clusters(self) -> None:
+        logger.debug("Computing geospatial clusters")
         if len(self.__coords) < 10:
             return
 
@@ -133,12 +137,16 @@ class GpxCreator:
                 extra={"icon": "📍"},
             )
 
-            index = Index(cluster.shape, self.__region_cache_dir, keep_pbf=True)
+            index = Index(
+                self.index_data, cluster.shape, self.__region_cache_dir, keep_pbf=True
+            )
+            logger.debug("Index loaded, querying nearest POI")
             # Convert mass_point (lon, lat) to shapely.Point for Index.get_nearest
             mass_lon, mass_lat = cluster.mass_point
             if mass_lon is not None and mass_lat is not None:
                 from shapely.geometry import Point
 
+                logger.debug("Get nearest POI to cluster mass point")
                 mass_point = Point(mass_lon, mass_lat)  # Point expects (x=lon, y=lat)
                 nearest_pois, distances = index.get_nearest(1, mass_point)
 
@@ -149,8 +157,10 @@ class GpxCreator:
 
                 # Create bounding circle; the geocluster performs outlier removal,
                 # so we use the original cluster coordinates
+                logger.debug("Creating cluster envelope for POI intersection test")
                 cluster_envelope = shapely.MultiPoint(cluster_coords).convex_hull
 
+                logger.debug("Testing POI intersection with cluster envelope")
                 if nearest_pois and shapely.Point(nearest_pois[0].coords).intersects(
                     cluster_envelope,
                 ):
@@ -166,6 +176,7 @@ class GpxCreator:
             del index
 
     def __add_journal_markers(self) -> None:
+        logger.debug("Adding journal markers")
         for asset, asset_type in self.__db.get_assets_by_date(
             self.__date_w,  # FIXME: Inconsistent types
             ("markdown", "audio"),

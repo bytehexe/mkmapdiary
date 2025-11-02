@@ -13,13 +13,12 @@ from whenever import Date
 
 from mkmapdiary.gpxCreator import GpxCreator
 from mkmapdiary.lib.asset import AssetRecord
-
-from .base.baseTask import BaseTask
+from mkmapdiary.tasks.base.httpRequest import HttpRequest
 
 logger = logging.getLogger(__name__)
 
 
-class GPXTask(BaseTask):
+class GPXTask(HttpRequest):
     def __init__(self) -> None:
         super().__init__()
         self.__sources: list[PosixPath] = []
@@ -65,7 +64,11 @@ class GPXTask(BaseTask):
         else:
             sources = []
 
-        gc = GpxCreator(date, sources, self.db, self.dirs.region_cache_dir)
+        logger.debug("Fetching Geofabrik region data...")
+        index_data = self.httpRequest("https://download.geofabrik.de/index-v1.json")
+        assert isinstance(index_data, dict), "Invalid index data received"
+
+        gc = GpxCreator(index_data, date, sources, self.db, self.dirs.region_cache_dir)
         gpx_out = gc.to_xml()
 
         with open(dst, "w", encoding="utf-8") as f:
@@ -232,7 +235,7 @@ class GPXTask(BaseTask):
                 if asset.latitude is None or asset.longitude is None:
                     # Not enough data to determine timezone
                     logger.warning(
-                        f"Asset {asset.id} is missing geo information, assigning localtime."
+                        f"Asset '{asset.path}' is missing geo information, assigning localtime."
                     )
                     asset.timestamp_geo = asset.timestamp_utc.to_system_tz()
                     continue

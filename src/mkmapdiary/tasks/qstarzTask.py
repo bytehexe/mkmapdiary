@@ -2,7 +2,7 @@ from abc import abstractmethod
 from pathlib import PosixPath
 from typing import Any, Dict, Iterator, List
 
-from .gpxTask import BaseTask
+from mkmapdiary.tasks.base.baseTask import BaseTask
 
 
 class QstarzTask(BaseTask):

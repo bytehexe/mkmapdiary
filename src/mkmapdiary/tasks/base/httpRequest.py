@@ -12,8 +12,8 @@ class HttpRequest(BaseTask):
     def httpRequest(
         self,
         url: str,
-        data: Optional[Dict[str, Any]],
-        headers: Optional[Dict[str, str]],
+        data: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, str]] = None,
         json: bool = True,
     ) -> Union[Dict[str, Any], str]:
         req = requests.Request("GET", url, params=data, headers=headers)

@@ -1,10 +1,9 @@
 import logging
 import pathlib
 from threading import Lock
-from typing import List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
-import requests
 import shapely
 import yaml
 from shapely.geometry.base import BaseGeometry
@@ -24,16 +23,18 @@ lock = Lock()
 class Index:
     def __init__(
         self,
+        index_data: Dict[str, Any],
         geo_data: BaseGeometry,
         cache_dir: pathlib.Path,
         keep_pbf: bool = False,
         rank_offset: Tuple[int, int] = (-1, 1),
     ):
         with lock:
-            self.__init(geo_data, cache_dir, keep_pbf, rank_offset)
+            self.__init(index_data, geo_data, cache_dir, keep_pbf, rank_offset)
 
     def __init(
         self,
+        index_data: Dict[str, Any],
         geo_data: BaseGeometry,
         cache_dir: pathlib.Path,
         keep_pbf: bool,
@@ -51,12 +52,13 @@ class Index:
             )
 
         # Get the region index
-        response = requests.get("https://download.geofabrik.de/index-v1.json")
-        self.geofabrik_data = response.json()
+        self.geofabrik_data = index_data
 
         # Find best matching regions
+        logger.debug("Finding matching regions for area of interest...")
         finder = RegionFinder(geo_data, self.geofabrik_data)
         regions = finder.find_regions()
+        logger.info(f"Found {len(regions)} matching regions.")
 
         for region in regions:
             poi_index_path = cache_dir / f"{region.id}.idx"
@@ -83,8 +85,6 @@ class Index:
                 continue
 
             logger.info(f"Using existing POI index for region {region.name}.")
-
-        logger.debug("Calculating area of interest parameters...")
 
         logger.debug("Projecting geo data to local coordinates...")
 
