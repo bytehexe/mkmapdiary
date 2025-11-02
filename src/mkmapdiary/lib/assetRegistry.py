@@ -125,7 +125,7 @@ class AssetRegistry:
         with self.lock:
             for asset in self._assets:
                 if (
-                    asset.path == name
+                    str(asset.path) == name
                     and asset.latitude is not None
                     and asset.longitude is not None
                 ):
