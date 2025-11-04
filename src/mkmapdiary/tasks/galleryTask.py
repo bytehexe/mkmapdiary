@@ -11,7 +11,7 @@ class GalleryTask(BaseTask):
     def __init__(self) -> None:
         super().__init__()
 
-    @create_after("geo_correlation")
+    @create_after("end_gpx")
     def task_build_gallery(self) -> Iterator[Dict[str, Any]]:
         """Generate gallery pages."""
 
@@ -70,5 +70,5 @@ class GalleryTask(BaseTask):
                 file_dep=[str(asset.path) for asset in self.db.get_all_assets()],
                 calc_dep=["get_gpx_deps"],
                 task_dep=[f"create_directory:{self.dirs.templates_dir}"],
-                uptodate=[True],
+                uptodate=[False],
             )

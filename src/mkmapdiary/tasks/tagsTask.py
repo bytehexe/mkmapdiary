@@ -11,7 +11,7 @@ class TagsTask(BaseTask):
     def __init__(self) -> None:
         super().__init__()
 
-    @create_after("geo_correlation")
+    @create_after("end_gpx")
     def task_build_tags(self) -> Iterator[Dict[str, Any]]:
         """Generate tags list."""
 
@@ -74,5 +74,5 @@ class TagsTask(BaseTask):
                     f"create_directory:{self.dirs.templates_dir}",
                     "transcribe_audio",
                 ],
-                uptodate=[True],
+                uptodate=[False],
             )

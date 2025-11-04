@@ -15,7 +15,7 @@ class JournalTask(BaseTask):
     def __init__(self) -> None:
         super().__init__()
 
-    @create_after("geo_correlation")
+    @create_after("end_gpx")
     def task_build_journal(self) -> Iterator[Dict[str, Any]]:
         """Generate journal pages."""
 
@@ -101,5 +101,5 @@ class JournalTask(BaseTask):
                     f"create_directory:{self.dirs.templates_dir}",
                     "geo_correlation",
                 ],
-                uptodate=[True],
+                uptodate=[False],
             )

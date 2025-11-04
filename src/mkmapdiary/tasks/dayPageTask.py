@@ -10,7 +10,7 @@ class DayPageTask(BaseTask):
     def __init__(self) -> None:
         super().__init__()
 
-    @create_after("geo_correlation")
+    @create_after("end_gpx")
     def task_build_day_page(self) -> Iterator[Dict[str, Any]]:
         """Generate day pages for each date with assets."""
 
@@ -40,5 +40,5 @@ class DayPageTask(BaseTask):
                 actions=[(_generate_day_page, (date,))],
                 targets=[self.dirs.docs_dir / f"{date}.md"],
                 task_dep=[f"create_directory:{self.dirs.docs_dir}"],
-                uptodate=[True],
+                uptodate=[False],
             )

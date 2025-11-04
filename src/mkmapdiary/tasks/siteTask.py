@@ -48,7 +48,7 @@ class SiteTask(HttpRequest):
                 actions=[(_create_directory, (dir_name,))],
                 targets=[dir_name],
                 uptodate=[
-                    True,
+                    False,
                 ],  # Always consider this task up-to-date after the first run
             )
 
@@ -87,7 +87,7 @@ class SiteTask(HttpRequest):
             actions=[(_generate_mkdocs_config, ())],
             targets=[self.dirs.build_dir / "mkdocs.yml"],
             task_dep=[f"create_directory:{self.dirs.build_dir}"],
-            uptodate=[True],
+            uptodate=[False],
         )
 
     def task_build_static_pages(self) -> Iterator[Dict[str, Any]]:
@@ -118,7 +118,7 @@ class SiteTask(HttpRequest):
                 f"create_directory:{self.dirs.dist_dir}",
             ],
             targets=[self.dirs.docs_dir / "index.md"],
-            uptodate=[True],
+            uptodate=[False],
         )
 
     def task_compile_css(self) -> Dict[str, Any]:
@@ -194,7 +194,7 @@ class SiteTask(HttpRequest):
             ],
         }
 
-    @create_after("pre_build_site")
+    @create_after("end_gpx")
     def task_build_site(self) -> Dict[str, Any]:
         """Build the mkdocs site."""
 
@@ -226,6 +226,7 @@ class SiteTask(HttpRequest):
                 "build_journal",
                 "build_tags",
                 "geo_correlation",
+                "pre_build_site",
             ],
             calc_dep=["get_gpx_deps"],
             targets=[

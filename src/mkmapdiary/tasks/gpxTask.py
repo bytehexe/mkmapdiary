@@ -126,7 +126,7 @@ class GPXTask(HttpRequest):
                 "clean": True,
             }
 
-    @create_after("gpx2gpx")
+    @create_after("end_gpx")
     def task_get_gpx_deps(self) -> Dict[str, Any]:
         # Explicitely re-introduce dependencies on all gpx files
         # with calc_dep, since file_dep is not computed when used
@@ -281,6 +281,12 @@ class GPXTask(HttpRequest):
             "file_dep": [str(src) for src in self.__sources]
             + [str(asset.path) for asset in self.db.get_unpositioned_assets()],
             "uptodate": [False],
+        }
+
+    def task_end_gpx(self) -> Dict[str, Any]:
+        return {
+            "actions": [],
+            "task_dep": ["gpx2gpx", "geo_correlation"],
         }
 
     def __debug_dump_gpx(self) -> None:
