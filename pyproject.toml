@@ -55,6 +55,7 @@ dependencies = [
     "tzfpy",
     "whenever",
     "platformdirs",
+    "llm-dataclass",
 ]
 
 [project.optional-dependencies]
