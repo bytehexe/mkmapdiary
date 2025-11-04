@@ -55,7 +55,7 @@ dependencies = [
     "tzfpy",
     "whenever",
     "platformdirs",
-    "llm-dataclass",
+    "llm-dataclass>=1.1.0",
 ]
 
 [project.optional-dependencies]
@@ -92,6 +92,9 @@ fix = { help="Run linters in fix mode", cmd="hatch run ruff:ruff check --fix .; 
 markers = [
     "slow: a test that takes a long time to run.",
     "local: a test that should not run in the pipeline (e.g. due to caching).",
+]
+filterwarnings = [
+  "ignore: 'audioop' is deprecated"
 ]
 
 [tool.hatch.version]
