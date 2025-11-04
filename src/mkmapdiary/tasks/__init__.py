@@ -7,6 +7,7 @@ from .gpxTask import GPXTask
 from .imageTask import ImageTask
 from .journalTask import JournalTask
 from .markdownTask import MarkdownTask
+from .postprocessingTask import PostprocessingTask
 from .qstarzTask import QstarzTask
 from .siteTask import SiteTask
 from .tagsTask import TagsTask
@@ -26,4 +27,5 @@ __all__ = [
     "SiteTask",
     "TagsTask",
     "TextTask",
+    "PostprocessingTask",
 ]

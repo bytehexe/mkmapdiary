@@ -22,6 +22,7 @@ from .tasks import (
     ImageTask,
     JournalTask,
     MarkdownTask,
+    PostprocessingTask,
     QstarzTask,
     SiteTask,
     TagsTask,
@@ -44,6 +45,7 @@ tasks = [
     GPXTask,
     QstarzTask,
     TagsTask,
+    PostprocessingTask,
 ]
 
 

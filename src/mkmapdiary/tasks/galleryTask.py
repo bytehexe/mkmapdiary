@@ -11,7 +11,7 @@ class GalleryTask(BaseTask):
     def __init__(self) -> None:
         super().__init__()
 
-    @create_after("end_gpx")
+    @create_after("end_postprocessing")
     def task_build_gallery(self) -> Iterator[Dict[str, Any]]:
         """Generate gallery pages."""
 

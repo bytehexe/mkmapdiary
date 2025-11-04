@@ -194,7 +194,7 @@ class SiteTask(HttpRequest):
             ],
         }
 
-    @create_after("end_gpx")
+    @create_after("end_postprocessing")
     def task_build_site(self) -> Dict[str, Any]:
         """Build the mkdocs site."""
 
