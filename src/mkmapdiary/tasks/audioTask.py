@@ -1,8 +1,9 @@
 import hashlib
 import logging
 import threading
+from collections.abc import Iterator
 from pathlib import PosixPath
-from typing import Any, Dict, Iterator
+from typing import Any
 
 from pydub import AudioSegment
 
@@ -48,7 +49,7 @@ class AudioTask(BaseTask):
         filename = PosixPath(self.dirs.assets_dir / source.stem).with_suffix(suffix)
         return self.make_unique_filename(source, filename)
 
-    def task_convert_audio(self) -> Iterator[Dict[str, Any]]:
+    def task_convert_audio(self) -> Iterator[dict[str, Any]]:
         """Convert an image to a different format."""
 
         def _convert(src: PosixPath, dst: PosixPath) -> None:
@@ -72,7 +73,7 @@ class AudioTask(BaseTask):
                 hash_md5.update(chunk)
         return hash_md5.hexdigest()
 
-    def __transcribe_audio(self, src: PosixPath) -> Dict[str, Any]:
+    def __transcribe_audio(self, src: PosixPath) -> dict[str, Any]:
         import whisper
 
         with whisper_lock:
@@ -84,7 +85,7 @@ class AudioTask(BaseTask):
                 result = self._model.transcribe(str(src))
         return result
 
-    def task_transcribe_audio(self) -> Iterator[Dict[str, Any]]:
+    def task_transcribe_audio(self) -> Iterator[dict[str, Any]]:
         """Transcribe audio to text."""
 
         def _transcribe(src: PosixPath, dst: PosixPath) -> None:

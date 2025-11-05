@@ -2,7 +2,8 @@ import dataclasses
 import itertools
 import logging
 import random
-from typing import Any, Callable, List
+from collections.abc import Callable
+from typing import Any
 
 import llm_dataclass
 
@@ -13,12 +14,12 @@ def batch_reduce(
     count: int,
     prompt: str,
     llm_callback: Callable[[str], str],
-    input_data: List[Any],
+    input_data: list[Any],
     selector_type: Any,
     context: int = 128000,
     estimate: int = 250,
     max_iter: int = 5,
-) -> List[Any]:
+) -> list[Any]:
     """Reduce a data using a prompt in batches to fit within context limits.
 
     Args:

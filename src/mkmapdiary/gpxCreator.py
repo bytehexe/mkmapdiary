@@ -1,7 +1,8 @@
 import logging
 import warnings
+from collections.abc import Sequence
 from pathlib import Path, PosixPath
-from typing import Any, Dict, Sequence, Union
+from typing import Any
 
 import gpxpy
 import gpxpy.gpx
@@ -22,14 +23,14 @@ logger = logging.getLogger(__name__)
 class GpxCreator:
     def __init__(
         self,
-        index_data: Dict[str, Any],
+        index_data: dict[str, Any],
         date: Date,
-        sources: Sequence[Union[str, PosixPath]],
+        sources: Sequence[str | PosixPath],
         db: AssetRegistry,
         region_cache_dir: Path,
     ) -> None:
         # FIXME: Inconsistent types
-        self.__coords: Union[list[list[float]], NDArray[np.floating]] = []
+        self.__coords: list[list[float]] | NDArray[np.floating] = []
         self.__gpx_out = gpxpy.gpx.GPX()
         self.__sources = sources
         self.__date_w = date
@@ -49,7 +50,7 @@ class GpxCreator:
             self.__compute_clusters()
         self.__add_journal_markers()
 
-    def __load_source(self, source: Union[str, PosixPath]) -> None:
+    def __load_source(self, source: str | PosixPath) -> None:
         logger.debug(f"Loading GPX source: {source}")
         with open(source, encoding="utf-8") as f:
             gpx = gpxpy.parse(f)

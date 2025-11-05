@@ -108,7 +108,7 @@ class TestTagsSort:
         ]
 
         # When sorted by the sort keys, should be in this order
-        paired = list(zip(sorted_keys, tags))
+        paired = list(zip(sorted_keys, tags, strict=False))
         paired.sort(key=lambda x: x[0])
         actual_order = [pair[0] for pair in paired]
 

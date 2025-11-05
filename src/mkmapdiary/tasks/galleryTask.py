@@ -1,5 +1,6 @@
 import pathlib
-from typing import Any, Dict, Iterator
+from collections.abc import Iterator
+from typing import Any
 
 import whenever
 from doit import create_after
@@ -12,7 +13,7 @@ class GalleryTask(BaseTask):
         super().__init__()
 
     @create_after("end_postprocessing")
-    def task_build_gallery(self) -> Iterator[Dict[str, Any]]:
+    def task_build_gallery(self) -> Iterator[dict[str, Any]]:
         """Generate gallery pages."""
 
         def _generate_gallery(date: whenever.Date) -> None:

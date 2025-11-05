@@ -1,7 +1,7 @@
 import json
 import logging
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import shapely
 from shapely.geometry.base import BaseGeometry
@@ -12,12 +12,12 @@ logger = logging.getLogger(__name__)
 
 
 class RegionFinder:
-    def __init__(self, geo_data: BaseGeometry, geofabrik_data: Dict[str, Any]) -> None:
+    def __init__(self, geo_data: BaseGeometry, geofabrik_data: dict[str, Any]) -> None:
         self.geo_data = deepcopy(geo_data)
         self.geofabrik_data = geofabrik_data
 
-    def find_regions(self) -> List[Region]:
-        regions: List[Region] = []
+    def find_regions(self) -> list[Region]:
+        regions: list[Region] = []
         logger.info("Finding best matching Geofabrik regions...")
         while self.geo_data.is_empty is False:
             logger.info("Next iteration to find best matching Geofabrik region...")
@@ -37,8 +37,8 @@ class RegionFinder:
         return regions
 
     def _findBestRegion(
-        self, geo_data: Any, used_regions: List[Region]
-    ) -> Tuple[Optional[Region], Any]:
+        self, geo_data: Any, used_regions: list[Region]
+    ) -> tuple[Region | None, Any]:
         best = None
         remaining_geo_data = geo_data
         return_geo_data = geo_data

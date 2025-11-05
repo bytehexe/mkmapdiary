@@ -1,5 +1,4 @@
 import math
-from typing import Optional
 
 MIN_RANK = 13
 MAX_RANK = 23
@@ -10,9 +9,9 @@ def clip_rank(rank: int) -> int:
 
 
 def calculate_rank(
-    place: Optional[str] = None,
-    radius: Optional[float] = None,
-) -> Optional[int]:
+    place: str | None = None,
+    radius: float | None = None,
+) -> int | None:
     # Use nominatim ranking based on radius as a reference
     # see: https://nominatim.org/release-docs/latest/customize/Ranking/
 

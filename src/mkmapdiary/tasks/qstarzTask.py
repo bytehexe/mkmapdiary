@@ -1,30 +1,31 @@
 from abc import abstractmethod
+from collections.abc import Iterator
 from pathlib import PosixPath
-from typing import Any, Dict, Iterator, List
+from typing import Any
 
 from mkmapdiary.tasks.base.baseTask import BaseTask
 
 
 class QstarzTask(BaseTask):
     @abstractmethod
-    def handle_gpx(self, source: PosixPath) -> List[Any]:
+    def handle_gpx(self, source: PosixPath) -> list[Any]:
         pass
 
     def __init__(self) -> None:
         super().__init__()
         self.__sources: list[PosixPath] = []
 
-    def handle_ext_bin(self, source: PosixPath) -> List[Any]:
+    def handle_ext_bin(self, source: PosixPath) -> list[Any]:
         return self.__handle(source)
 
-    def handle_ext_poi(self, source: PosixPath) -> List[Any]:
+    def handle_ext_poi(self, source: PosixPath) -> list[Any]:
         return self.__handle(source)
 
-    def handle_ext_dat(self, source: PosixPath) -> List[Any]:
+    def handle_ext_dat(self, source: PosixPath) -> list[Any]:
         # Ignore .dat files, as they are not directly supported by gpsbabel
         return []
 
-    def __handle(self, source: PosixPath) -> List[Any]:
+    def __handle(self, source: PosixPath) -> list[Any]:
         self.__sources.append(source)
         intermediate_file = self._generate_destination_filename(source)
 
@@ -37,7 +38,7 @@ class QstarzTask(BaseTask):
         )
         return self.make_unique_filename(source, filename)
 
-    def task_qstarz2gpx(self) -> Iterator[Dict[str, Any]]:
+    def task_qstarz2gpx(self) -> Iterator[dict[str, Any]]:
         for source in self.__sources:
             dst = self._generate_destination_filename(source)
             yield {

@@ -1,4 +1,5 @@
-from typing import Any, Dict, Iterator
+from collections.abc import Iterator
+from typing import Any
 
 import whenever
 from doit import create_after
@@ -11,7 +12,7 @@ class DayPageTask(BaseTask):
         super().__init__()
 
     @create_after("end_postprocessing")
-    def task_build_day_page(self) -> Iterator[Dict[str, Any]]:
+    def task_build_day_page(self) -> Iterator[dict[str, Any]]:
         """Generate day pages for each date with assets."""
 
         def _generate_day_page(date: whenever.Date) -> None:

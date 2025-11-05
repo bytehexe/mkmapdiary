@@ -2,7 +2,7 @@ import contextvars
 import logging
 import logging.config
 import pathlib
-from typing import Any, Optional
+from typing import Any
 
 import yaml
 from wcwidth import wcswidth
@@ -87,7 +87,7 @@ def add_file_logging(build_dir: pathlib.Path) -> None:
 
 
 class ThisMayTakeAWhile:
-    def __init__(self, logger: logging.Logger, info: Optional[str] = None):
+    def __init__(self, logger: logging.Logger, info: str | None = None):
         self.logger = logger
         self.__info = info
 

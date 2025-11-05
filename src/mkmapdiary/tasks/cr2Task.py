@@ -1,6 +1,7 @@
 from abc import abstractmethod
+from collections.abc import Generator, Iterator
 from pathlib import PosixPath
-from typing import Any, Dict, Generator, Iterator
+from typing import Any
 
 import imageio.v2 as imageio
 import rawpy
@@ -42,7 +43,7 @@ class Cr2Task(BaseTask, ExifReader):
             asset.longitude = exif.longitude
         yield asset
 
-    def task_convert_raw(self) -> Iterator[Dict[str, Any]]:
+    def task_convert_raw(self) -> Iterator[dict[str, Any]]:
         """Convert a RAW image to JPEG."""
 
         def _convert(src: PosixPath, dst: PosixPath) -> None:

@@ -1,6 +1,5 @@
 import dataclasses
 import pathlib
-from typing import Optional
 
 import whenever
 
@@ -9,26 +8,26 @@ import whenever
 class AssetRecord:
     """Model for storing asset data in the database."""
 
-    id: Optional[int] = None
+    id: int | None = None
     path: pathlib.Path
     type: str
-    timestamp_utc: Optional[whenever.Instant] = None
-    timestamp_geo: Optional[whenever.ZonedDateTime] = None
-    display_date: Optional[whenever.Date] = None
-    latitude: Optional[float] = None
-    longitude: Optional[float] = None
-    approx: Optional[bool] = None
-    orientation: Optional[int] = None
+    timestamp_utc: whenever.Instant | None = None
+    timestamp_geo: whenever.ZonedDateTime | None = None
+    display_date: whenever.Date | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    approx: bool | None = None
+    orientation: int | None = None
 
 
 @dataclasses.dataclass(kw_only=True)
 class AssetMetadata:
     """Subset of AssetRecord for storing metadata key-value pairs."""
 
-    timestamp_utc: Optional[whenever.Instant] = None
-    latitude: Optional[float] = None
-    longitude: Optional[float] = None
-    orientation: Optional[int] = None
+    timestamp_utc: whenever.Instant | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    orientation: int | None = None
 
 
 def update_asset_metadata(

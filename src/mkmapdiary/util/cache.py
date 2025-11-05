@@ -1,4 +1,5 @@
-from typing import Any, Callable, Optional, Tuple
+from collections.abc import Callable
+from typing import Any
 
 
 def with_cache(
@@ -6,7 +7,7 @@ def with_cache(
     key: str,
     compute_func: Callable[..., Any],
     *args: Any,
-    cache_args: Optional[Tuple[Any, ...]] = None,
+    cache_args: tuple[Any, ...] | None = None,
 ) -> Any:
     """Get the value from cache or compute it if not present."""
 

@@ -1,7 +1,8 @@
 import logging
 import pathlib
+from collections.abc import Iterator
 from datetime import datetime
-from typing import Any, Dict, Iterator
+from typing import Any
 
 import whenever
 from doit import create_after
@@ -16,7 +17,7 @@ class JournalTask(BaseTask):
         super().__init__()
 
     @create_after("end_postprocessing")
-    def task_build_journal(self) -> Iterator[Dict[str, Any]]:
+    def task_build_journal(self) -> Iterator[dict[str, Any]]:
         """Generate journal pages."""
 
         def _generate_journal(date: whenever.Date) -> None:

@@ -1,7 +1,8 @@
 import bisect
 import logging
+from collections.abc import Iterator
 from pathlib import Path, PosixPath
-from typing import Any, Dict, Iterator, List, Set, Tuple
+from typing import Any
 
 import gpxpy
 import gpxpy.gpx
@@ -23,7 +24,7 @@ class GPXTask(HttpRequest):
         super().__init__()
         self.__sources: list[PosixPath] = []
 
-    def handle_gpx(self, source: PosixPath) -> List[Any]:
+    def handle_gpx(self, source: PosixPath) -> list[Any]:
         self.__sources.append(source)
 
         # Do not yield any assets yet; at this point it
@@ -32,9 +33,9 @@ class GPXTask(HttpRequest):
         # Instead we will resort to delayed task creation.
         return []
 
-    def __get_contained_dates(self, source: PosixPath) -> Set[Date]:
+    def __get_contained_dates(self, source: PosixPath) -> set[Date]:
         # Collect all dates in the gpx file
-        dates: Set[Date] = set()
+        dates: set[Date] = set()
         with open(source, encoding="utf-8") as f:
             gpx = gpxpy.parse(f)
         for wpt in gpx.waypoints:
@@ -74,7 +75,7 @@ class GPXTask(HttpRequest):
         with open(dst, "w", encoding="utf-8") as f:
             f.write(gpx_out)
 
-    def task_pre_gpx(self) -> Dict[str, Any]:
+    def task_pre_gpx(self) -> dict[str, Any]:
         # Ensure that the assets and files directories exist
         return {
             "actions": None,
@@ -87,9 +88,9 @@ class GPXTask(HttpRequest):
         }
 
     @create_after("pre_gpx", target_regex=r".*\.gpx")
-    def task_gpx2gpx(self) -> Iterator[Dict[str, Any]]:
+    def task_gpx2gpx(self) -> Iterator[dict[str, Any]]:
         # Collect all dates in all source files
-        dates: Set[whenever.Date] = set()
+        dates: set[whenever.Date] = set()
         for source in self.__sources:
             if not source.exists():
                 raise FileNotFoundError(f"Source file not found: {source}")
@@ -127,7 +128,7 @@ class GPXTask(HttpRequest):
             }
 
     @create_after("end_gpx")
-    def task_get_gpx_deps(self) -> Dict[str, Any]:
+    def task_get_gpx_deps(self) -> dict[str, Any]:
         # Explicitely re-introduce dependencies on all gpx files
         # with calc_dep, since file_dep is not computed when used
         # with create_after.
@@ -135,7 +136,7 @@ class GPXTask(HttpRequest):
         # - https://pydoit.org/task-creation.html#delayed-task-creation
         # - https://pydoit.org/dependencies.html#calculated-dependencies
 
-        def _gpx_deps() -> Dict[str, List[str]]:
+        def _gpx_deps() -> dict[str, list[str]]:
             self.__debug_dump_gpx()
             return {
                 "file_dep": [
@@ -150,7 +151,7 @@ class GPXTask(HttpRequest):
         }
 
     def __get_timed_coords(
-        self, gpx: gpxpy.gpx.GPX, coords: List[Tuple[whenever.Instant, float, float]]
+        self, gpx: gpxpy.gpx.GPX, coords: list[tuple[whenever.Instant, float, float]]
     ) -> None:
         # Extract coordinates from GPX format (lat, lon) and store as (time, lon, lat) for internal use
         for wpt in gpx.waypoints:
@@ -184,7 +185,7 @@ class GPXTask(HttpRequest):
                         )
                     )
 
-    def task_geo_correlation(self) -> Dict[str, Any]:
+    def task_geo_correlation(self) -> dict[str, Any]:
         def _update_positions() -> None:
             coords: list[tuple[whenever.Instant, float, float]] = []
             for path in self.__sources:
@@ -283,7 +284,7 @@ class GPXTask(HttpRequest):
             "uptodate": [False],
         }
 
-    def task_end_gpx(self) -> Dict[str, Any]:
+    def task_end_gpx(self) -> dict[str, Any]:
         return {
             "actions": [],
             "task_dep": ["gpx2gpx", "geo_correlation"],

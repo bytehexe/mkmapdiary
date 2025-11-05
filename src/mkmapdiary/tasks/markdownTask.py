@@ -1,5 +1,6 @@
+from collections.abc import Iterator
 from pathlib import PosixPath
-from typing import Any, Dict, Iterator
+from typing import Any
 
 from mkmapdiary.lib.asset import AssetRecord
 
@@ -28,7 +29,7 @@ class MarkdownTask(BaseTask):
         )
         return self.make_unique_filename(source, filename)
 
-    def task_markdown2markdown(self) -> Iterator[Dict[str, Any]]:
+    def task_markdown2markdown(self) -> Iterator[dict[str, Any]]:
         """Copy text files to the assets directory."""
 
         def _to_md(src: PosixPath, dst: PosixPath) -> None:

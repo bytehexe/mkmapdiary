@@ -1,5 +1,5 @@
 import json
-from typing import Any, List, NamedTuple
+from typing import Any, NamedTuple
 
 
 def get_hash(map_data: Any) -> str:
@@ -10,7 +10,7 @@ def get_hash(map_data: Any) -> str:
 
 
 class Poi(NamedTuple):
-    coords: List[float]
+    coords: list[float]
     osm_id: str
     name: str
     description: str

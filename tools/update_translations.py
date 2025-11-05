@@ -6,12 +6,11 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import Union
 
 import click
 
 
-def compute_sha1_checksum(file_path: Union[str, Path]) -> str:
+def compute_sha1_checksum(file_path: str | Path) -> str:
     sha1 = hashlib.sha1()
     with open(file_path, "rb") as f:
         while True:

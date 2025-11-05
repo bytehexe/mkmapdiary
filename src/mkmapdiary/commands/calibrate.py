@@ -1,13 +1,13 @@
 import logging
 import tempfile
 from pathlib import Path
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import click
 import humanfriendly
 import jsonschema
 import whenever
 import yaml
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from mkmapdiary.lib.asset import AssetRecord
 from mkmapdiary.lib.config import load_config_param

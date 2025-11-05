@@ -3,7 +3,6 @@ import datetime
 import logging
 from abc import ABC, abstractmethod
 from pathlib import PosixPath
-from typing import Optional, Union
 
 import exiftool
 import whenever
@@ -13,20 +12,20 @@ logger = logging.getLogger(__name__)
 
 @dataclasses.dataclass
 class ExifData:
-    create_date: Optional[whenever.Instant] = None
-    latitude: Optional[float] = None
-    longitude: Optional[float] = None
-    orientation: Optional[int] = None
+    create_date: whenever.Instant | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    orientation: int | None = None
 
 
 class ExifReader(ABC):
     @abstractmethod
-    def extract_meta_datetime(self, source: PosixPath) -> Optional[whenever.Instant]:
+    def extract_meta_datetime(self, source: PosixPath) -> whenever.Instant | None:
         raise NotImplementedError
 
     @abstractmethod
     def calibrate(
-        self, dt: Union[whenever.PlainDateTime, datetime.datetime]
+        self, dt: whenever.PlainDateTime | datetime.datetime
     ) -> whenever.Instant:
         pass
 

@@ -1,5 +1,6 @@
 import pathlib
-from typing import Any, Dict, Iterator
+from collections.abc import Iterator
+from typing import Any
 
 import whenever
 from doit import create_after
@@ -12,7 +13,7 @@ class TagsTask(BaseTask):
         super().__init__()
 
     @create_after("end_postprocessing")
-    def task_build_tags(self) -> Iterator[Dict[str, Any]]:
+    def task_build_tags(self) -> Iterator[dict[str, Any]]:
         """Generate tags list."""
 
         def _generate_tags(date: whenever.Date) -> None:

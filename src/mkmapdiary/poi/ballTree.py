@@ -1,4 +1,5 @@
-from typing import Any, Generator, List, Tuple
+from collections.abc import Generator
+from typing import Any
 
 import numpy as np
 from sklearn.neighbors import BallTree as SklearnBallTree
@@ -10,20 +11,20 @@ class BallTree:
     def __init__(
         self,
         sklearn_ball_tree: SklearnBallTree,
-        pois: List[List[Any]],
-        filter_config: List,
+        pois: list[list[Any]],
+        filter_config: list,
     ) -> None:
         self.__sklearn_ball_tree = sklearn_ball_tree
         self.__pois = pois
         self.__filter_config = filter_config
 
-    def query_radius(self, X: np.ndarray, r: float) -> List[Poi]:
+    def query_radius(self, X: np.ndarray, r: float) -> list[Poi]:
         # Interface expects (lat, lon) format, sklearn haversine expects (lat, lon)
         X = np.radians(X)  # X is (lat, lon), sklearn haversine expects (lat, lon)
         rh = r / 6371000.0  # Convert radius from meters to radians
         return list(self.__find(self.__sklearn_ball_tree.query_radius([X], rh)[0]))
 
-    def query(self, X: np.ndarray, k: int = 1) -> Tuple[List[Poi], List[float]]:
+    def query(self, X: np.ndarray, k: int = 1) -> tuple[list[Poi], list[float]]:
         # Interface expects (lat, lon) format, sklearn haversine expects (lat, lon)
         X = np.radians(X)  # X is (lat, lon), sklearn haversine expects (lat, lon)
         result = self.__sklearn_ball_tree.query([X], k)

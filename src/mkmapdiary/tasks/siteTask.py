@@ -1,7 +1,8 @@
 import logging
 import pathlib
 import shutil
-from typing import Any, Dict, Iterator, List, Optional
+from collections.abc import Iterator
+from typing import Any
 
 import sass
 import yaml
@@ -26,7 +27,7 @@ class SiteTask(HttpRequest):
         ]
 
     @property
-    def __site_dirs(self) -> List[pathlib.Path]:
+    def __site_dirs(self) -> list[pathlib.Path]:
         return [
             self.dirs.build_dir,
             self.dirs.assets_dir,
@@ -36,7 +37,7 @@ class SiteTask(HttpRequest):
             self.dirs.templates_dir,
         ]
 
-    def task_create_directory(self) -> Iterator[Dict[str, Any]]:
+    def task_create_directory(self) -> Iterator[dict[str, Any]]:
         """Create a directory if it doesn't exist."""
 
         def _create_directory(dir_name: pathlib.Path) -> None:
@@ -52,7 +53,7 @@ class SiteTask(HttpRequest):
                 ],  # Always consider this task up-to-date after the first run
             )
 
-    def task_generate_mkdocs_config(self) -> Dict[str, Any]:
+    def task_generate_mkdocs_config(self) -> dict[str, Any]:
         """Generate mkdocs config."""
 
         def _generate_mkdocs_config() -> None:
@@ -90,7 +91,7 @@ class SiteTask(HttpRequest):
             uptodate=[False],
         )
 
-    def task_build_static_pages(self) -> Iterator[Dict[str, Any]]:
+    def task_build_static_pages(self) -> Iterator[dict[str, Any]]:
         def _generate_index_page() -> None:
             index_path = self.dirs.docs_dir / "index.md"
 
@@ -121,11 +122,11 @@ class SiteTask(HttpRequest):
             uptodate=[False],
         )
 
-    def task_compile_css(self) -> Dict[str, Any]:
+    def task_compile_css(self) -> dict[str, Any]:
         input_sass = self.dirs.resources_dir / "extra.sass"
         output_css = self.dirs.docs_dir / "extra.css"
 
-        def _http_importer(path: str) -> Optional[List[tuple[str, str]]]:
+        def _http_importer(path: str) -> list[tuple[str, str]] | None:
             try:
                 prefix, name = path.split(":", 1)
             except ValueError:
@@ -162,7 +163,7 @@ class SiteTask(HttpRequest):
 
         return dict(actions=[_generate], file_dep=[input_sass], targets=[output_css])
 
-    def task_copy_simple_asset(self) -> Iterator[Dict[str, Any]]:
+    def task_copy_simple_asset(self) -> Iterator[dict[str, Any]]:
         simple_assets = self.__simple_assets
 
         def _generate(input_js: pathlib.Path, output_js: pathlib.Path) -> None:
@@ -179,7 +180,7 @@ class SiteTask(HttpRequest):
                 targets=[output],
             )
 
-    def task_pre_build_site(self) -> Dict[str, Any]:
+    def task_pre_build_site(self) -> dict[str, Any]:
         # Ensure that the site directories exist
         return {
             "actions": None,
@@ -195,7 +196,7 @@ class SiteTask(HttpRequest):
         }
 
     @create_after("end_postprocessing")
-    def task_build_site(self) -> Dict[str, Any]:
+    def task_build_site(self) -> dict[str, Any]:
         """Build the mkdocs site."""
 
         def _generate_file_deps() -> Iterator[Any]:

@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 
 from doit import create_after
 
@@ -10,7 +10,7 @@ class PostprocessingTask(BaseTask):
         super().__init__()
 
     @create_after("end_gpx")
-    def task_post_processing(self) -> Dict[str, Any]:
+    def task_post_processing(self) -> dict[str, Any]:
         """Perform post-processing after GPX processing."""
 
         def _post_process() -> None:
@@ -23,7 +23,7 @@ class PostprocessingTask(BaseTask):
             "uptodate": [False],
         }
 
-    def task_end_postprocessing(self) -> Dict[str, Any]:
+    def task_end_postprocessing(self) -> dict[str, Any]:
         return {
             "actions": [],
             "task_dep": ["post_processing"],

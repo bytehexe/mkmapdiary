@@ -1,9 +1,8 @@
 import pathlib
 import shutil
-from typing import List, Optional
 
 
-def clean_dir(build_dir: pathlib.Path, keep_files: Optional[List[str]] = None) -> None:
+def clean_dir(build_dir: pathlib.Path, keep_files: list[str] | None = None) -> None:
     if keep_files is None:
         keep_files = []
     for item in build_dir.iterdir():

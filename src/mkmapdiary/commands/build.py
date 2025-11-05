@@ -6,7 +6,7 @@ import pathlib
 import sys
 import tempfile
 from collections.abc import MutableMapping
-from typing import Any, Optional, Tuple
+from typing import Any
 
 import click
 import doit.reporter
@@ -30,7 +30,7 @@ runner_logger = logging.getLogger(__name__ + ".runner")
 def main(
     dist_dir: pathlib.Path,
     build_dir: pathlib.Path,
-    params: Tuple[str, ...],
+    params: tuple[str, ...],
     source_dir: pathlib.Path,
     always_execute: bool,
     num_processes: int,
@@ -268,8 +268,8 @@ def main(
 
 
 def validate_param(
-    ctx: click.Context, param: click.Parameter, value: Tuple[str, ...]
-) -> Tuple[str, ...]:
+    ctx: click.Context, param: click.Parameter, value: tuple[str, ...]
+) -> tuple[str, ...]:
     for val in value:
         if "=" not in val:
             raise click.BadParameter("Parameters must be in the format key=value")
@@ -329,10 +329,10 @@ def validate_param(
 def build(
     ctx: click.Context,
     source_dir: pathlib.Path,
-    dist_dir: Optional[pathlib.Path],
-    build_dir: Optional[pathlib.Path],
+    dist_dir: pathlib.Path | None,
+    build_dir: pathlib.Path | None,
     persistent_build: bool,
-    params: Tuple[str, ...],
+    params: tuple[str, ...],
     always_execute: bool,
     num_processes: int,
     no_cache: bool,

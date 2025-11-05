@@ -1,7 +1,8 @@
 import logging
 import pathlib
 import sys
-from typing import Any, Dict, MutableMapping, Sequence
+from collections.abc import MutableMapping, Sequence
+from typing import Any
 
 import humanfriendly
 import jsonschema
@@ -55,14 +56,14 @@ ConfigLoader.add_constructor("!auto", auto_constructor)
 ConfigLoader.add_constructor("!duration", duration_constructor)
 
 
-def load_config_file(path: pathlib.Path) -> Dict[str, Any]:
+def load_config_file(path: pathlib.Path) -> dict[str, Any]:
     with open(path) as file:
         config = yaml.load(file, Loader=ConfigLoader)
 
     return load_config_data(config)
 
 
-def load_config_data(config: Dict[str, Any]) -> Dict[str, Any]:
+def load_config_data(config: dict[str, Any]) -> dict[str, Any]:
     with open(
         pathlib.Path(__file__).parent.parent / "resources" / "config_schema.yaml",
     ) as defaults_file:
@@ -74,7 +75,7 @@ def load_config_data(config: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def load_config_param(param: str) -> dict:
-    config_data: Dict[str, Any] = {}
+    config_data: dict[str, Any] = {}
 
     key, value = param.split("=", 1)
     key_list = key.split(".")

@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 
 import pytest
 
@@ -8,7 +8,7 @@ from mkmapdiary.util.algo import deep_update
 def test_deep_update_simple() -> None:
     """Test deep_update with simple dictionaries."""
     d = {"a": 1, "b": 2}
-    u: Dict[str, Any] = {"b": 3, "c": 4}
+    u: dict[str, Any] = {"b": 3, "c": 4}
     result = deep_update(d, u)
 
     expected = {"a": 1, "b": 3, "c": 4}
@@ -55,7 +55,7 @@ def test_deep_update_empty_dicts() -> None:
     """Test deep_update with empty dictionaries."""
     # Empty update dict
     d = {"a": 1, "b": 2}
-    u: Dict[str, Any] = {}
+    u: dict[str, Any] = {}
     result = deep_update(d, u)
     assert result == {"a": 1, "b": 2}
 

@@ -1,7 +1,8 @@
 import logging
 import sys
+from collections.abc import Iterator, MutableMapping
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, MutableMapping, Optional, Union
+from typing import Any
 
 import jsonschema
 import yaml
@@ -59,7 +60,7 @@ class TaskList(*tasks):  # type: ignore
 
     def __init__(
         self,
-        config: Dict[str, Any],
+        config: dict[str, Any],
         dirs: Dirs,
         cache: MutableMapping,
         scan: bool = True,
@@ -88,7 +89,7 @@ class TaskList(*tasks):  # type: ignore
         return self.__dirs
 
     @property
-    def config(self) -> Dict[str, Any]:
+    def config(self) -> dict[str, Any]:
         """Property to access the configuration."""
         return self.__config
 
@@ -107,7 +108,7 @@ class TaskList(*tasks):  # type: ignore
         """Property to access the cache."""
         return self.__cache
 
-    def toDict(self) -> Dict[str, Any]:
+    def toDict(self) -> dict[str, Any]:
         """Convert this object to a dictionary so that doit can use it."""
         return dict((name, getattr(self, name)) for name in dir(self))
 
@@ -115,7 +116,7 @@ class TaskList(*tasks):  # type: ignore
         """Scan the source directory and identify files and directories."""
         self.handle(self.dirs.source_dir)
 
-    def handle_path(self, source: Path) -> Union[Iterator, List[AssetRecord]]:
+    def handle_path(self, source: Path) -> Iterator | list[AssetRecord]:
         """Handle a source file or directory based on its tags."""
 
         exclude = set(
@@ -228,7 +229,7 @@ class TaskList(*tasks):  # type: ignore
         target = source.resolve()
         self.handle(target)
 
-    def add_assets(self, assets: Optional[List[AssetRecord]]) -> None:
+    def add_assets(self, assets: list[AssetRecord] | None) -> None:
         """Add an asset to the list."""
 
         if assets is None:

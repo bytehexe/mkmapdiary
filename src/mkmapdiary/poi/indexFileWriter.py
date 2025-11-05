@@ -1,6 +1,6 @@
 import time
 from pathlib import Path
-from typing import Any, Union
+from typing import Any
 
 import msgpack
 
@@ -8,7 +8,7 @@ from mkmapdiary.poi.common import get_hash
 
 
 class IndexFileWriter:
-    def __init__(self, file_path: Union[str, Path], filter_config: dict):
+    def __init__(self, file_path: str | Path, filter_config: dict):
         self.file_path = file_path
         with open(self.file_path, "wb") as f:
             self.packer = msgpack.Packer()

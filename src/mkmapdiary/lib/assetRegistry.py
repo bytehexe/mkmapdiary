@@ -1,7 +1,7 @@
 import dataclasses
 import pathlib
 import threading
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 import whenever
 
@@ -11,7 +11,7 @@ from mkmapdiary.lib.asset import AssetRecord
 class AssetRegistry:
     def __init__(self) -> None:
         # Note: Asset list is append/update only; no delete!
-        self.__assets: List[AssetRecord] = []
+        self.__assets: list[AssetRecord] = []
         self.lock = threading.RLock()
 
         self.has_display_date = False
@@ -22,7 +22,7 @@ class AssetRegistry:
             return len(self.__assets) + 1
 
     @property
-    def assets(self) -> List[AssetRecord]:
+    def assets(self) -> list[AssetRecord]:
         """Get a copy of the list of all asset records.
         Modifications to the returned list will not affect the registry.
         Modifications to the asset records themselves will affect the registry."""
@@ -39,7 +39,7 @@ class AssetRegistry:
 
             self.__assets.append(asset_record)
 
-    def update_asset(self, asset_record: Union[AssetRecord, Dict[str, Any]]) -> None:
+    def update_asset(self, asset_record: AssetRecord | dict[str, Any]) -> None:
         """Update an existing asset record.
         If a record is provided, only non-None fields in asset_record will be updated."""
         if isinstance(asset_record, dict):
@@ -65,7 +65,7 @@ class AssetRegistry:
         with self.lock:
             return len(self.__assets)
 
-    def get_asset_by_id(self, asset_id: int) -> Optional[AssetRecord]:
+    def get_asset_by_id(self, asset_id: int) -> AssetRecord | None:
         """Get an asset by its ID."""
         with self.lock:
             for asset in self.__assets:
@@ -73,9 +73,7 @@ class AssetRegistry:
                     return asset
             return None
 
-    def get_asset_by_path(
-        self, path: Union[str, pathlib.Path]
-    ) -> Optional[AssetRecord]:
+    def get_asset_by_path(self, path: str | pathlib.Path) -> AssetRecord | None:
         """Get an asset by its path."""
         path_str = str(path)
         with self.lock:
@@ -84,7 +82,7 @@ class AssetRegistry:
                     return asset
             return None
 
-    def get_all_assets(self) -> List[AssetRecord]:
+    def get_all_assets(self) -> list[AssetRecord]:
         with self.lock:
             # Sort by utc, handling None values
             sorted_assets = sorted(
@@ -92,7 +90,7 @@ class AssetRegistry:
             )
             return sorted_assets
 
-    def get_all_dates(self) -> List[whenever.Date]:
+    def get_all_dates(self) -> list[whenever.Date]:
         assert self.has_display_date, (
             "AssetRegistry must track display dates to get all dates"
         )
@@ -105,8 +103,8 @@ class AssetRegistry:
             return sorted(list(dates))
 
     def get_assets_by_type(
-        self, asset_type: Union[str, List[str], Tuple[str, ...]]
-    ) -> List[AssetRecord]:
+        self, asset_type: str | list[str] | tuple[str, ...]
+    ) -> list[AssetRecord]:
         if isinstance(asset_type, str):
             asset_types = {asset_type}
         else:
@@ -124,9 +122,9 @@ class AssetRegistry:
 
     def get_assets_by_date(
         self,
-        date: Union[whenever.Date, str],
-        asset_type: Union[str, List[str], Tuple[str, ...]],
-    ) -> List[AssetRecord]:
+        date: whenever.Date | str,
+        asset_type: str | list[str] | tuple[str, ...],
+    ) -> list[AssetRecord]:
         if not self.has_display_date:
             raise ValueError(
                 "AssetRegistry must track display dates to get assets by date"
@@ -158,8 +156,8 @@ class AssetRegistry:
             return sorted_assets
 
     def get_geotagged_asset_by_path(
-        self, path: Union[str, pathlib.Path]
-    ) -> Optional[AssetRecord]:
+        self, path: str | pathlib.Path
+    ) -> AssetRecord | None:
         path_str = str(path)
         with self.lock:
             for asset in self.__assets:
@@ -172,8 +170,8 @@ class AssetRegistry:
             return None
 
     def get_geotagged_assets(
-        self, asset_type: Optional[Union[str, List[str], Tuple[str, ...]]] = None
-    ) -> List[AssetRecord]:
+        self, asset_type: str | list[str] | tuple[str, ...] | None = None
+    ) -> list[AssetRecord]:
         """Get all geotagged assets, optionally filtered by asset type(s)."""
         if asset_type is not None:
             if isinstance(asset_type, str):
@@ -199,7 +197,7 @@ class AssetRegistry:
             )
             return sorted_assets
 
-    def dump(self, asset_type: Optional[str] = None) -> Tuple[List[Any], List[str]]:
+    def dump(self, asset_type: str | None = None) -> tuple[list[Any], list[str]]:
         # Get all fields of AssetRecord, in order of definition, get their names from __dataclass_fields__
         headers = [field.name for field in AssetRecord.__dataclass_fields__.values()]
         with self.lock:
@@ -216,7 +214,7 @@ class AssetRegistry:
 
             return rows, headers
 
-    def get_unpositioned_assets(self) -> List[AssetRecord]:
+    def get_unpositioned_assets(self) -> list[AssetRecord]:
         with self.lock:
             result = []
             for asset in self.__assets:
@@ -242,7 +240,7 @@ class AssetRegistry:
             }
         )
 
-    def get_geotagged_journal_dates(self) -> List[whenever.Date]:
+    def get_geotagged_journal_dates(self) -> list[whenever.Date]:
         with self.lock:
             dates = set()
             for asset in self.__assets:

@@ -1,6 +1,6 @@
 import dataclasses
 import logging
-from typing import Generator, List
+from collections.abc import Generator
 
 import pytest
 
@@ -17,7 +17,7 @@ class InputClass:
 
 @dataclasses.dataclass
 class SelectorClass:
-    id: List[int]
+    id: list[int]
 
 
 def test_batch_reduce_small_input() -> None:
@@ -34,7 +34,7 @@ def test_batch_reduce_empty_input() -> None:
     def llm_callback(prompt: str) -> str:
         raise NotImplementedError("LLM callback is not implemented for testing.")
 
-    input_data: List[InputClass] = []
+    input_data: list[InputClass] = []
     selector_type = SelectorClass
     result = batch_reduce(2, "Test prompt", llm_callback, input_data, selector_type)
     assert result == []

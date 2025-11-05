@@ -1,6 +1,6 @@
 import time
 from pathlib import Path
-from typing import Any, Dict, Union
+from typing import Any
 
 import msgpack
 
@@ -8,7 +8,7 @@ from mkmapdiary.poi.common import get_hash
 
 
 class IndexFileReader:
-    def __init__(self, file_path: Union[str, Path]) -> None:
+    def __init__(self, file_path: str | Path) -> None:
         self.file_path = file_path
 
         with open(self.file_path, "rb") as f:
@@ -16,7 +16,7 @@ class IndexFileReader:
             self.__header = self.unpacker.unpack()
 
     @property
-    def header(self) -> Dict[str, Any]:
+    def header(self) -> dict[str, Any]:
         return self.__header
 
     def is_valid(self, filter_config: list) -> bool:

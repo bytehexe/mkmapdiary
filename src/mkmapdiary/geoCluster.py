@@ -1,5 +1,4 @@
 import copy
-from typing import List, Optional, Tuple
 
 import numpy as np
 from scipy import stats
@@ -10,7 +9,7 @@ from mkmapdiary.util.projection import LocalProjection
 
 
 class GeoCluster:
-    def __init__(self, locations: List[Tuple[float, float]]) -> None:
+    def __init__(self, locations: list[tuple[float, float]]) -> None:
         # Interface expects locations as (lon, lat) tuples for consistency with GeoJSON
         self.__locations = locations
         self.__remove_outliers()
@@ -35,7 +34,7 @@ class GeoCluster:
         self.__locations = proj.to_wgs_np(filtered_data).tolist()
 
     @property
-    def locations(self) -> List[Tuple[float, float]]:
+    def locations(self) -> list[tuple[float, float]]:
         return copy.deepcopy(self.__locations)
 
     @property
@@ -47,7 +46,7 @@ class GeoCluster:
         return self.__distance
 
     @property
-    def midpoint(self) -> Tuple[Optional[float], Optional[float]]:
+    def midpoint(self) -> tuple[float | None, float | None]:
         return copy.deepcopy(self.__midpoint)
 
     @property
@@ -56,7 +55,7 @@ class GeoCluster:
         return MultiPoint(self.__locations)
 
     @property
-    def mass_point(self) -> Tuple[Optional[float], Optional[float]]:
+    def mass_point(self) -> tuple[float | None, float | None]:
         if len(self.__locations) == 0:
             return (None, None)
 
@@ -116,7 +115,7 @@ class GeoCluster:
     @staticmethod
     def _greatcircle_midpoint(
         lat1: float, lon1: float, lat2: float, lon2: float
-    ) -> Tuple[float, float]:
+    ) -> tuple[float, float]:
         """Midpoint in radians between two points on a sphere. Returns (lat, lon) for internal calculations."""
         dlon = lon2 - lon1
         bx = np.cos(lat2) * np.cos(dlon)
@@ -130,7 +129,7 @@ class GeoCluster:
 
     def __longest_greatcircle_separation(
         self,
-    ) -> Tuple[float, float, Tuple[Optional[float], Optional[float]]]:
+    ) -> tuple[float, float, tuple[float | None, float | None]]:
         """
         Returns:
         - separation_deg: angular separation in degrees

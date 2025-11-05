@@ -1,8 +1,9 @@
 import datetime
 import threading
 from abc import ABC, ABCMeta, abstractmethod
+from collections.abc import Callable, Mapping
 from pathlib import PosixPath
-from typing import Any, Callable, Dict, List, Mapping, Optional, Tuple, Union
+from typing import Any
 
 import dateutil.parser
 import ollama
@@ -68,11 +69,11 @@ class BaseTask(ABC, metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def cache(self) -> Mapping[Tuple[str, Union[Tuple[Any], List[Any]]], Any]:
+    def cache(self) -> Mapping[tuple[str, tuple[Any] | list[Any]], Any]:
         """Property to access the cache."""
 
     def calibrate(
-        self, dt: Union[whenever.PlainDateTime, datetime.datetime]
+        self, dt: whenever.PlainDateTime | datetime.datetime
     ) -> whenever.Instant:
         """Calibrate a PlainDateTime to an Instant using the current calibration."""
         calibration = self.calibration
@@ -80,7 +81,7 @@ class BaseTask(ABC, metaclass=ABCMeta):
 
     @staticmethod
     def _calibrate(
-        dt: Union[whenever.PlainDateTime, datetime.datetime], calibration: Calibration
+        dt: whenever.PlainDateTime | datetime.datetime, calibration: Calibration
     ) -> whenever.Instant:
         if isinstance(dt, datetime.datetime):
             dt = whenever.PlainDateTime.from_py_datetime(dt)
@@ -90,7 +91,7 @@ class BaseTask(ABC, metaclass=ABCMeta):
             .subtract(seconds=calibration.offset)
         )
 
-    def extract_meta_datetime(self, source: PosixPath) -> Optional[whenever.Instant]:
+    def extract_meta_datetime(self, source: PosixPath) -> whenever.Instant | None:
         """Extract metadata from the file's modification time."""
 
         # If the file does not exist, return None
@@ -153,7 +154,7 @@ class BaseTask(ABC, metaclass=ABCMeta):
         self.__unique_paths[candidate] = source
         return candidate
 
-    def ai(self, key: str, format_args: Dict[str, Any]) -> str:
+    def ai(self, key: str, format_args: dict[str, Any]) -> str:
         return self.__ai(
             self.config["llm_prompts"][key]["prompt"].format(**format_args),
             options=self.config["llm_prompts"][key]["options"],

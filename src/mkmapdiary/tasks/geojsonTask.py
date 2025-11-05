@@ -1,10 +1,11 @@
 import json
 import pathlib
+from collections.abc import Iterator
 from datetime import datetime
 from itertools import zip_longest
 from pathlib import PosixPath
 from threading import Lock
-from typing import Any, Dict, Iterator, List, Optional, Union
+from typing import Any
 
 import dateutil
 import gpxpy
@@ -23,13 +24,13 @@ class GeojsonTask(GeoLookup, GPXTask):
         super().__init__()
         self.__sources: list[PosixPath] = []
 
-    def handle_ext_geo_json(self, source: PosixPath) -> List[Any]:
+    def handle_ext_geo_json(self, source: PosixPath) -> list[Any]:
         return self.__handle(source)
 
-    def handle_ext_geo_yaml(self, source: pathlib.PosixPath) -> List[Any]:
+    def handle_ext_geo_yaml(self, source: pathlib.PosixPath) -> list[Any]:
         return self.__handle(source)
 
-    def __handle(self, source: PosixPath) -> List[Any]:
+    def __handle(self, source: PosixPath) -> list[Any]:
         self.__sources.append(source)
         intermediate_file = self.__generate_destination_filename(source)
 
@@ -43,7 +44,7 @@ class GeojsonTask(GeoLookup, GPXTask):
         return self.make_unique_filename(source, filename)
 
     @classmethod
-    def _parseDate(cls, dt: Optional[str]) -> Optional[datetime]:
+    def _parseDate(cls, dt: str | None) -> datetime | None:
         if dt is None:
             return None
         else:
@@ -52,11 +53,11 @@ class GeojsonTask(GeoLookup, GPXTask):
     @classmethod
     def __addPoint(
         cls,
-        gpx: Optional[gpxpy.gpx.GPX],
+        gpx: gpxpy.gpx.GPX | None,
         coordinates: Any,
-        properties: Dict[str, Any],
+        properties: dict[str, Any],
         tag: str = "wpt",
-    ) -> Optional[Union[gpxpy.gpx.GPXWaypoint, gpxpy.gpx.GPXTrackPoint]]:
+    ) -> gpxpy.gpx.GPXWaypoint | gpxpy.gpx.GPXTrackPoint | None:
         if tag == "wpt":
             # Convert from GeoJSON coordinates [lon, lat] to GPX format (lat, lon)
             wpt = gpxpy.gpx.GPXWaypoint(
@@ -97,7 +98,7 @@ class GeojsonTask(GeoLookup, GPXTask):
 
     @classmethod
     def __addLineString(
-        cls, gpx: gpxpy.gpx.GPX, coordinates: List[Any], properties: Dict[str, Any]
+        cls, gpx: gpxpy.gpx.GPX, coordinates: list[Any], properties: dict[str, Any]
     ) -> gpxpy.gpx.GPXTrackSegment:
         trk = gpxpy.gpx.GPXTrack(name=properties.get("name"))
         trkseg = gpxpy.gpx.GPXTrackSegment()
@@ -124,7 +125,7 @@ class GeojsonTask(GeoLookup, GPXTask):
         gpx.tracks.append(trk)
         return trkseg
 
-    def __lookup(self, lookup: Union[str, List[float]]) -> List[float]:
+    def __lookup(self, lookup: str | list[float]) -> list[float]:
         # lookup can be coordinates - expects/returns (lon, lat) format for GeoJSON compatibility
         if isinstance(lookup, list) and len(lookup) in (2, 3):
             return lookup
@@ -142,7 +143,7 @@ class GeojsonTask(GeoLookup, GPXTask):
         # Convert from Nominatim response (lat, lon) to GeoJSON format (lon, lat)
         return [location["lon"], location["lat"]]
 
-    def __load_file(self, source: PosixPath) -> Dict[str, Any]:
+    def __load_file(self, source: PosixPath) -> dict[str, Any]:
         ext = source.suffix
         with open(source) as f:
             if ext == ".yaml":
@@ -153,7 +154,7 @@ class GeojsonTask(GeoLookup, GPXTask):
                 raise ValueError(f"Invalid extension: {ext}")
         return data
 
-    def task_geo2gpx(self) -> Iterator[Dict[str, Any]]:
+    def task_geo2gpx(self) -> Iterator[dict[str, Any]]:
         """Convert a geojson or geoyaml file to gpx using gpxpy."""
 
         def _convert(src: PosixPath, dst: PosixPath) -> None:

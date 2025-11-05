@@ -1,7 +1,7 @@
 import logging
 import pathlib
 from threading import Lock
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 import shapely
@@ -23,22 +23,22 @@ lock = Lock()
 class Index:
     def __init__(
         self,
-        index_data: Dict[str, Any],
+        index_data: dict[str, Any],
         geo_data: BaseGeometry,
         cache_dir: pathlib.Path,
         keep_pbf: bool = False,
-        rank_offset: Tuple[int, int] = (-1, 1),
+        rank_offset: tuple[int, int] = (-1, 1),
     ):
         with lock:
             self.__init(index_data, geo_data, cache_dir, keep_pbf, rank_offset)
 
     def __init(
         self,
-        index_data: Dict[str, Any],
+        index_data: dict[str, Any],
         geo_data: BaseGeometry,
         cache_dir: pathlib.Path,
         keep_pbf: bool,
-        rank_offset: Tuple[int, int],
+        rank_offset: tuple[int, int],
     ) -> None:
         with open(
             pathlib.Path(__file__).parent.parent
@@ -136,7 +136,7 @@ class Index:
         logger.info("Generating ball tree ... ")
         self.ball_tree = builder.build()
 
-    def get_all(self) -> List:
+    def get_all(self) -> list:
         logger.info("Querying ball tree ...")
         logger.debug("Bounding radius (meters): %s", self.bounding_radius)
         logger.debug("Center coordinates (WGS): %s", self.center)
@@ -147,8 +147,8 @@ class Index:
         )
 
     def get_nearest(
-        self, n: int, point: Optional[shapely.Point] = None
-    ) -> Tuple[List, List[float]]:
+        self, n: int, point: shapely.Point | None = None
+    ) -> tuple[list, list[float]]:
         if point is None:
             point = self.center
 

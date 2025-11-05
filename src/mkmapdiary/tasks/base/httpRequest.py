@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 import requests
 
@@ -12,10 +12,10 @@ class HttpRequest(BaseTask):
     def httpRequest(
         self,
         url: str,
-        data: Optional[Dict[str, Any]] = None,
-        headers: Optional[Dict[str, str]] = None,
+        data: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
         json: bool = True,
-    ) -> Union[Dict[str, Any], str]:
+    ) -> dict[str, Any] | str:
         req = requests.Request("GET", url, params=data, headers=headers)
         prepared = req.prepare()
 
@@ -32,7 +32,7 @@ class HttpRequest(BaseTask):
 
     def __send_request(
         self, prepared: requests.PreparedRequest, json: bool
-    ) -> Union[Dict[str, Any], str]:
+    ) -> dict[str, Any] | str:
         with requests.Session() as session:
             response = session.send(prepared, timeout=5)
             response.raise_for_status()

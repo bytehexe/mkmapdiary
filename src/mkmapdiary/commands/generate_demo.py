@@ -3,7 +3,6 @@ import pathlib
 import random
 import subprocess
 import sys
-from typing import Tuple
 
 import click
 import ollama
@@ -116,7 +115,7 @@ def create_demo_map_files(demo_data_dir: pathlib.Path) -> None:
         f.write(gpx_content)
 
 
-def random_coords() -> Tuple[float, float]:
+def random_coords() -> tuple[float, float]:
     lat = random.uniform(-90.0, 90.0)
     lon = random.uniform(-180.0, 180.0)
     return (lat, lon)
