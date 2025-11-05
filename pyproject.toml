@@ -55,7 +55,7 @@ dependencies = [
     "tzfpy",
     "whenever",
     "platformdirs",
-    "llm-dataclass>=1.1.0",
+    "llm-dataclass>=1.1.1",
 ]
 
 [project.optional-dependencies]
@@ -87,6 +87,8 @@ lint = { help="An alias for 'test'", cmd="task test" }
 run = { help="Run mkmapdiary with the given arguments", cmd="hatch run mkmapdiary" }
 run-min = { help="Run mkmapdiary with the given arguments (without extras)", cmd="hatch run min:mkmapdiary" }
 fix = { help="Run linters in fix mode", cmd="hatch run ruff:ruff check --fix .; hatch run ruff:ruff format ."}
+fix-unsafe = { help="Run linters in fix mode", cmd="hatch run ruff:ruff check --fix --unsafe-fixes .; hatch run ruff:ruff format ."}
+
 
 [tool.pytest.ini_options]
 markers = [
