@@ -65,7 +65,7 @@ def batch_reduce(
         for item in input_data:
             serialized_item = input_schema.dumps(item)
             serialized_input.append(serialized_item)
-            if len(serialized_item) > estimate:
+            if len(serialized_item) > estimate * 4:
                 logger.warning(
                     "Input item exceeds estimated context size, consider increasing estimate."
                 )
@@ -76,6 +76,11 @@ def batch_reduce(
         for batch in batches:
             batch_prompt = prompt + "\n\n" + "\n".join(batch)
             reduced_text = llm_callback(batch_prompt)
+
+            if len(reduced_text) > estimate * 4:
+                logger.warning(
+                    "Reduced text exceeds estimated context size, consider increasing estimate."
+                )
 
             # Deserialize reduced text
             reduced_items = output_schema.loads(reduced_text)
