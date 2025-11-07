@@ -72,7 +72,7 @@ llm_prompts:
     translation_key: summarize_image_prompt
     model: "granite3.2-vision:2b"
     #model: "llama3.2-vision:11b"
-    #model: "benzie/llava-phi-3:latest" # light model
+    #model: "llava-phi3:3.8b" # light model
     options:
       temperature: 0.3
 
@@ -80,6 +80,6 @@ llm_prompts:
     translation_key: assess_image_quality_prompt
     model: "granite3.2-vision:2b" # standard model
     #model: "llama3.2-vision:11b" # heavy model
-    #model: "benzie/llava-phi-3:latest" #light model
+    #model: "llava-phi3:3.8b" #light model
     options:
       temperature: 0.2
