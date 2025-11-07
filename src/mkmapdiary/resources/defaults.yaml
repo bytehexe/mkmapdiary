@@ -60,18 +60,15 @@ llm_prompts:
 
   summarize_journal_entry:
     translation_key: summarize_journal_entry_prompt
-    #model: "llama3:8b"
     model: "granite3.3:8b" # standard model
     #model: "granite3.3:2b" # light model
-    #model: "phi3:3.8b"
     options:
       temperature: 0.3
 
 
   summarize_image:
     translation_key: summarize_image_prompt
-    model: "granite3.2-vision:2b"
-    #model: "llama3.2-vision:11b"
+    model: "granite3.2-vision:2b" # standard model
     #model: "llava-phi3:3.8b" # light model
     options:
       temperature: 0.3
@@ -79,7 +76,6 @@ llm_prompts:
   assess_image_quality:
     translation_key: assess_image_quality_prompt
     model: "granite3.2-vision:2b" # standard model
-    #model: "llama3.2-vision:11b" # heavy model
     #model: "llava-phi3:3.8b" #light model
     options:
       temperature: 0.2
