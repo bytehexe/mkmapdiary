@@ -4,6 +4,7 @@ import logging.config
 import pathlib
 from typing import Any
 
+import whenever
 import yaml
 from wcwidth import wcswidth
 
@@ -87,16 +88,20 @@ def add_file_logging(build_dir: pathlib.Path) -> None:
 
 
 class ThisMayTakeAWhile:
-    def __init__(self, logger: logging.Logger, info: str | None = None):
+    def __init__(
+        self, logger: logging.Logger, info: str | None = None, icon: str = "⏳"
+    ) -> None:
         self.logger = logger
         self.__info = info
+        self.__icon = icon
 
     def __enter__(self) -> "ThisMayTakeAWhile":
         if self.__info:
             text = f"{self.__info} - This may take a while ..."
         else:
             text = "This may take a while ..."
-        self.logger.info(text, extra={"icon": "⏳"})
+        self.logger.info(text, extra={"icon": self.__icon})
+        self.__time_started = whenever.Instant.now()
         return self
 
     def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
@@ -104,4 +109,8 @@ class ThisMayTakeAWhile:
             text = f" {self.__info[0].lower()}{self.__info[1:]}"
         else:
             text = ""
-        self.logger.info(f"Done{text}.", extra={"icon": "⌛"})
+        self.__time_ended = whenever.Instant.now()
+        duration = self.__time_ended - self.__time_started
+        self.logger.info(
+            f"Done{text} after {duration.in_seconds():.0f}s.", extra={"icon": "✔️"}
+        )

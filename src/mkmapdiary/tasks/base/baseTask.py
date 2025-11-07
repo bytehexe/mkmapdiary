@@ -154,21 +154,32 @@ class BaseTask(ABC, metaclass=ABCMeta):
         self.__unique_paths[candidate] = source
         return candidate
 
-    def ai(self, key: str, format_args: dict[str, Any]) -> str:
+    def ai(
+        self,
+        key: str,
+        format_args: dict[str, Any],
+        message_params: dict[str, Any] | None = None,
+    ) -> str:
+        translation_key = self.config["llm_prompts"][key]["translation_key"]
         return self.__ai(
-            self.config["llm_prompts"][key]["prompt"].format(**format_args),
+            self.config["strings"][translation_key].format(**format_args),
+            model=self.config["llm_prompts"][key]["model"],
             options=self.config["llm_prompts"][key]["options"],
+            message_params=message_params,
         )
 
-    def __ai(self, prompt: str, **params: Any) -> str:
+    def __ai(
+        self, prompt: str, model: str, message_params: dict | None = None, **params: Any
+    ) -> str:
         """Generate text using an AI model."""
-
-        model = self.config["features"]["llms"]["text_model"]
-
+        message = {"role": "user", "content": prompt}
+        if message_params is not None:
+            message.update(message_params)
         with ai_lock:
             response = ollama.chat(
                 model=model,
-                messages=[{"role": "user", "content": prompt}],
+                messages=[message],
+                keep_alive="15s",
                 **params,
             )
 

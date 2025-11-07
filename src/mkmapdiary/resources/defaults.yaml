@@ -37,41 +37,49 @@ strings:
   text_title: null
   gallery_title: null
   home_title: null
+  generate_title_prompt: null
+  generate_tags_prompt: null
+  summarize_journal_entry_prompt: null
+  summarize_image_prompt: null
+  assess_image_quality_prompt: null
 
 llm_prompts:
   # LLM prompt templates
-  generate_title:
-    prompt: |
-      Create exactly one title that summarizes the following text in {locale}.
-      The title must be a single phrase, 3–5 words long.
-      Use only words or phrases, or concepts that appear in the text.
-      If the text contains multiple topics, combine them in a single title, separated naturally (e.g., with commas or conjunctions).
-      Focus on the most important topics if all cannot fit in the title.
-      Do not produce multiple titles, or explanations.
-      Do not include phrases like 'Here is' or 'Summary'.
-      If the text is empty or does not contain any useful information, leave your response empty.
-      Do not invent information not present in the text.
-      Output only the title, nothing else.
 
-      Text:
-      {text}
+  generate_title:
+    translation_key: generate_title_prompt
+    model: "granite3.3:8b"
     options:
       temperature: 0.2
-      top_p: 0.8
-      #seed: 42
 
   generate_tags:
-    prompt: |
-      Extract a list of relevant tags in {locale} from the following text.
-      The list should not exceed 15 tags.
-      Produce a single list of tags, separated by commas.
-      Do not include explanations or additional text.
-      Output only the list of tags, nothing else.
-      If the text is empty or does not contain any useful information, leave your response empty.
-      Do not include phrases like 'Tags:' or 'The tags are'.
-
-      Text:
-      {text}
+    translation_key: generate_tags_prompt
+    model: "granite3.3:8b"
     options:
       temperature: 0.8
-      top_p: 0.8
+
+  summarize_journal_entry:
+    translation_key: summarize_journal_entry_prompt
+    #model: "llama3:8b"
+    model: "granite3.3:8b" # standard model
+    #model: "granite3.3:2b" # light model
+    #model: "phi3:3.8b"
+    options:
+      temperature: 0.3
+
+
+  summarize_image:
+    translation_key: summarize_image_prompt
+    model: "granite3.2-vision:2b"
+    #model: "llama3.2-vision:11b"
+    #model: "benzie/llava-phi-3:latest" # light model
+    options:
+      temperature: 0.3
+
+  assess_image_quality:
+    translation_key: assess_image_quality_prompt
+    model: "granite3.2-vision:2b" # standard model
+    #model: "llama3.2-vision:11b" # heavy model
+    #model: "benzie/llava-phi-3:latest" #light model
+    options:
+      temperature: 0.2

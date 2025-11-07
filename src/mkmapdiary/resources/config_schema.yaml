@@ -1,4 +1,9 @@
 # JSON Schema for mkmapdiary configuration (in YAML format)
+# Note: Do not use "required" properties here, as this schema
+# is also used to validate partial configurations.
+#
+# Default config for the schema: src/mkmapdiary/resources/defaults.yaml
+#
 $schema: "http://json-schema.org/draft-07/schema#"
 title: "mkmapdiary Configuration Schema"
 description: "Schema for validating mkmapdiary configuration files"
@@ -14,6 +19,12 @@ definitions:
   llmPrompt:
     type: object
     properties:
+      translation_key:
+        type: string
+        description: "Translation key for the prompt template"
+      model:
+        type: string
+        description: "LLM model to use for this prompt"
       prompt:
         type: string
         description: "Prompt template"
@@ -34,7 +45,6 @@ definitions:
             type: integer
             description: "Random seed for reproducible results"
         additionalProperties: false
-    required: ["prompt"]
     additionalProperties: false
 
 properties:
@@ -133,6 +143,16 @@ properties:
         $ref: "#/definitions/customString"
       home_title:
         $ref: "#/definitions/customString"
+      generate_title_prompt:
+        $ref: "#/definitions/customString"
+      generate_tags_prompt:
+        $ref: "#/definitions/customString"
+      summarize_journal_entry_prompt:
+        $ref: "#/definitions/customString"
+      summarize_image_prompt:
+        $ref: "#/definitions/customString"
+      assess_image_quality_prompt:
+        $ref: "#/definitions/customString"
     additionalProperties: false
 
   llm_prompts:
@@ -142,6 +162,12 @@ properties:
       generate_title:
         $ref: "#/definitions/llmPrompt"
       generate_tags:
+        $ref: "#/definitions/llmPrompt"
+      summarize_journal_entry:
+        $ref: "#/definitions/llmPrompt"
+      summarize_image:
+        $ref: "#/definitions/llmPrompt"
+      assess_image_quality:
         $ref: "#/definitions/llmPrompt"
     additionalProperties: false
 
