@@ -161,6 +161,7 @@ class Index:
         self.cache_dir = cache_dir
         self.keep_pbf = keep_pbf
         self.rank_offset = rank_offset
+        self.finder = RegionFinder(self.geofabrik_data)
 
     def get_key(self, geo_data: BaseGeometry) -> IndexKey:
         """
@@ -174,8 +175,7 @@ class Index:
             IndexKey named tuple with regions and rank information
         """
         logger.debug("Finding matching regions for area of interest...")
-        finder = RegionFinder(geo_data, self.geofabrik_data)
-        regions = finder.find_regions()
+        regions = self.finder.find_regions(geo_data)
         logger.info(f"Found {len(regions)} matching regions.")
 
         # Ensure region indices exist and are up to date

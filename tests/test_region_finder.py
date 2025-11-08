@@ -39,7 +39,7 @@ def test_find_best_region_internal() -> None:
     ]
     for geo_data, expected_region_ids in geo_data_list:
         assert isinstance(geo_data, BaseGeometry)
-        finder = RegionFinder(geo_data, geofabrik_data)
+        finder = RegionFinder(geofabrik_data)
         best_region, _ = finder._findBestRegion(geo_data, [])
         region_ids = [best_region.id] if best_region else []
         assert region_ids == expected_region_ids
@@ -61,7 +61,7 @@ def test_find_regions_with_cache() -> None:
     ]
     for geo_data, expected_region_ids in geo_data_list:
         assert isinstance(geo_data, BaseGeometry)
-        finder = RegionFinder(geo_data, geofabrik_data)
-        regions = finder.find_regions()
+        finder = RegionFinder(geofabrik_data)
+        regions = finder.find_regions(geo_data)
         region_ids = [region.id for region in regions]
         assert region_ids == expected_region_ids

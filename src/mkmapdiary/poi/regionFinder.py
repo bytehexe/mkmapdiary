@@ -12,21 +12,35 @@ logger = logging.getLogger(__name__)
 
 
 class RegionFinder:
-    def __init__(self, geo_data: BaseGeometry, geofabrik_data: dict[str, Any]) -> None:
-        self.geo_data = deepcopy(geo_data)
+    def __init__(self, geofabrik_data: dict[str, Any]) -> None:
         self.geofabrik_data = geofabrik_data
 
-    def find_regions(self) -> list[Region]:
+        # Pre-compute region geometries and areas once for performance
+        self._region_cache = {}
+        for region in geofabrik_data["features"]:
+            region_id = region["properties"]["id"]
+            # Convert geometry directly without JSON round-trip
+            shape = shapely.from_geojson(json.dumps(region["geometry"]))
+            area = shapely.area(shape)
+            self._region_cache[region_id] = {
+                "shape": shape,
+                "area": area,
+                "region": region,
+            }
+
+    def find_regions(self, geo_data: BaseGeometry) -> list[Region]:
+        geo_data = deepcopy(geo_data)
+
         regions: list[Region] = []
         logger.info("Finding best matching Geofabrik regions...", extra={"icon": "🗺️"})
-        while self.geo_data.is_empty is False:
+        while geo_data.is_empty is False:
             best_region, remaining_geo_data = self._findBestRegion(
-                self.geo_data,
+                geo_data,
                 regions,
             )
             if best_region is None:
                 break
-            self.geo_data = remaining_geo_data
+            geo_data = remaining_geo_data
 
             regions.append(best_region)
         logger.info("Selected Geofabrik regions for POI extraction:")
@@ -42,19 +56,29 @@ class RegionFinder:
         return_geo_data = geo_data
         best_size = float("inf")
 
+        # Create set of used region IDs for O(1) lookup instead of O(n) search
+        used_region_ids = {r.id for r in used_regions}
+
         for region in self.geofabrik_data["features"]:
-            if any(r.id == region["properties"]["id"] for r in used_regions):
+            region_id = region["properties"]["id"]
+            if region_id in used_region_ids:
                 continue  # Skip already used regions
 
-            # Check if any of the provided geo_data areas intersect with the region
-            shape = shapely.from_geojson(json.dumps(region))
-            remaining_geo_data = shapely.difference(geo_data, shape)
-            if remaining_geo_data.equals(geo_data):
+            # Use cached geometry and area
+            cache_entry = self._region_cache[region_id]
+            shape = cache_entry["shape"]
+
+            # Fast intersection test before expensive difference operation
+            if not geo_data.intersects(shape):
                 continue  # No intersection
 
-            size = shapely.area(
-                shape,
-            )  # Note: size is only an approximation, not meaningful due to projections
+            # Only compute difference if there's actually an intersection
+            remaining_geo_data = shapely.difference(geo_data, shape)
+            if remaining_geo_data.equals(geo_data):
+                continue  # No actual overlap (edge case)
+
+            # Use pre-computed area
+            size = cache_entry["area"]
 
             if best is None or size < best_size:
                 best = Region(

@@ -39,6 +39,8 @@ class GpxCreator:
             lambda: {"waypoints": [], "tracks": [], "routes": []}
         )
 
+        self.index = Index(self.index_data, self.__region_cache_dir, keep_pbf=True)
+
         self.__init()
 
     def __init(self) -> None:
@@ -166,7 +168,7 @@ class GpxCreator:
             clusterer.fit(np.radians(coords_array))
 
         # Create index once to get index keys for all clusters in this date
-        index = Index(self.index_data, self.__region_cache_dir, keep_pbf=True)
+        index = self.index
         clusters_data = []
 
         labels = clusterer.labels_
@@ -204,7 +206,7 @@ class GpxCreator:
 
     def __process_sorted_clusters(self, all_clusters: list[dict]) -> None:
         """Process clusters sorted by index key for optimal performance."""
-        index = Index(self.index_data, self.__region_cache_dir, keep_pbf=True)
+        index = self.index
         current_proxy = None
 
         for cluster_data in all_clusters:
