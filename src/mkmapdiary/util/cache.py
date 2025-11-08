@@ -28,10 +28,10 @@ def with_cache(
 
     try:
         value = cache[full_key]
-        logger.info(f"Cache hit for key: {full_key}")
+        logger.debug(f"Cache hit for key: {full_key}")
         return value
     except KeyError:
         value = compute_func(*args)
         cache[full_key] = value
-        logger.info(f"Cache miss for key: {full_key}. Computed and cached new value.")
+        logger.debug(f"Cache miss for key: {full_key}. Computed and cached new value.")
         return value
