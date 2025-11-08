@@ -146,6 +146,8 @@ def main(
             )
             sys.exit(1)
 
+    logger.info("User cache is enabled.", extra={"icon": "🗃️"})
+
     logger.info("Preparing directories ...")
     # Sanity checks
     if not source_dir.is_dir():

@@ -47,7 +47,9 @@ def config(
         raise click.BadParameter("Source directory is required when not using --user.")
 
     if user:
-        source_dir = pathlib.Path(platformdirs.user_data_dir("mkmapdiary", "bytehexe"))
+        source_dir = pathlib.Path(
+            platformdirs.user_config_dir("mkmapdiary", "bytehexe")
+        )
         source_dir.mkdir(parents=True, exist_ok=True)
 
     if not source_dir:
