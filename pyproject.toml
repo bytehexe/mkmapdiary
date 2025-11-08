@@ -25,36 +25,37 @@ classifiers = [
 
 dependencies = [
     "click",
-    "pyyaml",
-    "mkdocs-glightbox",
-    "mkdocs-material",
-    "mkdocs",
     "doit",
-    "identify",
-    "Pillow",
-    "rawpy",
-    "imageio",
-    "pyexiftool",
-    "tabulate",
-    "libsass",
-    "requests",
-    "jsonschema",
-    "lxml",
-    "pydub",
-    "ollama",
     "gpxpy",
     "hdbscan",
-    "pyrosm",
-    "msgpack",
-    "osmium>=4.0.0",
-    "wcwidth",
     "humanfriendly",
-    "tzlocal",
-    "tzfpy",
-    "whenever",
-    "platformdirs",
-    "llm-dataclass>=1.1.5",
+    "identify",
     "imagehash",
+    "imageio",
+    "jsonschema",
+    "libsass",
+    "llm-dataclass>=1.1.5",
+    "lxml",
+    "mkdocs",
+    "mkdocs-glightbox",
+    "mkdocs-material",
+    "msgpack",
+    "ollama",
+    "osmium>=4.0.0",
+    "Pillow",
+    "platformdirs",
+    "pydub",
+    "pyexiftool",
+    "pyproj",
+    "pyyaml",
+    "rawpy",
+    "requests",
+    "shapely",
+    "tabulate",
+    "tzfpy",
+    "tzlocal",
+    "wcwidth",
+    "whenever",
 ]
 
 [project.optional-dependencies]
@@ -187,10 +188,6 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module="msgpack.*"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module="pyrosm.*"
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
