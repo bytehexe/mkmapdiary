@@ -13,10 +13,24 @@ window.addEventListener("DOMContentLoaded", () => {
   attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
   }).addTo(map);
 
+  L.control.scale().addTo(map);
+
   const photoLayer = L.photo.cluster().on('click', function(evt) {
     //evt.layer.bindPopup(L.Util.template(template, evt.layer.photo)).openPopup();
     GLightbox().openAt(evt.layer.photo.index);
   });
+
+  window.ensure_photos_on_top = function() {
+    // Ensure photo markers are on top
+    for(var i in photoLayer._featureGroup._layers) {
+      photoLayer._featureGroup._layers[i].setZIndexOffset(1000);
+    }
+  };
+
+  // Ensure photos are on top on relevant events
+  map.on('load', ensure_photos_on_top);
+  map.on('zoomend', ensure_photos_on_top);
+  map.on('moveend', ensure_photos_on_top);
 
   photoLayer.add(photo_data).addTo(map);
 
