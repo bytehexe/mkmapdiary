@@ -130,15 +130,26 @@ class GpxCreator:
     def __compute_clusters(self) -> None:
         logger.debug("Computing geospatial clusters for all dates")
 
-        # Process clusters for each date that has coordinates
-        for date in self.__coords_by_date.keys():
-            self.__compute_clusters_for_date(date)
+        # First pass: compute all clusters and their index keys
+        all_clusters = []
 
-    def __compute_clusters_for_date(self, date: Date) -> None:
+        for date in self.__coords_by_date.keys():
+            clusters_for_date = self.__compute_clusters_for_date(date)
+            all_clusters.extend(clusters_for_date)
+
+        # Sort clusters by index key to group similar ones together
+        all_clusters.sort(key=lambda x: x["index_key"])
+
+        # Second pass: process clusters in index key order for optimal performance
+        logger.debug(f"Processing {len(all_clusters)} clusters grouped by index key")
+        self.__process_sorted_clusters(all_clusters)
+
+    def __compute_clusters_for_date(self, date: Date) -> list[dict]:
+        """Compute clusters for a date and return cluster data with index keys."""
         logger.debug(f"Computing geospatial clusters for date {date}")
         coords = self.__coords_by_date[date]
         if len(coords) < 10:
-            return
+            return []
 
         coords_array = np.array(coords)
 
@@ -154,9 +165,9 @@ class GpxCreator:
             warnings.simplefilter(action="ignore", category=FutureWarning)
             clusterer.fit(np.radians(coords_array))
 
-        # Create index once for all clusters in this date
+        # Create index once to get index keys for all clusters in this date
         index = Index(self.index_data, self.__region_cache_dir, keep_pbf=True)
-        current_proxy = None
+        clusters_data = []
 
         labels = clusterer.labels_
         for label in set(labels):
@@ -174,6 +185,36 @@ class GpxCreator:
                 # Ignore overly large clusters
                 continue
 
+            # Get index key for this cluster
+            logger.debug(f"Getting index key for cluster {label} on date {date}")
+            key = index.get_key(cluster.shape)
+
+            # Store cluster data for later processing
+            cluster_data = {
+                "date": date,
+                "label": label,
+                "cluster": cluster,
+                "cluster_coords": cluster_coords,
+                "index_key": key,
+            }
+            clusters_data.append(cluster_data)
+
+        logger.debug(f"Found {len(clusters_data)} valid clusters for date {date}")
+        return clusters_data
+
+    def __process_sorted_clusters(self, all_clusters: list[dict]) -> None:
+        """Process clusters sorted by index key for optimal performance."""
+        index = Index(self.index_data, self.__region_cache_dir, keep_pbf=True)
+        current_proxy = None
+
+        for cluster_data in all_clusters:
+            date = cluster_data["date"]
+            label = cluster_data["label"]
+            cluster = cluster_data["cluster"]
+            cluster_coords = cluster_data["cluster_coords"]
+            key = cluster_data["index_key"]
+
+            # Add basic cluster waypoints first
             # cluster.mass_point returns (lon, lat) format, convert for GPX which expects (lat, lon)
             mlon, mlat = cluster.mass_point
             mwpt = gpxpy.gpx.GPXWaypoint(
@@ -203,10 +244,7 @@ class GpxCreator:
                 extra={"icon": "📍"},
             )
 
-            # Use the new Index API
-            logger.debug("Getting index key for cluster shape")
-            key = index.get_key(cluster.shape)
-
+            # Load regions with potential reuse of existing proxy
             logger.debug("Loading regions (with potential reuse of existing proxy)")
             proxy = index.load_regions(key, cluster.shape, existing_proxy=current_proxy)
             current_proxy = proxy  # Store for potential reuse in next clusters

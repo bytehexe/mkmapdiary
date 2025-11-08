@@ -18,9 +18,8 @@ class RegionFinder:
 
     def find_regions(self) -> list[Region]:
         regions: list[Region] = []
-        logger.info("Finding best matching Geofabrik regions...")
+        logger.info("Finding best matching Geofabrik regions...", extra={"icon": "🗺️"})
         while self.geo_data.is_empty is False:
-            logger.info("Next iteration to find best matching Geofabrik region...")
             best_region, remaining_geo_data = self._findBestRegion(
                 self.geo_data,
                 regions,
@@ -30,7 +29,6 @@ class RegionFinder:
             self.geo_data = remaining_geo_data
 
             regions.append(best_region)
-            logger.info(f"Selected region: {best_region.name}")
         logger.info("Selected Geofabrik regions for POI extraction:")
         for region in regions:
             logger.info(f" - {region.name}")

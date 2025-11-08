@@ -32,19 +32,30 @@ class IndexProxy:
         ball_tree: Any,
         center: shapely.Point,
         bounding_radius: float,
-        regions: list[Region],
-        min_rank: int,
-        max_rank: int,
+        index_key: IndexKey,
         region_data: dict[str, Any] | None = None,
     ):
         self.ball_tree = ball_tree
         self.center = center
         self.bounding_radius = bounding_radius
-        self.regions = regions
-        self.min_rank = min_rank
-        self.max_rank = max_rank
+        self.index_key = index_key
         # Cache raw data from idx files for reuse
         self.region_data = region_data or {}
+
+    @property
+    def regions(self) -> list[Region]:
+        """Get regions from the stored IndexKey."""
+        return self.index_key.regions
+
+    @property
+    def min_rank(self) -> int:
+        """Get minimum rank from the stored IndexKey."""
+        return self.index_key.min_rank
+
+    @property
+    def max_rank(self) -> int:
+        """Get maximum rank from the stored IndexKey."""
+        return self.index_key.max_rank
 
     def get_cached_region_data(self, region_id: str) -> Any | None:
         """
@@ -57,6 +68,18 @@ class IndexProxy:
             Raw region data or None if not cached
         """
         return self.region_data.get(region_id)
+
+    def matches_key(self, key: "IndexKey") -> bool:
+        """
+        Check if this proxy exactly matches the given IndexKey.
+
+        Args:
+            key: IndexKey to compare against
+
+        Returns:
+            True if regions and ranks match exactly
+        """
+        return self.index_key == key
 
     def get_all(self) -> list:
         """
@@ -246,6 +269,11 @@ class Index:
         if not key.regions:
             raise ValueError("No regions provided in the key.")
 
+        # Check if existing proxy matches exactly - if so, return it directly
+        if existing_proxy is not None and existing_proxy.matches_key(key):
+            logger.info("Reusing existing proxy with exact matching key")
+            return existing_proxy
+
         logger.debug("Projecting geo data to local coordinates...")
         local_projection = LocalProjection(geo_data)
         local_geo_data = local_projection.to_local(geo_data)
@@ -304,8 +332,6 @@ class Index:
             ball_tree=ball_tree,
             center=center,
             bounding_radius=bounding_radius,
-            regions=key.regions,
-            min_rank=key.min_rank,
-            max_rank=key.max_rank,
+            index_key=key,
             region_data=region_data,
         )
