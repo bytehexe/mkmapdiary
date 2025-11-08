@@ -66,7 +66,6 @@ class GPXTask(HttpRequest):
             "task_dep": [
                 f"create_directory:{self.dirs.assets_dir}",
                 f"create_directory:{self.dirs.files_dir}",
-                "geo2gpx",
                 "qstarz2gpx",
             ],
         }

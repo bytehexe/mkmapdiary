@@ -2,7 +2,6 @@ from .audioTask import AudioTask
 from .cr2Task import Cr2Task
 from .dayPageTask import DayPageTask
 from .galleryTask import GalleryTask
-from .geojsonTask import GeojsonTask
 from .gpxTask import GPXTask
 from .imageTask import ImageTask
 from .journalTask import JournalTask
@@ -18,7 +17,6 @@ __all__ = [
     "Cr2Task",
     "DayPageTask",
     "GalleryTask",
-    "GeojsonTask",
     "GPXTask",
     "ImageTask",
     "JournalTask",
