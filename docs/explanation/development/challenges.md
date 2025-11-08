@@ -120,11 +120,14 @@ Mkmapdiary faces unique challenges as it bridges multiple domains: geospatial da
 - Cloud-based AI services for audio transcription create privacy risks
 - Users need full control over their data without external dependencies
 - Offline processing requirements increase computational complexity
+- Local LLMs have limited capabilities compared to cloud-based services
+- Vision models seem to become unresponsive over time, continuing to consume CPU resources without producing output
 
 **Current Approach**:
 - Purposely avoiding Nominatim and other web-based geocoding services
 - Parsing all POI data locally from OpenStreetMap datasets
 - Using local LLMs instead of cloud-based AI services for transcription
+- Avoiding vision models completely, due to their reliability issues
 
 Note: Mkmapdiary still needs to load external resources like map tiles or JavaScript libraries on its website.
 
