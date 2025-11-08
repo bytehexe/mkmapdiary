@@ -1,6 +1,7 @@
 import logging
 import sys
 from collections.abc import Iterator, MutableMapping
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
@@ -70,6 +71,7 @@ class TaskList(*tasks):  # type: ignore
         self.__config = config
         self.__cache = cache
         self.__dirs = dirs
+        self.__pre_assets: list[Iterator[AssetRecord]] = []
 
         self.__calibration = [
             Calibration(
@@ -82,6 +84,7 @@ class TaskList(*tasks):  # type: ignore
         self.__db = AssetRegistry()
         if scan:
             self.__scan()
+            self.finalize_assets()
 
     @property
     def dirs(self) -> Dirs:
@@ -176,7 +179,10 @@ class TaskList(*tasks):  # type: ignore
     def handle(self, source: Path) -> None:
         results = self.handle_path(source)
         if results:
-            self.add_assets(list(results))
+            if isinstance(results, Iterator):
+                self.add_assets(results)
+            else:
+                self.add_assets(iter(results))
 
     def handle_directory(self, source: Path) -> None:
         """Handle a directory by processing its contents."""
@@ -229,16 +235,18 @@ class TaskList(*tasks):  # type: ignore
         target = source.resolve()
         self.handle(target)
 
-    def add_assets(self, assets: list[AssetRecord] | None) -> None:
+    def add_assets(self, assets: Iterator[AssetRecord]) -> None:
         """Add an asset to the list."""
 
-        if assets is None:
-            return
+        self.__pre_assets.append(assets)
 
-        # Adjust timestamps based on current calibration
-
-        for asset in assets:
-            # asset.datetime.replace(tzinfo=ZoneInfo(self.calibration.timezone))
-            # asset.datetime += timedelta(seconds=self.calibration.offset)
-            # asset.datetime = asset.datetime.astimezone(ZoneInfo("UTC"))
-            self.db.add_asset(asset)
+    def finalize_assets(self) -> None:
+        logger.info("Loading assets...", extra={"icon": "📥"})
+        with ThreadPoolExecutor() as executor:
+            futures = [
+                executor.submit(list, asset_iter) for asset_iter in self.__pre_assets
+            ]
+            for future in futures:
+                asset_iterator = future.result()
+                for asset in asset_iterator:
+                    self.db.add_asset(asset)
