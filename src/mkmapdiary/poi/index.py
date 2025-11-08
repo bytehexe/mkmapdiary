@@ -1,7 +1,7 @@
 import logging
 import pathlib
 from threading import Lock
-from typing import Any
+from typing import Any, NamedTuple
 
 import numpy as np
 import shapely
@@ -9,11 +9,95 @@ import yaml
 from shapely.geometry.base import BaseGeometry
 
 from mkmapdiary.poi.ballTreeBuilder import BallTreeBuilder
-from mkmapdiary.poi.indexBuilder import IndexBuilder
+from mkmapdiary.poi.indexBuilder import IndexBuilder, Region
 from mkmapdiary.poi.indexFileReader import IndexFileReader
 from mkmapdiary.poi.regionFinder import RegionFinder
 from mkmapdiary.util.osm import calculate_rank, clip_rank
 from mkmapdiary.util.projection import LocalProjection
+
+
+class IndexKey(NamedTuple):
+    regions: list[Region]
+    min_rank: int
+    max_rank: int
+
+
+class IndexProxy:
+    """
+    Proxy object containing loaded regions and ball tree for POI querying.
+    """
+
+    def __init__(
+        self,
+        ball_tree: Any,
+        center: shapely.Point,
+        bounding_radius: float,
+        regions: list[Region],
+        min_rank: int,
+        max_rank: int,
+        region_data: dict[str, Any] | None = None,
+    ):
+        self.ball_tree = ball_tree
+        self.center = center
+        self.bounding_radius = bounding_radius
+        self.regions = regions
+        self.min_rank = min_rank
+        self.max_rank = max_rank
+        # Cache raw data from idx files for reuse
+        self.region_data = region_data or {}
+
+    def get_cached_region_data(self, region_id: str) -> Any | None:
+        """
+        Get cached raw data for a region if available.
+
+        Args:
+            region_id: ID of the region to get data for
+
+        Returns:
+            Raw region data or None if not cached
+        """
+        return self.region_data.get(region_id)
+
+    def get_all(self) -> list:
+        """
+        Get all POIs within the bounding radius of the loaded geometry.
+
+        Returns:
+            List of POIs within the bounding radius
+        """
+        logger.info("Querying ball tree ...")
+        logger.debug("Bounding radius (meters): %s", self.bounding_radius)
+        logger.debug("Center coordinates (WGS): %s", self.center)
+        # Convert from Shapely Point (x=lon, y=lat) to BallTree expected (lat, lon) format
+        return self.ball_tree.query_radius(
+            np.array([self.center.y, self.center.x]),
+            r=self.bounding_radius,
+        )
+
+    def get_nearest(
+        self, n: int, point: shapely.Point | None = None
+    ) -> tuple[list, list[float]]:
+        """
+        Get the n nearest POIs to a given point.
+
+        Args:
+            n: Number of nearest neighbors to find
+            point: Point to search from (defaults to center of loaded geometry)
+
+        Returns:
+            Tuple of (POI list, distances)
+        """
+        if point is None:
+            point = self.center
+
+        logger.info("Querying ball tree for nearest neighbors ...")
+        logger.debug("Query point coordinates (WGS): %s", point)
+        # Convert from Shapely Point (x=lon, y=lat) to BallTree expected (lat, lon) format
+        return self.ball_tree.query(
+            [point.y, point.x],  # type: ignore
+            k=n,
+        )
+
 
 logger = logging.getLogger(__name__)
 
@@ -24,18 +108,16 @@ class Index:
     def __init__(
         self,
         index_data: dict[str, Any],
-        geo_data: BaseGeometry,
         cache_dir: pathlib.Path,
         keep_pbf: bool = False,
         rank_offset: tuple[int, int] = (-1, 1),
     ):
         with lock:
-            self.__init(index_data, geo_data, cache_dir, keep_pbf, rank_offset)
+            self.__init(index_data, cache_dir, keep_pbf, rank_offset)
 
     def __init(
         self,
         index_data: dict[str, Any],
-        geo_data: BaseGeometry,
         cache_dir: pathlib.Path,
         keep_pbf: bool,
         rank_offset: tuple[int, int],
@@ -51,23 +133,39 @@ class Index:
                 self.filter_config,
             )
 
-        # Get the region index
+        # Store configuration for later use
         self.geofabrik_data = index_data
+        self.cache_dir = cache_dir
+        self.keep_pbf = keep_pbf
+        self.rank_offset = rank_offset
 
-        # Find best matching regions
+    def get_key(self, geo_data: BaseGeometry) -> IndexKey:
+        """
+        Find the correct regions for the given geometry and return an IndexKey
+        named tuple containing (regions, min_rank, max_rank).
+
+        Args:
+            geo_data: The geometry to find regions for
+
+        Returns:
+            IndexKey named tuple with regions and rank information
+        """
         logger.debug("Finding matching regions for area of interest...")
         finder = RegionFinder(geo_data, self.geofabrik_data)
         regions = finder.find_regions()
         logger.info(f"Found {len(regions)} matching regions.")
 
+        # Ensure region indices exist and are up to date
         for region in regions:
-            poi_index_path = cache_dir / f"{region.id}.idx"
+            poi_index_path = self.cache_dir / f"{region.id}.idx"
 
             if not poi_index_path.exists():
                 logger.info(
                     f"POI index for region {region.name} does not exist. Building...",
                 )
-                IndexBuilder(region, cache_dir, keep_pbf=keep_pbf).build_index()
+                IndexBuilder(
+                    region, self.cache_dir, keep_pbf=self.keep_pbf
+                ).build_index()
                 continue
 
             region_index = IndexFileReader(poi_index_path)
@@ -75,24 +173,85 @@ class Index:
                 logger.info(
                     f"POI index for region {region.name} is outdated. Rebuilding...",
                 )
-                IndexBuilder(region, cache_dir, keep_pbf=keep_pbf).build_index()
+                IndexBuilder(
+                    region, self.cache_dir, keep_pbf=self.keep_pbf
+                ).build_index()
                 continue
             if not region_index.is_valid(self.filter_config):
                 logger.info(
                     f"POI index for region {region.name} is invalid. Rebuilding...",
                 )
-                IndexBuilder(region, cache_dir, keep_pbf=keep_pbf).build_index()
+                IndexBuilder(
+                    region, self.cache_dir, keep_pbf=self.keep_pbf
+                ).build_index()
                 continue
 
             logger.info(f"Using existing POI index for region {region.name}.")
 
+        # Calculate geometry properties for rank calculation
         logger.debug("Projecting geo data to local coordinates...")
+        local_projection = LocalProjection(geo_data)
+        local_geo_data = local_projection.to_local(geo_data)
 
+        logger.debug("Calculating bounding radius...")
+        if local_geo_data.area == 0:
+            logger.debug(
+                "Area is zero, buffering geometry by 50 meters to avoid issues...",
+            )
+            try:
+                # Compute convex hull to simplify geometry before buffering
+                # This helps avoid memory issues, otherwise buffering complex geometries can be very expensive
+                local_geo_data = local_geo_data.convex_hull
+            except Exception as e:
+                logger.warning("Error occurred while calculating convex hull: %s", e)
+            local_geo_data = local_geo_data.buffer(50, resolution=2, quad_segs=2)
+
+        bounding_radius = shapely.minimum_bounding_radius(local_geo_data)
+
+        logger.debug("Calculate rank for area of interest...")
+        rank = calculate_rank(None, bounding_radius)
+        logger.info(f"Calculated rank for the area of interest: {rank}")
+
+        if rank is None:
+            raise ValueError("Invalid rank calculated for the area of interest.")
+
+        min_rank = clip_rank(rank + self.rank_offset[0])
+        max_rank = clip_rank(rank + self.rank_offset[1])
+
+        # Create IndexKey with all regions and calculated ranks
+        key = IndexKey(regions=regions, min_rank=min_rank, max_rank=max_rank)
+
+        logger.debug(
+            f"Index key: {len(regions)} regions with ranks ({min_rank}, {max_rank})"
+        )
+        return key
+
+    def load_regions(
+        self,
+        key: IndexKey,
+        geo_data: BaseGeometry,
+        existing_proxy: IndexProxy | None = None,
+    ) -> IndexProxy:
+        """
+        Load the specified regions and build the ball tree for querying.
+
+        Args:
+            key: IndexKey tuple containing regions and rank information
+            geo_data: The geometry to calculate center and bounding radius for querying
+            existing_proxy: Optional existing IndexProxy to reuse regions from if they match
+
+        Returns:
+            IndexProxy containing the loaded data for querying
+        """
+        if not key.regions:
+            raise ValueError("No regions provided in the key.")
+
+        logger.debug("Projecting geo data to local coordinates...")
         local_projection = LocalProjection(geo_data)
         local_geo_data = local_projection.to_local(geo_data)
 
         logger.debug("Calculating center...")
-        self.center = local_projection.to_wgs(
+        center = local_projection.to_wgs(
             shapely.centroid(local_projection.to_local(geo_data)),
         )
 
@@ -109,53 +268,44 @@ class Index:
                 logger.warning("Error occurred while calculating convex hull: %s", e)
             local_geo_data = local_geo_data.buffer(50, resolution=2, quad_segs=2)
 
-        self.bounding_radius = shapely.minimum_bounding_radius(local_geo_data)
+        bounding_radius = shapely.minimum_bounding_radius(local_geo_data)
 
-        logger.debug("Calculate rank for area of interest...")
-        rank = calculate_rank(None, self.bounding_radius)
-        logger.info(f"Calculated rank for the area of interest: {rank}")
-
-        if rank is None:
-            raise ValueError("Invalid rank calculated for the area of interest.")
-
-        min_rank = clip_rank(rank + rank_offset[0])
-        max_rank = clip_rank(rank + rank_offset[1])
-
+        # Build the ball tree with the specified regions and ranks
         builder = BallTreeBuilder(self.filter_config)
+        region_data = {}
 
-        for region in regions:
-            logger.info(f"Loading POI index for region: {region.name}")
-            # Load the index file
-            poi_index_path = cache_dir / f"{region.id}.idx"
+        for region in key.regions:
+            # Check if we can reuse data from existing proxy
+            cached_data = None
+            if existing_proxy is not None:
+                cached_data = existing_proxy.get_cached_region_data(region.id)
 
-            reader = IndexFileReader(poi_index_path)
-            data = reader.read()
-            builder.load(data, min_rank, max_rank)
+            if cached_data is not None:
+                logger.info(f"Reusing cached data for region: {region.name}")
+                data = cached_data
+            else:
+                logger.info(f"Loading POI index for region: {region.name}")
+                # Load the index file
+                poi_index_path = self.cache_dir / f"{region.id}.idx"
+                reader = IndexFileReader(poi_index_path)
+                data = reader.read()
 
-        logger.debug(f"Index parameters: {regions}, ({min_rank}, {max_rank})")
-        logger.info("Generating ball tree ... ")
-        self.ball_tree = builder.build()
+            # Cache the data for future reuse
+            region_data[region.id] = data
+            builder.load(data, key.min_rank, key.max_rank)
 
-    def get_all(self) -> list:
-        logger.info("Querying ball tree ...")
-        logger.debug("Bounding radius (meters): %s", self.bounding_radius)
-        logger.debug("Center coordinates (WGS): %s", self.center)
-        # Convert from Shapely Point (x=lon, y=lat) to BallTree expected (lat, lon) format
-        return self.ball_tree.query_radius(
-            np.array([self.center.y, self.center.x]),
-            r=self.bounding_radius,
+        logger.debug(
+            f"Index parameters: {key.regions}, ranks: ({key.min_rank}, {key.max_rank})"
         )
+        logger.info("Generating ball tree ... ")
+        ball_tree = builder.build()
 
-    def get_nearest(
-        self, n: int, point: shapely.Point | None = None
-    ) -> tuple[list, list[float]]:
-        if point is None:
-            point = self.center
-
-        logger.info("Querying ball tree for nearest neighbors ...")
-        logger.debug("Center coordinates (WGS): %s", self.center)
-        # Convert from Shapely Point (x=lon, y=lat) to BallTree expected (lat, lon) format
-        return self.ball_tree.query(
-            [point.y, point.x],  # type: ignore
-            k=n,
+        return IndexProxy(
+            ball_tree=ball_tree,
+            center=center,
+            bounding_radius=bounding_radius,
+            regions=key.regions,
+            min_rank=key.min_rank,
+            max_rank=key.max_rank,
+            region_data=region_data,
         )

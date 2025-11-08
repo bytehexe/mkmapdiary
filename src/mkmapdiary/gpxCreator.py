@@ -154,6 +154,10 @@ class GpxCreator:
             warnings.simplefilter(action="ignore", category=FutureWarning)
             clusterer.fit(np.radians(coords_array))
 
+        # Create index once for all clusters in this date
+        index = Index(self.index_data, self.__region_cache_dir, keep_pbf=True)
+        current_proxy = None
+
         labels = clusterer.labels_
         for label in set(labels):
             if label == -1:
@@ -199,18 +203,23 @@ class GpxCreator:
                 extra={"icon": "📍"},
             )
 
-            index = Index(
-                self.index_data, cluster.shape, self.__region_cache_dir, keep_pbf=True
-            )
-            logger.debug("Index loaded, querying nearest POI")
-            # Convert mass_point (lon, lat) to shapely.Point for Index.get_nearest
+            # Use the new Index API
+            logger.debug("Getting index key for cluster shape")
+            key = index.get_key(cluster.shape)
+
+            logger.debug("Loading regions (with potential reuse of existing proxy)")
+            proxy = index.load_regions(key, cluster.shape, existing_proxy=current_proxy)
+            current_proxy = proxy  # Store for potential reuse in next clusters
+
+            logger.debug("Index proxy loaded, querying nearest POI")
+            # Convert mass_point (lon, lat) to shapely.Point for proxy.get_nearest
             mass_lon, mass_lat = cluster.mass_point
             if mass_lon is not None and mass_lat is not None:
                 from shapely.geometry import Point
 
                 logger.debug("Get nearest POI to cluster mass point")
                 mass_point = Point(mass_lon, mass_lat)  # Point expects (x=lon, y=lat)
-                nearest_pois, distances = index.get_nearest(1, mass_point)
+                nearest_pois, distances = proxy.get_nearest(1, mass_point)
 
                 logger.debug(
                     f"Nearest POI: {nearest_pois[0]}" if nearest_pois else "None",
@@ -235,7 +244,6 @@ class GpxCreator:
                         symbol="cluster-poi",
                     )
                     self.__gpx_data_by_date[date]["waypoints"].append(pwpt)
-            del index
 
     def __add_journal_markers(self) -> None:
         logger.debug("Adding journal markers for all dates")
