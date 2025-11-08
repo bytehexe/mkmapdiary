@@ -1,5 +1,6 @@
 import logging
 import warnings
+from collections import defaultdict
 from collections.abc import Sequence
 from pathlib import Path, PosixPath
 from typing import Any
@@ -9,7 +10,6 @@ import gpxpy.gpx
 import hdbscan
 import numpy as np
 import shapely
-from numpy.typing import NDArray
 from whenever import Date
 
 from mkmapdiary.geoCluster import GeoCluster
@@ -24,25 +24,28 @@ class GpxCreator:
     def __init__(
         self,
         index_data: dict[str, Any],
-        date: Date,
         sources: Sequence[str | PosixPath],
         db: AssetRegistry,
         region_cache_dir: Path,
     ) -> None:
-        # FIXME: Inconsistent types
-        self.__coords: list[list[float]] | NDArray[np.floating] = []
-        self.__gpx_out = gpxpy.gpx.GPX()
         self.__sources = sources
-        self.__date_w = date
-        self.__date = date.py_date()
         self.__db = db
         self.__region_cache_dir = region_cache_dir
         self.index_data = index_data
 
+        # Data structures organized by date - using defaultdict for lazy initialization
+        self.__coords_by_date: defaultdict[Date, list[list[float]]] = defaultdict(list)
+        self.__gpx_data_by_date: defaultdict[Date, dict[str, Any]] = defaultdict(
+            lambda: {"waypoints": [], "tracks": [], "routes": []}
+        )
+
         self.__init()
 
     def __init(self) -> None:
-        logger.debug(f"Creating GPX for date {self.__date}")
+        logger.debug(
+            "Creating GPX creator - dates will be discovered during processing..."
+        )
+
         with ThisMayTakeAWhile(logger, "Parsing GPX sources"):
             for source in self.__sources:
                 self.__load_source(source)
@@ -50,42 +53,94 @@ class GpxCreator:
             self.__compute_clusters()
         self.__add_journal_markers()
 
+        logger.debug(
+            f"Processed GPX data for dates: {sorted(self.get_available_dates())}"
+        )
+
     def __load_source(self, source: str | PosixPath) -> None:
         logger.debug(f"Loading GPX source: {source}")
         with open(source, encoding="utf-8") as f:
             gpx = gpxpy.parse(f)
+
+        # Process waypoints
         for mwpt in gpx.waypoints:
-            if mwpt.time is not None and mwpt.time.date() == self.__date:
-                self.__gpx_out.waypoints.append(mwpt)
+            if mwpt.time is not None:
+                pt_date = Date.from_py_date(mwpt.time.date())
+                # defaultdict will automatically create the entry if it doesn't exist
+                self.__gpx_data_by_date[pt_date]["waypoints"].append(mwpt)
+
+        # Process tracks
         for trk in gpx.tracks:
-            new_trk = gpxpy.gpx.GPXTrack(name=trk.name, description=trk.description)
+            # Group track segments by date
+            segments_by_date: dict[Date, list[gpxpy.gpx.GPXTrackSegment]] = {}
+
             for seg in trk.segments:
-                new_seg = gpxpy.gpx.GPXTrackSegment()
+                track_points_by_date: dict[Date, list[gpxpy.gpx.GPXTrackPoint]] = {}
+
                 for pt in seg.points:
-                    if pt.time is not None and pt.time.date() == self.__date:
-                        new_seg.points.append(pt)
+                    if pt.time is not None:
+                        pt_date = Date.from_py_date(pt.time.date())
+                        # defaultdict will automatically create the entry if it doesn't exist
+                        if pt_date not in track_points_by_date:
+                            track_points_by_date[pt_date] = []
+                        track_points_by_date[pt_date].append(pt)
+
                         # Store coordinates as (lon, lat) for consistent interface format
                         # Converting from GPX format (lat, lon) to interface format (lon, lat)
-                        if isinstance(self.__coords, list):
-                            self.__coords.append([pt.longitude, pt.latitude])
-                if len(new_seg.points) > 0:
-                    new_trk.segments.append(new_seg)
-            if len(new_trk.segments) > 0:
-                self.__gpx_out.tracks.append(new_trk)
+                        self.__coords_by_date[pt_date].append(
+                            [pt.longitude, pt.latitude]
+                        )
+
+                # Create segments for each date
+                for pt_date, points in track_points_by_date.items():
+                    new_seg = gpxpy.gpx.GPXTrackSegment()
+                    for point in points:
+                        new_seg.points.append(point)
+
+                    if pt_date not in segments_by_date:
+                        segments_by_date[pt_date] = []
+                    segments_by_date[pt_date].append(new_seg)
+
+            # Create tracks for each date
+            for pt_date, segments in segments_by_date.items():
+                new_trk = gpxpy.gpx.GPXTrack(name=trk.name, description=trk.description)
+                for segment in segments:
+                    new_trk.segments.append(segment)
+                self.__gpx_data_by_date[pt_date]["tracks"].append(new_trk)
+
+        # Process routes
         for rte in gpx.routes:
-            new_rte = gpxpy.gpx.GPXRoute(name=rte.name, description=rte.description)
+            route_points_by_date: dict[Date, list[gpxpy.gpx.GPXRoutePoint]] = {}
+
             for rte_pt in rte.points:
-                if rte_pt.time is not None and rte_pt.time.date() == self.__date:
-                    new_rte.points.append(rte_pt)
-            if len(new_rte.points) > 0:
-                self.__gpx_out.routes.append(new_rte)
+                if rte_pt.time is not None:
+                    pt_date = Date.from_py_date(rte_pt.time.date())
+                    # defaultdict will automatically create the entry if it doesn't exist
+                    if pt_date not in route_points_by_date:
+                        route_points_by_date[pt_date] = []
+                    route_points_by_date[pt_date].append(rte_pt)
+
+            # Create routes for each date
+            for pt_date, points in route_points_by_date.items():  # type: ignore
+                new_rte = gpxpy.gpx.GPXRoute(name=rte.name, description=rte.description)
+                for point in points:
+                    new_rte.points.append(point)  # type: ignore
+                self.__gpx_data_by_date[pt_date]["routes"].append(new_rte)
 
     def __compute_clusters(self) -> None:
-        logger.debug("Computing geospatial clusters")
-        if len(self.__coords) < 10:
+        logger.debug("Computing geospatial clusters for all dates")
+
+        # Process clusters for each date that has coordinates
+        for date in self.__coords_by_date.keys():
+            self.__compute_clusters_for_date(date)
+
+    def __compute_clusters_for_date(self, date: Date) -> None:
+        logger.debug(f"Computing geospatial clusters for date {date}")
+        coords = self.__coords_by_date[date]
+        if len(coords) < 10:
             return
 
-        self.__coords = np.array(self.__coords)
+        coords_array = np.array(coords)
 
         # Fit HDBSCAN
         eps = 10  # meters
@@ -97,14 +152,19 @@ class GpxCreator:
         )
         with warnings.catch_warnings():
             warnings.simplefilter(action="ignore", category=FutureWarning)
-            clusterer.fit(np.radians(self.__coords))
+            clusterer.fit(np.radians(coords_array))
 
         labels = clusterer.labels_
         for label in set(labels):
             if label == -1:
                 continue
-            cluster_coords = self.__coords[labels == label]
-            cluster = GeoCluster(cluster_coords)
+            cluster_coords = coords_array[labels == label]
+
+            # Convert to list of tuples for GeoCluster
+            cluster_coords_list = [
+                (float(coord[0]), float(coord[1])) for coord in cluster_coords
+            ]
+            cluster = GeoCluster(cluster_coords_list)
 
             if cluster.radius > 1200:
                 # Ignore overly large clusters
@@ -119,7 +179,8 @@ class GpxCreator:
                 description=f"Cluster of {len(cluster_coords)} points and radius {cluster.radius:.1f} m",
                 symbol="cluster-mass",
             )
-            self.__gpx_out.waypoints.append(mwpt)
+            self.__gpx_data_by_date[date]["waypoints"].append(mwpt)
+
             # cluster.midpoint returns (lon, lat) format, convert for GPX which expects (lat, lon)
             clon, clat = cluster.midpoint
             cwpt = gpxpy.gpx.GPXWaypoint(
@@ -130,11 +191,11 @@ class GpxCreator:
                 symbol="cluster-center",
                 position_dilution=cluster.radius,
             )
-            self.__gpx_out.waypoints.append(cwpt)
+            self.__gpx_data_by_date[date]["waypoints"].append(cwpt)
 
             # Add a POI for each cluster center
             logger.info(
-                f"Searching POIs near cluster {label} at {clat},{clon}",
+                f"Searching POIs near cluster {label} at {clat},{clon} for date {date}",
                 extra={"icon": "📍"},
             )
 
@@ -173,13 +234,20 @@ class GpxCreator:
                         description=f"{poi.description} ({poi.rank})",
                         symbol="cluster-poi",
                     )
-                    self.__gpx_out.waypoints.append(pwpt)
+                    self.__gpx_data_by_date[date]["waypoints"].append(pwpt)
             del index
 
     def __add_journal_markers(self) -> None:
-        logger.debug("Adding journal markers")
+        logger.debug("Adding journal markers for all dates")
+
+        # Add journal markers for geotagged journal dates
+        for date in self.__db.get_geotagged_journal_dates():
+            self.__add_journal_markers_for_date(date)
+
+    def __add_journal_markers_for_date(self, date: Date) -> None:
+        logger.debug(f"Adding journal markers for date {date}")
         for asset in self.__db.get_assets_by_date(
-            self.__date_w,  # FIXME: Inconsistent types
+            date,
             ("markdown", "audio"),
         ):
             geo_asset = self.__db.get_geotagged_asset_by_path(asset.path)
@@ -208,7 +276,32 @@ class GpxCreator:
                 comment=comment,
                 symbol=f"{asset.type}-journal-entry",
             )
-            self.__gpx_out.waypoints.append(wpt)
+            self.__gpx_data_by_date[date]["waypoints"].append(wpt)
 
-    def to_xml(self) -> str:
-        return self.__gpx_out.to_xml()
+    def to_xml(self, date: Date) -> str:
+        """Generate GPX XML for a specific date."""
+        if date not in self.__gpx_data_by_date:
+            raise ValueError(
+                f"Date {date} was not processed by this GpxCreator instance"
+            )
+
+        # Create a new GPX object for this date
+        gpx_out = gpxpy.gpx.GPX()
+
+        # Add waypoints for this date
+        for waypoint in self.__gpx_data_by_date[date]["waypoints"]:
+            gpx_out.waypoints.append(waypoint)
+
+        # Add tracks for this date
+        for track in self.__gpx_data_by_date[date]["tracks"]:
+            gpx_out.tracks.append(track)
+
+        # Add routes for this date
+        for route in self.__gpx_data_by_date[date]["routes"]:
+            gpx_out.routes.append(route)
+
+        return gpx_out.to_xml()
+
+    def get_available_dates(self) -> set[Date]:
+        """Return all dates that are available in this GpxCreator instance."""
+        return set(self.__gpx_data_by_date.keys())

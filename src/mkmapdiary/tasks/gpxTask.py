@@ -34,7 +34,7 @@ class GPXTask(HttpRequest):
         return []
 
     def __get_contained_dates(self, source: PosixPath) -> set[Date]:
-        # Collect all dates in the gpx file
+        """Quick scan to get dates from a GPX file for task definition purposes."""
         dates: set[Date] = set()
         with open(source, encoding="utf-8") as f:
             gpx = gpxpy.parse(f)
@@ -50,7 +50,6 @@ class GPXTask(HttpRequest):
             for rte_pt in rte.points:
                 if rte_pt.time is not None:
                     dates.add(Date.from_py_date(rte_pt.time.date()))
-
         return dates
 
     def __generate_destination_filename(self, date: Date) -> Path:
@@ -58,22 +57,6 @@ class GPXTask(HttpRequest):
             ".gpx",
         )
         return filename
-
-    def __gpx2gpx(self, date: Date, dst: Path, gpx_source: bool) -> None:
-        if gpx_source:
-            sources = self.__sources
-        else:
-            sources = []
-
-        logger.debug("Fetching Geofabrik region data...")
-        index_data = self.httpRequest("https://download.geofabrik.de/index-v1.json")
-        assert isinstance(index_data, dict), "Invalid index data received"
-
-        gc = GpxCreator(index_data, date, sources, self.db, self.dirs.region_cache_dir)
-        gpx_out = gc.to_xml()
-
-        with open(dst, "w", encoding="utf-8") as f:
-            f.write(gpx_out)
 
     def task_pre_gpx(self) -> dict[str, Any]:
         # Ensure that the assets and files directories exist
@@ -89,43 +72,67 @@ class GPXTask(HttpRequest):
 
     @create_after("pre_gpx", target_regex=r".*\.gpx")
     def task_gpx2gpx(self) -> Iterator[dict[str, Any]]:
-        # Collect all dates in all source files
-        dates: set[whenever.Date] = set()
-        for source in self.__sources:
-            if not source.exists():
-                raise FileNotFoundError(f"Source file not found: {source}")
-            dates.update(self.__get_contained_dates(source))
+        def _generate_all_gpx_files() -> None:
+            """Generate all GPX files in one batch operation."""
+            logger.debug("Generating all GPX files...")
 
-        for date in dates:
-            dst = self.__generate_destination_filename(date)
+            # Create GpxCreator with sources
+            logger.debug("Fetching Geofabrik region data...")
+            index_data = self.httpRequest("https://download.geofabrik.de/index-v1.json")
+            assert isinstance(index_data, dict), "Invalid index data received"
 
-            asset = AssetRecord(
-                path=dst,
-                type="gpx",
-                display_date=date,
+            # Create GpxCreator - it will automatically discover all dates
+            gc = GpxCreator(
+                index_data, self.__sources, self.db, self.dirs.region_cache_dir
             )
 
-            self.db.add_asset(asset)
+            # Generate GPX files for all discovered dates
+            all_dates = gc.get_available_dates()
+            logger.debug(f"Generating GPX files for dates: {sorted(all_dates)}")
 
-            yield {
-                "name": date.format_iso(),
-                "actions": [(self.__gpx2gpx, [date, dst, True])],
-                "file_dep": [str(src) for src in self.__sources],
-                "task_dep": ["geo_correlation", "qstarz2gpx"],
-                "targets": [str(dst)],
-                "clean": True,
-            }
+            for date in all_dates:
+                dst = self.__generate_destination_filename(date)
 
-        journal_dates = set(self.db.get_geotagged_journal_dates()) - dates
-        for date in journal_dates:
+                # Create asset record
+                asset = AssetRecord(
+                    path=dst,
+                    type="gpx",
+                    display_date=date,
+                )
+                self.db.add_asset(asset)
+
+                # Generate and write GPX content
+                gpx_out = gc.to_xml(date)
+                with open(dst, "w", encoding="utf-8") as f:
+                    f.write(gpx_out)
+
+                logger.debug(f"Generated GPX file: {dst}")
+
+        # Collect all target files by pre-scanning sources
+        targets = []
+
+        # Get dates from sources
+        source_dates: set[Date] = set()
+        for source in self.__sources:
+            if source.exists():
+                source_dates.update(self.__get_contained_dates(source))
+
+        # Add geotagged journal dates
+        all_dates = source_dates | set(self.db.get_geotagged_journal_dates())
+
+        # Create target file paths
+        for date in all_dates:
             dst = self.__generate_destination_filename(date)
-            yield {
-                "name": date.format_iso(),
-                "actions": [(self.__gpx2gpx, [date, dst, False])],
-                "task_dep": ["geo_correlation"],
-                "targets": [str(dst)],
-                "clean": True,
-            }
+            targets.append(str(dst))
+
+        yield {
+            "name": "generate_all_gpx",
+            "actions": [_generate_all_gpx_files],
+            "file_dep": [str(src) for src in self.__sources],
+            "task_dep": ["geo_correlation", "qstarz2gpx"],
+            "targets": targets,
+            "clean": True,
+        }
 
     @create_after("end_gpx")
     def task_get_gpx_deps(self) -> dict[str, Any]:
