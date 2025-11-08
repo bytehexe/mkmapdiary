@@ -27,6 +27,7 @@ class ImageTask(BaseTask, ExifReader):
             timestamp_utc=exif_data.create_date,
             latitude=exif_data.latitude,
             longitude=exif_data.longitude,
+            orientation=exif_data.orientation,
         )
 
         yield asset
@@ -42,9 +43,12 @@ class ImageTask(BaseTask, ExifReader):
         """Convert an image to a different format."""
 
         def _convert(src: PosixPath, dst: PosixPath) -> None:
+            asset = self.db.get_asset_by_path(dst)
+            assert asset is not None
+            orientation = asset.orientation if asset.orientation is not None else 1
+
             with Image.open(src) as img:
                 # apply image orientation if needed
-                orientation = self.read_exif(src).orientation
                 if orientation == 3:
                     img = img.rotate(180, expand=True)
                 elif orientation == 6:
