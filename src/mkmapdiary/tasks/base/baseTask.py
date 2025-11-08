@@ -64,19 +64,13 @@ class BaseTask(ABC, metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def calibration(self) -> Calibration:
-        """Property to access the current calibration."""
-
-    @property
-    @abstractmethod
     def cache(self) -> Mapping[tuple[str, tuple[Any] | list[Any]], Any]:
         """Property to access the cache."""
 
     def calibrate(
-        self, dt: whenever.PlainDateTime | datetime.datetime
+        self, dt: whenever.PlainDateTime | datetime.datetime, calibration: Calibration
     ) -> whenever.Instant:
         """Calibrate a PlainDateTime to an Instant using the current calibration."""
-        calibration = self.calibration
         return self._calibrate(dt, calibration)
 
     @staticmethod
@@ -91,7 +85,9 @@ class BaseTask(ABC, metaclass=ABCMeta):
             .subtract(seconds=calibration.offset)
         )
 
-    def extract_meta_datetime(self, source: PosixPath) -> whenever.Instant | None:
+    def extract_meta_datetime(
+        self, source: PosixPath, calibration: Calibration
+    ) -> whenever.Instant | None:
         """Extract metadata from the file's modification time."""
 
         # If the file does not exist, return None
@@ -106,7 +102,6 @@ class BaseTask(ABC, metaclass=ABCMeta):
             py_datetime = dateutil.parser.parse(
                 f"<{timestr}>", fuzzy=True, ignoretz=True
             )
-            calibration = self.calibration
             return (
                 whenever.PlainDateTime.from_py_datetime(py_datetime)
                 .assume_tz(calibration.timezone)
@@ -121,9 +116,9 @@ class BaseTask(ABC, metaclass=ABCMeta):
         py_datetime = datetime.datetime.fromtimestamp(stat.st_mtime)
         return (
             whenever.PlainDateTime.from_py_datetime(py_datetime)
-            .assume_tz(self.calibration.timezone)
+            .assume_tz(calibration.timezone)
             .to_instant()
-            .add(seconds=self.calibration.offset)
+            .add(seconds=calibration.offset)
         )
 
     def template(self, template_name: str, **params: Any) -> str:

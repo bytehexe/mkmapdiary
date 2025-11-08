@@ -152,7 +152,7 @@ class TaskList(*tasks):  # type: ignore
                 continue
 
         if handler is not None:
-            results = handler(source)
+            results = handler(source, calibration=self.calibration)
             if results is not None:
                 return results
             else:
@@ -165,7 +165,7 @@ class TaskList(*tasks):  # type: ignore
             pass
 
         if handler is not None:
-            results = handler(source)
+            results = handler(source, calibration=self.calibration)
             if results is not None:
                 return results
             else:
@@ -184,7 +184,7 @@ class TaskList(*tasks):  # type: ignore
             else:
                 self.add_assets(iter(results))
 
-    def handle_directory(self, source: Path) -> None:
+    def handle_directory(self, source: Path, calibration: Calibration) -> None:
         """Handle a directory by processing its contents."""
 
         calibration_file = source / "calibration.yaml"
@@ -230,7 +230,7 @@ class TaskList(*tasks):  # type: ignore
         """Pop the last calibration from the stack."""
         self.__calibration.pop()
 
-    def handle_symlink(self, source: Path) -> None:
+    def handle_symlink(self, source: Path, calibration: Calibration) -> None:
         """Handle a symlink by resolving its target."""
         target = source.resolve()
         self.handle(target)

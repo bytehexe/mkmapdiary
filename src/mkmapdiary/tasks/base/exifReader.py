@@ -7,6 +7,8 @@ from pathlib import PosixPath
 import exiftool
 import whenever
 
+from mkmapdiary.lib.calibration import Calibration
+
 logger = logging.getLogger(__name__)
 
 
@@ -20,16 +22,18 @@ class ExifData:
 
 class ExifReader(ABC):
     @abstractmethod
-    def extract_meta_datetime(self, source: PosixPath) -> whenever.Instant | None:
+    def extract_meta_datetime(
+        self, source: PosixPath, calibration: Calibration
+    ) -> whenever.Instant | None:
         raise NotImplementedError
 
     @abstractmethod
     def calibrate(
-        self, dt: whenever.PlainDateTime | datetime.datetime
+        self, dt: whenever.PlainDateTime | datetime.datetime, calibration: Calibration
     ) -> whenever.Instant:
         pass
 
-    def read_exif(self, source: PosixPath) -> ExifData:
+    def read_exif(self, source: PosixPath, calibration: Calibration) -> ExifData:
         exif_data: ExifData = ExifData()
         exif_data_dict = {}
 
@@ -38,12 +42,12 @@ class ExifReader(ABC):
             try:
                 exif_data_dict = et.get_metadata([source])[0]
             except exiftool.exceptions.ExifToolExecuteError as e:
-                exif_data.create_date = self.extract_meta_datetime(source)
+                exif_data.create_date = self.extract_meta_datetime(source, calibration)
                 logger.debug(f"Failed to read EXIF data from {source} ({e})")
                 return exif_data
 
         if not exif_data_dict:
-            exif_data.create_date = self.extract_meta_datetime(source)
+            exif_data.create_date = self.extract_meta_datetime(source, calibration)
             logger.debug(f"Failed to read EXIF data from {source} (no data)")
             return exif_data
 
@@ -54,9 +58,9 @@ class ExifReader(ABC):
                 "%Y:%m:%d %H:%M:%S.%f",
             )
             logger.debug(f"EXIF CreateDate for {source}: {create_date} {py_datetime}")
-            exif_data.create_date = self.calibrate(py_datetime)
+            exif_data.create_date = self.calibrate(py_datetime, calibration)
         except KeyError as e:
-            exif_data.create_date = self.extract_meta_datetime(source)
+            exif_data.create_date = self.extract_meta_datetime(source, calibration)
             logger.debug(f"Failed to read EXIF CreateDate from {source} ({e})")
 
         try:

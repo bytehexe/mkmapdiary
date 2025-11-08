@@ -8,6 +8,7 @@ from typing import Any
 from pydub import AudioSegment
 
 from mkmapdiary.lib.asset import AssetRecord
+from mkmapdiary.lib.calibration import Calibration
 from mkmapdiary.util.log import ThisMayTakeAWhile
 
 from .base.baseTask import BaseTask
@@ -22,11 +23,13 @@ class AudioTask(BaseTask):
         super().__init__()
         self.__sources: list[PosixPath] = []
 
-    def handle_audio(self, source: PosixPath) -> Iterator[AssetRecord]:
+    def handle_audio(
+        self, source: PosixPath, calibration: Calibration
+    ) -> Iterator[AssetRecord]:
         # Create task to convert image to target format
         self.__sources.append(source)
 
-        timestamp = self.extract_meta_datetime(source)
+        timestamp = self.extract_meta_datetime(source, calibration)
 
         asset = AssetRecord(
             path=self.__generate_destination_filename(source, ".mp3"),

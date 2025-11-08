@@ -7,6 +7,7 @@ import imageio.v2 as imageio
 import rawpy
 
 from mkmapdiary.lib.asset import AssetRecord
+from mkmapdiary.lib.calibration import Calibration
 
 from .base.exifReader import ExifReader
 from .imageTask import BaseTask
@@ -18,22 +19,22 @@ class Cr2Task(BaseTask, ExifReader):
         self.__sources: list[PosixPath] = []
 
     @abstractmethod
-    def handle_image(self, source: PosixPath) -> Generator:
+    def handle_image(self, source: PosixPath, calibration: Calibration) -> Generator:
         raise NotImplementedError
 
     def __generate_intermediate_filename(self, source: PosixPath) -> PosixPath:
         filename = PosixPath(self.dirs.files_dir / source.stem).with_suffix(".jpeg")
         return self.make_unique_filename(source, filename)
 
-    def handle_ext_cr2(self, source: PosixPath) -> Generator:
+    def handle_ext_cr2(self, source: PosixPath, calibration: Calibration) -> Generator:
         self.__sources.append(source)
         intermediate_file = self.__generate_intermediate_filename(source)
-        assets = list(self.handle_image(intermediate_file))
+        assets = list(self.handle_image(intermediate_file, calibration))
 
         assert len(assets) == 1
         asset = assets[0]
 
-        exif = self.read_exif(source)
+        exif = self.read_exif(source, calibration)
 
         assert isinstance(asset, AssetRecord)
         if exif.create_date is not None:

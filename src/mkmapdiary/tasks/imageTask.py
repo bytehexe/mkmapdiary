@@ -5,6 +5,7 @@ from typing import Any
 from PIL import Image
 
 from mkmapdiary.lib.asset import AssetRecord
+from mkmapdiary.lib.calibration import Calibration
 
 from .base.baseTask import BaseTask
 from .base.exifReader import ExifReader
@@ -15,11 +16,13 @@ class ImageTask(BaseTask, ExifReader):
         super().__init__()
         self.__sources: list[PosixPath] = []
 
-    def handle_image(self, source: PosixPath) -> Iterator[AssetRecord]:
+    def handle_image(
+        self, source: PosixPath, calibration: Calibration
+    ) -> Iterator[AssetRecord]:
         # Create task to convert image to target format
         self.__sources.append(source)
 
-        exif_data = self.read_exif(source)
+        exif_data = self.read_exif(source, calibration)
 
         asset = AssetRecord(
             path=self.__generate_destination_filename(source),

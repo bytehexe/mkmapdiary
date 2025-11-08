@@ -14,6 +14,7 @@ from whenever import Date
 
 from mkmapdiary.gpxCreator import GpxCreator
 from mkmapdiary.lib.asset import AssetRecord
+from mkmapdiary.lib.calibration import Calibration
 from mkmapdiary.tasks.base.httpRequest import HttpRequest
 
 logger = logging.getLogger(__name__)
@@ -24,7 +25,7 @@ class GPXTask(HttpRequest):
         super().__init__()
         self.__sources: list[PosixPath] = []
 
-    def handle_gpx(self, source: PosixPath) -> list[Any]:
+    def handle_gpx(self, source: PosixPath, calibration: Calibration) -> list[Any]:
         self.__sources.append(source)
 
         # Do not yield any assets yet; at this point it

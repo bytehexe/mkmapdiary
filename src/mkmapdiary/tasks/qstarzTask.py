@@ -3,33 +3,34 @@ from collections.abc import Iterator
 from pathlib import PosixPath
 from typing import Any
 
+from mkmapdiary.lib.calibration import Calibration
 from mkmapdiary.tasks.base.baseTask import BaseTask
 
 
 class QstarzTask(BaseTask):
     @abstractmethod
-    def handle_gpx(self, source: PosixPath) -> list[Any]:
+    def handle_gpx(self, source: PosixPath, calibration: Calibration) -> list[Any]:
         pass
 
     def __init__(self) -> None:
         super().__init__()
         self.__sources: list[PosixPath] = []
 
-    def handle_ext_bin(self, source: PosixPath) -> list[Any]:
-        return self.__handle(source)
+    def handle_ext_bin(self, source: PosixPath, calibration: Calibration) -> list[Any]:
+        return self.__handle(source, calibration)
 
-    def handle_ext_poi(self, source: PosixPath) -> list[Any]:
-        return self.__handle(source)
+    def handle_ext_poi(self, source: PosixPath, calibration: Calibration) -> list[Any]:
+        return self.__handle(source, calibration)
 
-    def handle_ext_dat(self, source: PosixPath) -> list[Any]:
+    def handle_ext_dat(self, source: PosixPath, calibration: Calibration) -> list[Any]:
         # Ignore .dat files, as they are not directly supported by gpsbabel
         return []
 
-    def __handle(self, source: PosixPath) -> list[Any]:
+    def __handle(self, source: PosixPath, calibration: Calibration) -> list[Any]:
         self.__sources.append(source)
         intermediate_file = self._generate_destination_filename(source)
 
-        assets = list(self.handle_gpx(intermediate_file))
+        assets = list(self.handle_gpx(intermediate_file, calibration))
         return assets
 
     def _generate_destination_filename(self, source: PosixPath) -> PosixPath:

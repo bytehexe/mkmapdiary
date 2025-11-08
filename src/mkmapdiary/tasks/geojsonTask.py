@@ -13,6 +13,8 @@ import gpxpy.gpx
 import yaml
 from jsonschema import validate
 
+from mkmapdiary.lib.calibration import Calibration
+
 from .base.geoLookup import GeoLookup
 from .gpxTask import GPXTask
 
@@ -24,17 +26,21 @@ class GeojsonTask(GeoLookup, GPXTask):
         super().__init__()
         self.__sources: list[PosixPath] = []
 
-    def handle_ext_geo_json(self, source: PosixPath) -> list[Any]:
-        return self.__handle(source)
+    def handle_ext_geo_json(
+        self, source: PosixPath, calibration: Calibration
+    ) -> list[Any]:
+        return self.__handle(source, calibration)
 
-    def handle_ext_geo_yaml(self, source: pathlib.PosixPath) -> list[Any]:
-        return self.__handle(source)
+    def handle_ext_geo_yaml(
+        self, source: pathlib.PosixPath, calibration: Calibration
+    ) -> list[Any]:
+        return self.__handle(source, calibration)
 
-    def __handle(self, source: PosixPath) -> list[Any]:
+    def __handle(self, source: PosixPath, calibration: Calibration) -> list[Any]:
         self.__sources.append(source)
         intermediate_file = self.__generate_destination_filename(source)
 
-        assets = list(self.handle_gpx(intermediate_file))
+        assets = list(self.handle_gpx(intermediate_file, calibration))
         return assets
 
     def __generate_destination_filename(self, source: PosixPath) -> PosixPath:

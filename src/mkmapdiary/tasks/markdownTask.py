@@ -3,6 +3,7 @@ from pathlib import PosixPath
 from typing import Any
 
 from mkmapdiary.lib.asset import AssetRecord
+from mkmapdiary.lib.calibration import Calibration
 
 from .base.baseTask import BaseTask
 
@@ -12,14 +13,16 @@ class MarkdownTask(BaseTask):
         super().__init__()
         self.__sources: list[PosixPath] = []
 
-    def handle_markdown(self, source: PosixPath) -> Iterator[AssetRecord]:
+    def handle_markdown(
+        self, source: PosixPath, calibration: Calibration
+    ) -> Iterator[AssetRecord]:
         # Create task to convert image to target format
         self.__sources.append(source)
 
         yield AssetRecord(
             path=self.__generate_destination_filename(source),
             type="markdown",
-            timestamp_utc=self.extract_meta_datetime(source),
+            timestamp_utc=self.extract_meta_datetime(source, calibration),
         )
 
     def __generate_destination_filename(self, source: PosixPath) -> PosixPath:
