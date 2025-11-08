@@ -85,7 +85,7 @@ class AudioTask(BaseTask):
                 result = self._model.transcribe(str(src))
         return result
 
-    def task_transcribe_audio(self) -> Iterator[dict[str, Any]]:
+    def task_transcribe_audio(self) -> dict[str, Any]:
         """Transcribe audio to text."""
 
         def _transcribe(src: PosixPath, dst: PosixPath) -> None:
@@ -99,15 +99,13 @@ class AudioTask(BaseTask):
             output = []
             output.append("<div class='transcript'>")
 
-            if self.config["features"]["transcription"]["user_cache"]:
-                result = self.with_cache(
-                    "whisper",
-                    self.__transcribe_audio,
-                    src,
-                    cache_args=(self.__file_md5(src),),
-                )
-            else:
-                result = self.__transcribe_audio(src)
+            result = self.with_cache(
+                "whisper",
+                self.__transcribe_audio,
+                src,
+                cache_args=(self.__file_md5(src),),
+                bypass_cache=not self.config["debug"]["enable_user_cache"],
+            )
 
             audio = AudioSegment.from_file(src)
             text = []
@@ -137,12 +135,27 @@ class AudioTask(BaseTask):
                 f.write(f"### {audio_title}: {title}\n\n")
                 f.write("\n".join(output))
 
+        def _transcribe_all() -> None:
+            for src in self.__sources:
+                dst = self.__generate_destination_filename(src, ".mp3.md")
+                _transcribe(src, dst)
+
+        # Collect all file dependencies, task dependencies, and targets
+        file_deps = list(self.__sources)
+        task_deps = []
+        targets = []
+
         for src in self.__sources:
             dst = self.__generate_destination_filename(src, ".mp3.md")
-            yield dict(
-                name=dst,
-                actions=[(_transcribe, (src, dst))],
-                file_dep=[src],
-                task_dep=[f"create_directory:{dst.parent}"],
-                targets=[dst],
-            )
+            targets.append(dst)
+            task_deps.append(f"create_directory:{dst.parent}")
+
+        # Remove duplicate task dependencies
+        task_deps = list(set(task_deps))
+
+        return dict(
+            actions=[_transcribe_all],
+            file_dep=file_deps,
+            task_dep=task_deps,
+            targets=targets,
+        )

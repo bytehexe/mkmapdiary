@@ -7,7 +7,6 @@ features:
   # Feature configuration defaults
   transcription:
     enabled: !auto transcription.enabled
-    user_cache: false
   llms:
     enabled: true
     text_model: "llama3:8b"
@@ -26,6 +25,8 @@ site:
   locale: !auto site.locale
   timezone: !auto site.timezone
 
+debug:
+  enable_user_cache: false
 
 strings:
   # Override translation strings here by providing custom values
