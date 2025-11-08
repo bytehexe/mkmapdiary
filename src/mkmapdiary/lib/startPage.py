@@ -34,13 +34,13 @@ class StartPage:
         # Calculate mode
         if not geo_assets:
             self.with_map = False
-            self.target_gallery_count = 35
+            self.target_gallery_count = 24
             self.target_map_count = 0
             self.gallery_rows = 3
         else:
             self.with_map = True
-            self.target_gallery_count = 15
-            self.target_map_count = 5
+            self.target_gallery_count = 8
+            self.target_map_count = 10
             self.gallery_rows = 1
 
         # Ensure we don't request more map assets than available
@@ -51,7 +51,7 @@ class StartPage:
             self.target_gallery_count, len(valid_assets) - self.target_map_count
         )
 
-        self.geo_portion = len(geo_assets) / len(assets) if assets else 0
+        self.geo_portion = len(geo_assets) / len(valid_assets) if valid_assets else 0
         self.geo_bucket_size = max(
             math.ceil(self.total_target_count * self.geo_portion), self.target_map_count
         )
@@ -64,6 +64,9 @@ class StartPage:
             non_geo_assets, self.non_geo_bucket_size, with_geo=False
         )
 
+        logger.debug(f"Valid assets count: {len(valid_assets)}")
+        logger.debug(f"Geo assets count: {len(geo_assets)}")
+        logger.debug(f"Non-geo assets count: {len(non_geo_assets)}")
         logger.debug(f"Geo portion: {self.geo_portion}")
         logger.debug(f"Total target count: {self.total_target_count}")
         logger.debug(f"Target gallery count: {self.target_gallery_count}")

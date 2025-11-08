@@ -2,7 +2,7 @@ import logging
 
 import imagehash
 import numpy as np
-from sklearn.cluster import DBSCAN
+from sklearn.cluster import AgglomerativeClustering
 
 from mkmapdiary.lib.asset import AssetRecord
 from mkmapdiary.postprocessors.base.multiAssetPostprocessor import (
@@ -36,8 +36,13 @@ class DuplicateDetector(MultiAssetPostprocessor):
         )
 
         # Compute cluster
-        threshold = 20
-        clustering = DBSCAN(eps=threshold, min_samples=1, metric="precomputed")
+        threshold = 5
+        clustering = AgglomerativeClustering(
+            n_clusters=None,
+            distance_threshold=threshold,
+            metric="precomputed",
+            linkage="complete",  # separate clusters more strictly
+        )
         labels = clustering.fit_predict(distance_matrix)
 
         # Mark duplicates
