@@ -21,6 +21,7 @@
 '    - #lightgreen: Data conversion (file format transformations)
 '    - #yellow: GPX preprocessing (preparation steps)
 '    - #orange: GPX processing (main GPS data processing)
+'    - #mediumpurple: Postprocessing (AI-based analysis and enhancement)
 '    - #pink: Audio processing (transcription, conversion)
 '    - #lightyellow: Asset collection (pseudo-nodes for grouping)
 '    - #lightcyan: Content generation (page building)
@@ -31,6 +32,8 @@
 '    - Add source file type nodes to show the complete pipeline from input to output
 '    - Use pseudo-nodes like 'all_assets' to simplify complex many-to-many relationships
 '    - This prevents visual clutter when multiple tasks depend on the same set of outputs
+'    - Directory creation dependencies (create_directory) are omitted for diagram readability
+'      since most tasks have implicit dependencies on directory creation
 '
 ' 5. FINDING DEPENDENCIES:
 '    - Check task_dep arrays in task functions
@@ -55,13 +58,11 @@ rectangle "Audio Files\n(.wav, .mp3, .flac, etc.)" as audio_files #lightgray
 rectangle "Image Files\n(.jpg, .png, .tiff, etc.)" as image_files #lightgray
 rectangle "CR2 Raw Files\n(.cr2)" as cr2_files #lightgray
 rectangle "GPX Files\n(.gpx)" as gpx_files #lightgray
-rectangle "GeoJSON/GeoYAML\n(.geo.json, .geo.yaml)" as geo_files #lightgray
 rectangle "Qstarz Files\n(.bin, .poi)" as qstarz_files #lightgray
 rectangle "Text Files\n(.txt)" as text_files #lightgray
 rectangle "Markdown Files\n(.md)" as markdown_files #lightgray
 
 ' Data conversion tasks
-rectangle "geo2gpx" as geo2gpx #lightgreen
 rectangle "qstarz2gpx" as qstarz2gpx #lightgreen
 rectangle "convert_raw" as convert_raw #lightgreen
 rectangle "convert_image" as convert_image #lightgreen
@@ -73,7 +74,13 @@ rectangle "markdown2markdown" as markdown2markdown #lightgreen
 rectangle "pre_gpx" as pre_gpx #yellow
 rectangle "geo_correlation" as geo_correlation #yellow
 rectangle "gpx2gpx" as gpx2gpx #orange
+rectangle "end_gpx" as end_gpx #orange
 rectangle "get_gpx_deps" as get_gpx_deps #orange
+
+' Postprocessing tasks
+rectangle "post_processing_single" as post_processing_single #mediumpurple
+rectangle "post_processing" as post_processing #mediumpurple
+rectangle "end_postprocessing" as end_postprocessing #mediumpurple
 
 ' Content generation tasks
 rectangle "transcribe_audio" as transcribe_audio #pink
@@ -90,9 +97,10 @@ rectangle "Asset Collections" as asset_collections #lightyellow {
 
 ' Site building tasks
 rectangle "generate_mkdocs_config" as generate_mkdocs_config #lavender
-rectangle "build_static_pages" as build_static_pages #lavender
+rectangle "build_index_page" as build_index_page #lavender
 rectangle "compile_css" as compile_css #lavender
 rectangle "copy_simple_asset" as copy_simple_asset #lavender
+rectangle "pre_build_site" as pre_build_site #lavender
 rectangle "build_site" as build_site #red
 
 ' Source file to conversion task dependencies
@@ -102,13 +110,11 @@ image_files --> convert_image
 cr2_files --> convert_raw
 convert_raw --> convert_image
 gpx_files --> pre_gpx
-geo_files --> geo2gpx
 qstarz_files --> qstarz2gpx
 text_files --> text2markdown
 markdown_files --> markdown2markdown
 
 ' Dependencies for pre_gpx
-geo2gpx --> pre_gpx
 qstarz2gpx --> pre_gpx
 
 ' Dependencies for geo_correlation
@@ -117,14 +123,24 @@ gpx_files --> geo_correlation
 ' Dependencies for gpx2gpx
 pre_gpx --> gpx2gpx
 geo_correlation --> gpx2gpx
-qstarz2gpx --> gpx2gpx
 
-' Dependencies from gpx2gpx (using @create_after decorator)
-gpx2gpx ==> get_gpx_deps
-gpx2gpx ==> build_day_page
-gpx2gpx ==> build_gallery
-gpx2gpx ==> build_journal
-gpx2gpx ==> build_tags
+' Dependencies for end_gpx
+gpx2gpx --> end_gpx
+
+' Dependencies from end_gpx (using @create_after decorator)
+end_gpx ==> get_gpx_deps
+end_gpx ==> post_processing_single
+
+' Postprocessing pipeline
+post_processing_single --> post_processing
+post_processing --> end_postprocessing
+
+' Dependencies from end_postprocessing (using @create_after decorator)
+end_postprocessing ==> build_day_page
+end_postprocessing ==> build_gallery
+end_postprocessing ==> build_journal
+end_postprocessing ==> build_tags
+end_postprocessing ==> build_site
 
 ' Asset dependencies (file_dep on all assets)
 convert_image --> asset_collections
@@ -137,14 +153,11 @@ transcribe_audio --> asset_collections
 all_assets --> build_gallery
 all_assets --> build_journal
 all_assets --> build_tags
-all_assets --> build_static_pages
+all_assets --> build_index_page
 unpositioned_assets --> geo_correlation
 
-' Dependencies for build_tags
-transcribe_audio --> build_tags
-
 ' Dependencies for build_site
-build_static_pages --> build_site
+build_index_page --> build_site
 generate_mkdocs_config --> build_site
 compile_css --> build_site
 copy_simple_asset --> build_site
@@ -152,15 +165,20 @@ build_day_page --> build_site
 build_gallery --> build_site
 build_journal --> build_site
 build_tags --> build_site
+pre_build_site --> build_site
+geo_correlation --> build_site
 get_gpx_deps -.-> build_site : calc_dep
 
-' Dependencies for build_static_pages
-get_gpx_deps -.-> build_static_pages : calc_dep
+' Dependencies for build_index_page
+get_gpx_deps -.-> build_index_page : calc_dep
 
 ' Dependencies for content generation tasks
 get_gpx_deps -.-> build_gallery : calc_dep
 get_gpx_deps -.-> build_journal : calc_dep
 get_gpx_deps -.-> build_tags : calc_dep
+
+' Dependencies for pre_build_site
+geo_correlation --> pre_build_site
 
 ' Legend
 legend top left
@@ -169,6 +187,7 @@ legend top left
   |<#lightgreen>| Data conversion |
   |<#yellow>| GPX preprocessing |
   |<#orange>| GPX processing |
+  |<#mediumpurple>| Postprocessing |
   |<#pink>| Audio processing |
   |<#lightyellow>| Asset collection |
   |<#lightcyan>| Content generation |
