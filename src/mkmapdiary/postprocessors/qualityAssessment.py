@@ -21,6 +21,7 @@ class QualityAssessment(MultiAssetPostprocessor):
         return "Assessing image quality using AI."
 
     def processAllAssets(self, assets: list[AssetRecord]) -> None:
+        return  # --- IGNORE ---
         for asset in assets:
             if asset.type not in ("image"):
                 continue
@@ -33,7 +34,7 @@ class QualityAssessment(MultiAssetPostprocessor):
                 ) as tmpfile:
                     # Resize image if too large
                     with Image.open(asset.path) as img:
-                        max_size = 1024
+                        max_size = 512
                         if max(img.size) > max_size:
                             img.thumbnail((max_size, max_size))
                         img.save(tmpfile.name, format="JPEG")

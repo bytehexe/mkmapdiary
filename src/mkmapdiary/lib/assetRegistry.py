@@ -197,6 +197,16 @@ class AssetRegistry:
             )
             return sorted_assets
 
+    def __mkrow(self, headers: list[str], asset: AssetRecord) -> list[Any]:
+        row = list(dataclasses.astuple(asset))
+
+        for i, (header, value) in enumerate(zip(headers, row, strict=False)):
+            if header == "embedding" and value is not None:
+                value = "[...]"
+            row[i] = value
+
+        return row
+
     def dump(self, asset_type: str | None = None) -> tuple[list[Any], list[str]]:
         # Get all fields of AssetRecord, in order of definition, get their names from __dataclass_fields__
         headers = [field.name for field in AssetRecord.__dataclass_fields__.values()]
@@ -210,7 +220,7 @@ class AssetRegistry:
 
             rows = []
             for asset in filtered_assets:
-                rows.append(list(dataclasses.astuple(asset)))
+                rows.append(self.__mkrow(headers, asset))
 
             return rows, headers
 

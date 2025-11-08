@@ -17,11 +17,18 @@ window.addEventListener("DOMContentLoaded", () => {
 
     console.log("avgAspectRatio", avgAspectRatio, "rowHeight", rowHeight);
 
-    $("#photo_gallery p").justifiedGallery({
+    var parameters = {
         rowHeight: rowHeight,
         margins: 3,
         lastRow: 'center',
         cssAnimation: false,
         imagesAnimationDuration: 50,
-    });
+    };
+
+    if (window.is_main_page === true) {
+        parameters.maxRowsCount = window.gallery_max_rows;
+        parameters.randomize = true;
+    }
+
+    $("#photo_gallery p").justifiedGallery(parameters);
 });

@@ -52,3 +52,5 @@ class AssetRecord:
     quality: float | None = None
     metadata: AssetMetadata | None = None
     image_hash: imagehash.ImageHash | None = None
+    color_hash: imagehash.ImageHash | None = None
+    embedding: list[float] | None = None

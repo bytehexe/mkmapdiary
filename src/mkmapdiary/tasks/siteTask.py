@@ -8,6 +8,8 @@ import sass
 import yaml
 from doit import create_after
 
+from mkmapdiary.lib.startPage import StartPage
+
 from .base.httpRequest import HttpRequest
 
 logger = logging.getLogger(__name__)
@@ -91,14 +93,31 @@ class SiteTask(HttpRequest):
             uptodate=[False],
         )
 
-    def task_build_static_pages(self) -> Iterator[dict[str, Any]]:
+    @create_after("end_postprocessing")
+    def task_build_index_page(self) -> dict[str, Any]:
         def _generate_index_page() -> None:
             index_path = self.dirs.docs_dir / "index.md"
 
-            images = [
-                pathlib.PosixPath(asset.path)
-                for asset in self.db.get_assets_by_type("image")
-            ]
+            images = self.db.get_assets_by_type("image")
+
+            logger.info("Generating index page data ...")
+            page_info = StartPage(images, self.config)
+            logger.info("Generating index page ...")
+            logger.debug(f"Gallery assets: {len(page_info.gallery_assets)}")
+            logger.debug(f"Map assets: {len(page_info.map_assets)}")
+            logger.debug(f"With map: {page_info.with_map}")
+            logger.debug(f"Gallery rows: {page_info.gallery_rows}")
+
+            geo_assets = []
+            for i, geo_asset in enumerate(page_info.map_assets):
+                geo_item = dict(
+                    photo="assets/" + str(geo_asset.path).split("/")[-1],
+                    thumbnail="assets/" + str(geo_asset.path).split("/")[-1],
+                    lat=geo_asset.latitude,
+                    lng=geo_asset.longitude,
+                    index=i,
+                )
+                geo_assets.append(geo_item)
 
             with open(index_path, "w") as f:
                 f.write(
@@ -106,12 +125,15 @@ class SiteTask(HttpRequest):
                         "index.j2",
                         home_title=self.config["strings"]["home_title"],
                         gallery_title=self.config["strings"]["gallery_title"],
-                        grid_items=images,
+                        map_title=self.config["strings"]["map_title"],
+                        gallery_images=page_info.gallery_assets,
+                        map_images=geo_assets,
+                        with_map=page_info.with_map,
+                        gallery_rows=page_info.gallery_rows,
                     ),
                 )
 
-        yield dict(
-            name="index",
+        return dict(
             actions=[_generate_index_page],
             file_dep=[str(asset.path) for asset in self.db.get_all_assets()],
             calc_dep=["get_gpx_deps"],
@@ -219,7 +241,7 @@ class SiteTask(HttpRequest):
             file_dep=list(_generate_file_deps()),
             task_dep=[
                 f"create_directory:{self.dirs.dist_dir}",
-                "build_static_pages",
+                "build_index_page",
                 "generate_mkdocs_config",
                 "compile_css",
                 "build_day_page",

@@ -13,6 +13,7 @@ from mkmapdiary.postprocessors.base.singleAssetPostprocessor import (
     SingleAssetPostprocessor,
 )
 from mkmapdiary.postprocessors.duplicateDetector import DuplicateDetector
+from mkmapdiary.postprocessors.imageEmbedder import ImageEmbedder
 from mkmapdiary.postprocessors.imageHasher import ImageHasher
 from mkmapdiary.postprocessors.imageSummarizer import ImageSummarizer
 from mkmapdiary.postprocessors.journalSummarizer import JournalSummarizer
@@ -68,6 +69,7 @@ class PostprocessingTask(BaseTask):
                 JournalSummarizer,
                 ImageSummarizer,
                 QualityAssessment,
+                ImageEmbedder,
             ]
 
             for processor_class in postprocessors:

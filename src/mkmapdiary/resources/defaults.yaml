@@ -72,6 +72,7 @@ llm_prompts:
     #model: "llava-phi3:3.8b" # light model
     options:
       temperature: 0.3
+      num_predict: 128
 
   assess_image_quality:
     translation_key: assess_image_quality_prompt

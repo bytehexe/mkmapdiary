@@ -30,21 +30,8 @@ definitions:
         description: "Prompt template"
       options:
         type: object
-        properties:
-          temperature:
-            type: number
-            minimum: 0
-            maximum: 2
-            description: "Temperature parameter for LLM"
-          top_p:
-            type: number
-            minimum: 0
-            maximum: 1
-            description: "Top-p parameter for LLM"
-          seed:
-            type: integer
-            description: "Random seed for reproducible results"
-        additionalProperties: false
+        description: "Options for the LLM model"
+        additionalProperties: true
     additionalProperties: false
 
 properties:
