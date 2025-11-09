@@ -47,7 +47,7 @@ class PiqImageQualityAssessment(MultiAssetPostprocessor):
         with torch.no_grad():
             scores = clipiqa(batch)  # [B]
 
-        threshold = 0.3
+        threshold = 0.1
 
         for asset, score in zip(img_assets, scores, strict=False):
             asset.quality = score.item()
