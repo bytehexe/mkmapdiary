@@ -1,3 +1,4 @@
+import gc
 import logging
 from collections.abc import Iterator
 from typing import Any
@@ -74,15 +75,25 @@ class PostprocessingTask(BaseTask):
             ]
 
             for processor_class in postprocessors:
+                self.__gc()
                 processor = processor_class(self.ai, self.config)
                 with ThisMayTakeAWhile(logger, processor.info, icon="🛠️"):
                     processor.processAllAssets(self.db.assets)
+                    self.__gc()
 
         return {
             "actions": [__process],
             "task_dep": ["post_processing_single", "end_gpx"],
             "uptodate": [False],
         }
+
+    def __gc(self) -> None:
+        gc.collect()
+        try:
+            import torch
+        except ImportError:
+            return
+        torch.cuda.empty_cache()
 
     def task_end_postprocessing(self) -> dict[str, Any]:
         return {
