@@ -18,7 +18,9 @@ class StartPage:
         valid_assets = [
             asset
             for asset in assets
-            if not asset.duplicate and asset.timestamp_utc is not None
+            if not asset.is_duplicate
+            and not asset.is_bad
+            and asset.timestamp_utc is not None
         ]
         geo_assets = [
             asset
@@ -61,7 +63,9 @@ class StartPage:
             geo_assets, self.geo_bucket_size, with_geo=True
         )
         non_geo_bucket = self._calculate_bucket(
-            non_geo_assets, self.non_geo_bucket_size, with_geo=False
+            non_geo_assets,
+            self.non_geo_bucket_size,
+            with_geo=False,
         )
 
         logger.debug(f"Valid assets count: {len(valid_assets)}")
@@ -80,7 +84,10 @@ class StartPage:
 
         # Further reduce the geo bucket
         self.map_assets = self._calculate_bucket(
-            geo_bucket, self.target_map_count, with_geo=True, with_non_geo=False
+            geo_bucket,
+            self.target_map_count,
+            with_geo=True,
+            with_non_geo=False,
         )
 
         # Add assets from the geo bucket not selected for the map to the non-geo bucket
@@ -103,36 +110,24 @@ class StartPage:
         if len(assets) <= bucket_size:
             return assets
 
-        filtered_assets = self._filter_worst_assets(
-            assets,
-            property_name="quality",
-            min_images=self.target_map_count,
-            threshold=5,
-        )
         if with_geo:
-            geo_distance_matrix = self._calculate_geo_distance_matrix(filtered_assets)
+            geo_distance_matrix = self._calculate_geo_distance_matrix(assets)
         else:
-            geo_distance_matrix = np.zeros((len(filtered_assets), len(filtered_assets)))
+            geo_distance_matrix = np.zeros((len(assets), len(assets)))
 
         if with_non_geo:
-            color_distance_matrix = self._calculate_color_distance_matrix(
-                filtered_assets
-            )
-            time_distance_matrix = self._calculate_time_distance_matrix(filtered_assets)
+            color_distance_matrix = self._calculate_color_distance_matrix(assets)
+            time_distance_matrix = self._calculate_time_distance_matrix(assets)
         else:
-            color_distance_matrix = np.zeros(
-                (len(filtered_assets), len(filtered_assets))
-            )
-            time_distance_matrix = np.zeros(
-                (len(filtered_assets), len(filtered_assets))
-            )
+            color_distance_matrix = np.zeros((len(assets), len(assets)))
+            time_distance_matrix = np.zeros((len(assets), len(assets)))
 
         total_distance_matrix = (
             geo_distance_matrix + color_distance_matrix + time_distance_matrix
         )
 
         # Continue with clustering
-        return self._cluster_assets(bucket_size, filtered_assets, total_distance_matrix)
+        return self._cluster_assets(bucket_size, assets, total_distance_matrix)
 
     @classmethod
     def _cluster_assets(
@@ -243,23 +238,3 @@ class StartPage:
     @property
     def total_target_count(self) -> int:
         return self.target_gallery_count + self.target_map_count
-
-    def _filter_worst_assets(
-        self,
-        assets: list[AssetRecord],
-        property_name: str,
-        min_images: int,
-        threshold: int = 5,
-    ) -> list[AssetRecord]:
-        if len(assets) <= min_images:
-            return assets
-
-        def get_property_value(asset: AssetRecord) -> float:
-            return getattr(asset, property_name, 0) or 0
-
-        ok_images = [asset for asset in assets if get_property_value(asset) < threshold]
-        if len(ok_images) >= min_images:
-            return ok_images
-
-        sorted_assets = sorted(assets, key=get_property_value)
-        return sorted_assets[:min_images]

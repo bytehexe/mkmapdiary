@@ -13,11 +13,8 @@ from mkmapdiary.postprocessors.base.singleAssetPostprocessor import (
     SingleAssetPostprocessor,
 )
 from mkmapdiary.postprocessors.duplicateDetector import DuplicateDetector
-from mkmapdiary.postprocessors.imageEmbedder import ImageEmbedder
 from mkmapdiary.postprocessors.imageHasher import ImageHasher
-from mkmapdiary.postprocessors.imageSummarizer import ImageSummarizer
-from mkmapdiary.postprocessors.journalSummarizer import JournalSummarizer
-from mkmapdiary.postprocessors.qualityAssessment import QualityAssessment
+from mkmapdiary.postprocessors.imageQualityAssessment import ImageQualityAssessment
 from mkmapdiary.tasks.base.baseTask import BaseTask
 from mkmapdiary.util.log import ThisMayTakeAWhile
 
@@ -65,11 +62,11 @@ class PostprocessingTask(BaseTask):
             # in the order they are listed here.
             # In particular, AI tasks cannot be multithreaded due to thread-safety and memory constraints.
             postprocessors: list[type[MultiAssetPostprocessor]] = [
+                ImageQualityAssessment,
                 DuplicateDetector,
-                JournalSummarizer,
-                ImageSummarizer,
-                QualityAssessment,
-                ImageEmbedder,
+                # JournalSummarizer,
+                # ImageSummarizer,
+                # ImageEmbedder,
             ]
 
             for processor_class in postprocessors:

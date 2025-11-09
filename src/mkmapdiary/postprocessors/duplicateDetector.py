@@ -55,7 +55,8 @@ class DuplicateDetector(MultiAssetPostprocessor):
         # Update asset metadata
         for _label, assets in label_to_assets.items():
             if len(assets) > 1:
-                # Mark all assets in this cluster as duplicates, except the first one
-                # TODO: Improve selection of best asset
-                for asset in assets[1:]:
-                    asset.duplicate = True
+                # Mark all assets in this cluster as duplicates, except the best one
+                best_asset = max(assets, key=lambda a: a.quality or 0)
+                for asset in assets:
+                    if asset != best_asset:
+                        asset.is_duplicate = True

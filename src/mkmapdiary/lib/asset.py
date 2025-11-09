@@ -48,7 +48,8 @@ class AssetRecord:
     longitude: float | None = None
     approx: bool | None = None
     orientation: int | None = None
-    duplicate: bool = False
+    is_duplicate: bool = False
+    is_bad: bool = False
     quality: float | None = None
     metadata: AssetMetadata | None = None
     image_hash: imagehash.ImageHash | None = None
