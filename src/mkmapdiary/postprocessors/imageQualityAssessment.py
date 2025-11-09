@@ -17,12 +17,27 @@ class ImageQualityAssessment(MultiAssetPostprocessor):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
 
-        # for now, we only have simple assessment
-        from mkmapdiary.postprocessors.simpleImageQualityAssessment import (
-            SimpleImageQualityAssessment,
-        )
+        self.assessor: MultiAssetPostprocessor
 
-        self.assessor = SimpleImageQualityAssessment(self.ai, self.config)
+        if self.config["features"]["iqa"]["enabled"]:
+            logger.info("Image Quality Assessment is enabled.")
+            from mkmapdiary.postprocessors.piqImageQualityAssessment import (
+                PiqImageQualityAssessment,
+            )
+
+            self.assessor = PiqImageQualityAssessment(self.ai, self.config)
+
+        else:
+            logger.info(
+                "Image Quality Assessment is disabled. Falling back to simple assessment."
+            )
+
+            # for now, we only have simple assessment
+            from mkmapdiary.postprocessors.simpleImageQualityAssessment import (
+                SimpleImageQualityAssessment,
+            )
+
+            self.assessor = SimpleImageQualityAssessment(self.ai, self.config)
 
     def processAllAssets(self, assets: list[AssetRecord]) -> None:
         self.assessor.processAllAssets(assets)

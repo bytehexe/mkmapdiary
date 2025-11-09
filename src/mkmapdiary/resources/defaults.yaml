@@ -17,6 +17,8 @@ features:
   poi_detection:
     enabled: true
     max_age: !duration 300 days
+  iqa:
+    enabled: !auto iqa.enabled
 
 site:
   # Site configuration defaults

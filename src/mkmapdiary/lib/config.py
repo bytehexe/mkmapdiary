@@ -1,3 +1,4 @@
+import importlib.util
 import logging
 import pathlib
 import sys
@@ -29,12 +30,13 @@ def auto_constructor(loader: yaml.SafeLoader, node: yaml.ScalarNode) -> Any:
             raise ValueError("Could not auto-detect locale")
         return loc
     elif value == "transcription.enabled":
-        try:
-            import whisper  # noqa: F401
-
-            return True
-        except ImportError:
-            return False
+        return importlib.util.find_spec("whisper") is not None
+    elif value == "iqa.enabled":
+        return (
+            importlib.util.find_spec("torch") is not None
+            and importlib.util.find_spec("torchvision") is not None
+            and importlib.util.find_spec("piq") is not None
+        )
     else:
         raise ValueError(f"Unknown auto value: {value}")
 

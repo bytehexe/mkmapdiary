@@ -135,6 +135,8 @@ class StartPage:
     ) -> list[AssetRecord]:
         if len(assets) <= bucket_size:
             return assets
+        if bucket_size == 0:
+            return []
 
         clustering = sklearn.cluster.AgglomerativeClustering(
             n_clusters=bucket_size, metric="precomputed", linkage="average"

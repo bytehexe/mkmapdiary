@@ -112,27 +112,35 @@ class TestAutoConstructor:
         with pytest.raises(ValueError, match="Could not auto-detect locale"):
             auto_constructor(loader, node)
 
-    def test_auto_constructor_transcription_enabled(self) -> None:
+    @patch("mkmapdiary.lib.config.importlib.util.find_spec")
+    def test_auto_constructor_transcription_enabled(self, mock_find_spec: Mock) -> None:
         """Test auto constructor for transcription capability detection."""
+        mock_find_spec.return_value = (
+            MagicMock()
+        )  # Non-None return means module is available
+
         loader = MagicMock()
         node = MagicMock()
         loader.construct_scalar.return_value = "transcription.enabled"
 
-        # Test case where whisper is available (mocked)
-        with patch.dict("sys.modules", {"whisper": MagicMock()}):
-            result = auto_constructor(loader, node)
-            assert result is True
+        result = auto_constructor(loader, node)
+        assert result is True
+        mock_find_spec.assert_called_once_with("whisper")
 
-    def test_auto_constructor_transcription_disabled(self) -> None:
+    @patch("mkmapdiary.lib.config.importlib.util.find_spec")
+    def test_auto_constructor_transcription_disabled(
+        self, mock_find_spec: Mock
+    ) -> None:
         """Test auto constructor when transcription is not available."""
+        mock_find_spec.return_value = None  # None return means module is not available
+
         loader = MagicMock()
         node = MagicMock()
         loader.construct_scalar.return_value = "transcription.enabled"
 
-        # Test case where whisper import fails
-        with patch("builtins.__import__", side_effect=ImportError):
-            result = auto_constructor(loader, node)
-            assert result is False
+        result = auto_constructor(loader, node)
+        assert result is False
+        mock_find_spec.assert_called_once_with("whisper")
 
     def test_auto_constructor_unknown_value(self) -> None:
         """Test auto constructor with unknown auto value."""

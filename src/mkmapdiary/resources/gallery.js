@@ -20,6 +20,7 @@ window.addEventListener("DOMContentLoaded", () => {
     var parameters = {
         rowHeight: rowHeight,
         margins: 3,
+        border: 0,
         lastRow: 'center',
         cssAnimation: false,
         imagesAnimationDuration: 50,
@@ -29,5 +30,7 @@ window.addEventListener("DOMContentLoaded", () => {
         parameters.maxRowsCount = window.gallery_max_rows;
     }
 
-    $("#photo_gallery p").justifiedGallery(parameters);
+    window.theGallery = $("#photo_gallery p");
+    window.theGallery.justifiedGallery(parameters);
+    
 });
