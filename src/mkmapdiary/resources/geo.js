@@ -3,22 +3,24 @@ window.addEventListener("DOMContentLoaded", () => {
       return; // No map element found
   }
 
+  // Adjust sizes of the photo cluster icons on the main page
+  var iconSize = 60;
   if (window.is_main_page === true) {
-    // Adjust sizes of the photo cluster icons on the main page
-    var iconSize = 100;
-    L.Photo.mergeOptions({
-      icon: {
-        iconSize: [iconSize, iconSize],
-      }
-    });
-
-    L.Photo.Cluster.mergeOptions({
-      icon: {
-        iconSize: [iconSize, iconSize],
-      },
-      maxClusterRadius: iconSize * 1.5,
-    });
+    iconSize = 100;
   }
+  L.Photo.mergeOptions({
+    icon: {
+      iconSize: [iconSize, iconSize],
+    }
+  });
+
+  L.Photo.Cluster.mergeOptions({
+    icon: {
+      iconSize: [iconSize, iconSize],
+    },
+    maxClusterRadius: iconSize * 1.5,
+  });
+
 
   // Initialize map
   const map = L.map('map_box');
