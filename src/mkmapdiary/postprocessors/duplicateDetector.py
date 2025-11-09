@@ -19,6 +19,29 @@ class DuplicateDetector(MultiAssetPostprocessor):
 
     def processAllAssets(self, assets: list[AssetRecord]) -> None:
         assets = [x for x in assets if x.type == "image"]
+
+        # Group assets by display_date
+        assets_by_date: dict[str, list[AssetRecord]] = {}
+        for asset in assets:
+            # Use string representation of display_date as key, handling None case
+            date_key = str(asset.display_date) if asset.display_date else "no_date"
+            if date_key not in assets_by_date:
+                assets_by_date[date_key] = []
+            assets_by_date[date_key].append(asset)
+
+        # Process duplicate detection for each date group separately
+        for date_key, date_assets in assets_by_date.items():
+            if len(date_assets) <= 1:
+                # Skip if only one asset for this date
+                continue
+
+            logger.debug(
+                f"Processing duplicate detection for {len(date_assets)} images on {date_key}"
+            )
+            self._process_duplicates_for_date_group(date_assets)
+
+    def _process_duplicates_for_date_group(self, assets: list[AssetRecord]) -> None:
+        """Process duplicate detection for a group of assets from the same display date."""
         hashes = [asset.image_hash for asset in assets]
 
         # Compute distance matrix
@@ -53,10 +76,10 @@ class DuplicateDetector(MultiAssetPostprocessor):
             label_to_assets[label].append(assets[i])
 
         # Update asset metadata
-        for _label, assets in label_to_assets.items():
-            if len(assets) > 1:
+        for _label, cluster_assets in label_to_assets.items():
+            if len(cluster_assets) > 1:
                 # Mark all assets in this cluster as duplicates, except the best one
-                best_asset = max(assets, key=lambda a: a.quality or 0)
-                for asset in assets:
+                best_asset = max(cluster_assets, key=lambda a: a.quality or 0)
+                for asset in cluster_assets:
                     if asset != best_asset:
                         asset.is_duplicate = True
