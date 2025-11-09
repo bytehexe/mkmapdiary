@@ -16,6 +16,15 @@ plugins:
       skip_classes:
         - skip-lightbox
 
+copyright: 'Created with <a href="https://github.com/bytehexe/mkmapdiary">mkmapdiary</a>'
+
+extra:
+  social:
+    - icon: "fontawesome/brands/github"
+      link: "https://github.com/bytehexe/mkmapdiary"
+    - icon: "simple/pypi"
+      link: "https://pypi.org/project/mkmapdiary/"
+
 exclude_docs: |
   /assets/*.md
   /assets/*.txt
