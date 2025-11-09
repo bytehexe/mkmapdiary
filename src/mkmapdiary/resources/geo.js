@@ -3,6 +3,23 @@ window.addEventListener("DOMContentLoaded", () => {
       return; // No map element found
   }
 
+  if (window.is_main_page === true) {
+    // Adjust sizes of the photo cluster icons on the main page
+    var iconSize = 100;
+    L.Photo.mergeOptions({
+      icon: {
+        iconSize: [iconSize, iconSize],
+      }
+    });
+
+    L.Photo.Cluster.mergeOptions({
+      icon: {
+        iconSize: [iconSize, iconSize],
+      },
+      maxClusterRadius: iconSize * 1.5,
+    });
+  }
+
   // Initialize map
   const map = L.map('map_box');
   window.theMap = map;
@@ -40,12 +57,15 @@ window.addEventListener("DOMContentLoaded", () => {
     map.fitBounds(combinedBounds);
   }
 
-  document.getElementById("showall_link").addEventListener("click", function(event) {
-    event.preventDefault();
-    if (combinedBounds.isValid()) {
-      map.fitBounds(combinedBounds.pad(0.1));
-    }
-  });
+  var showAllLink = document.getElementById("showall_link");
+  if (showAllLink) {
+    showAllLink.addEventListener("click", function(event) {
+      event.preventDefault();
+      if (combinedBounds.isValid()) {
+        map.fitBounds(combinedBounds.pad(0.1));
+      }
+    });
+  }
 
   if (gpx_data) {
 

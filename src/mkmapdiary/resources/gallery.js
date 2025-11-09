@@ -27,7 +27,6 @@ window.addEventListener("DOMContentLoaded", () => {
 
     if (window.is_main_page === true) {
         parameters.maxRowsCount = window.gallery_max_rows;
-        parameters.randomize = true;
     }
 
     $("#photo_gallery p").justifiedGallery(parameters);

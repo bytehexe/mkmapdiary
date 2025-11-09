@@ -1,6 +1,6 @@
 # {{ home_title }}
 
-<div id="photo_gallery" markdown>
+<div id="photo_gallery" class="startpage" markdown>
 {%- for item in gallery_images -%}
 ![](assets/{{ item.path.name }}){ height="200" width="200" }
 {%- endfor -%}
@@ -14,7 +14,7 @@ is_main_page = true;
 
 {%- if with_map -%}
 
-<div id="map_box"></div>
+<div id="map_box" class="startpage"></div>
 <script>
 photo_data = {{ map_images | tojson }};
 gpx_data = null;
