@@ -13,6 +13,7 @@ from mkmapdiary.postprocessors.base.singleAssetPostprocessor import (
     SingleAssetPostprocessor,
 )
 from mkmapdiary.postprocessors.duplicateDetector import DuplicateDetector
+from mkmapdiary.postprocessors.entropyCalculator import EntropyCalculator
 from mkmapdiary.postprocessors.imageHasher import ImageHasher
 from mkmapdiary.postprocessors.imageQualityAssessment import ImageQualityAssessment
 from mkmapdiary.tasks.base.baseTask import BaseTask
@@ -29,7 +30,9 @@ class PostprocessingTask(BaseTask):
     def task_post_processing_single(self) -> Iterator[dict[str, Any]]:
         """Perform post-processing after GPX processing."""
 
-        def __process(asset: AssetRecord) -> None:
+        def __process(
+            processor_class: type[SingleAssetPostprocessor], asset: AssetRecord
+        ) -> None:
             processor = processor_class(self.ai, self.config)
             processor.processSingleAsset(asset)
 
@@ -39,13 +42,14 @@ class PostprocessingTask(BaseTask):
         # their order among each other is completely arbitrary.
         postprocessors: list[type[SingleAssetPostprocessor]] = [
             ImageHasher,
+            EntropyCalculator,
         ]
 
         for processor_class in postprocessors:
             for asset in self.db.assets:
                 yield {
                     "name": f"{processor_class.__name__}_{asset.path.stem}_{asset.id}",
-                    "actions": [(__process, (asset,))],
+                    "actions": [(__process, (processor_class, asset))],
                     "task_dep": ["end_gpx"],
                     "uptodate": [False],
                 }

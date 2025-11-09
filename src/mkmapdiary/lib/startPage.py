@@ -21,6 +21,8 @@ class StartPage:
             if not asset.is_duplicate
             and not asset.is_bad
             and asset.timestamp_utc is not None
+            and asset.entropy is not None
+            and asset.entropy > 6.5
         ]
         geo_assets = [
             asset
