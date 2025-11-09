@@ -51,17 +51,43 @@ class ExifReader(ABC):
             logger.debug(f"Failed to read EXIF data from {source} (no data)")
             return exif_data
 
-        try:
-            create_date = exif_data_dict["Composite:SubSecCreateDate"]
-            py_datetime = datetime.datetime.strptime(
-                create_date,
-                "%Y:%m:%d %H:%M:%S.%f",
+        date_formats = [
+            # strptime format, exif tag, is UTC
+            ("%Y:%m:%d %H:%M:%S.%f", "Composite:SubSecDateTimeOriginal", False),
+            ("%Y:%m:%d %H:%M:%S", "EXIF:DateTimeOriginal", False),
+            ("%Y:%m:%d %H:%M:%S.%f", "Composite:SubSecCreateDate", False),
+            ("%Y:%m:%d %H:%M:%S", "EXIF:CreateDate", False),
+        ]
+
+        for date_format, tag, is_true_utc in date_formats:
+            try:
+                create_date = exif_data_dict[tag]
+                py_datetime = datetime.datetime.strptime(
+                    create_date,
+                    date_format,
+                )
+            except (KeyError, ValueError):
+                logger.debug(
+                    f"EXIF tag {tag} not found or invalid in {source}, trying next."
+                )
+                continue
+            else:
+                logger.debug(
+                    f"Found EXIF CreateDate {create_date} in tag {tag} for {source}"
+                )
+                if is_true_utc:
+                    exif_data.create_date = self.calibrate(
+                        py_datetime, Calibration("UTC", 0)
+                    )
+                else:
+                    exif_data.create_date = self.calibrate(py_datetime, calibration)
+                break
+
+        if exif_data.create_date is None:
+            logger.debug(
+                f"Failed to read EXIF CreateDate from {source}, falling back to file datetime."
             )
-            logger.debug(f"EXIF CreateDate for {source}: {create_date} {py_datetime}")
-            exif_data.create_date = self.calibrate(py_datetime, calibration)
-        except KeyError as e:
             exif_data.create_date = self.extract_meta_datetime(source, calibration)
-            logger.debug(f"Failed to read EXIF CreateDate from {source} ({e})")
 
         try:
             exif_data.latitude = exif_data_dict["Composite:GPSLatitude"]
