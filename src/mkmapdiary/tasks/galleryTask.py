@@ -39,8 +39,11 @@ class GalleryTask(BaseTask):
                         lat=geo_asset.latitude,
                         lng=geo_asset.longitude,
                         index=i,
+                        quality=geo_asset.quality,
                     )
                     geo_items.append(geo_item)
+
+            geo_items.sort(key=lambda x: x["quality"] or 0)
 
             gpx = self.db.get_assets_by_date(date, "gpx")
             assert len(gpx) <= 1

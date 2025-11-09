@@ -120,8 +120,11 @@ class SiteTask(HttpRequest):
                     lat=geo_asset.latitude,
                     lng=geo_asset.longitude,
                     index=i + len(page_info.gallery_assets),
+                    quality=geo_asset.quality,
                 )
                 geo_assets.append(geo_item)
+
+            geo_assets.sort(key=lambda x: x["quality"] or 0)
 
             with open(index_path, "w") as f:
                 f.write(
