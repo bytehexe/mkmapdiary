@@ -7,6 +7,7 @@ from .commands.build import build
 from .commands.calibrate import calibrate
 from .commands.config import config
 from .commands.generate_demo import generate_demo
+from .commands.inspect import inspect
 from .util.log import StepFilter, setup_logging
 
 
@@ -61,6 +62,7 @@ cli.add_command(build)
 cli.add_command(config)
 cli.add_command(generate_demo)
 cli.add_command(calibrate)
+cli.add_command(inspect)
 
 
 if __name__ == "__main__":
