@@ -1,3 +1,4 @@
+import itertools
 import logging
 from typing import Any
 
@@ -41,11 +42,15 @@ class PiqImageQualityAssessment(MultiAssetPostprocessor):
             img_tensor = self.preprocess(img)
             imgs.append(img_tensor)
 
-        batch = torch.stack(imgs).to(self.device)  # [B, 3, 224, 224]
-        clipiqa = piq.CLIPIQA().to(self.device)
+        batched_imgs = itertools.batched(imgs, 128)  # Process in batches
+        scores = []
+        for current_batch in batched_imgs:
+            batch = torch.stack(current_batch).to(self.device)  # [B, 3, 224, 224]
+            clipiqa = piq.CLIPIQA().to(self.device)
 
-        with torch.no_grad():
-            scores = clipiqa(batch)  # [B]
+            with torch.no_grad():
+                batch_scores = clipiqa(batch)  # [B]
+                scores.extend(batch_scores.cpu())
 
         threshold = 0.1
 
