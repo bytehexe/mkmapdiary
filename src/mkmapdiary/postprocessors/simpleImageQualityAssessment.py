@@ -27,10 +27,11 @@ class SimpleImageQualityAssessment(MultiAssetPostprocessor):
 
         stddev = np.std(list(scores.values()))
         mean = np.mean(list(scores.values()))
-        threshold = mean - 2 * stddev
+        stddev_factor = self.config["features"]["iqa"]["stddev_factor"]
+        threshold = mean - stddev_factor * stddev
 
         logger.debug(
-            f"IQA scores: mean={mean:.3f}, stddev={stddev:.3f}, threshold for low quality={threshold:.3f}"
+            f"IQA scores: mean={mean:.3f}, stddev={stddev:.3f}, stddev_factor={stddev_factor}, threshold for low quality={threshold:.3f}"
         )
 
         for asset in assets:

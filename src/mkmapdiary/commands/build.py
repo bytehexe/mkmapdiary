@@ -146,7 +146,8 @@ def main(
             )
             sys.exit(1)
 
-    logger.info("User cache is enabled.", extra={"icon": "🗃️"})
+    if config_data["debug"]["enable_user_cache"]:
+        logger.info("User cache is enabled.", extra={"icon": "🗃️"})
 
     logger.info("Preparing directories ...")
     # Sanity checks

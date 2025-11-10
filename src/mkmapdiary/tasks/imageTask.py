@@ -36,7 +36,7 @@ class ImageTask(BaseTask, ExifReader):
         yield asset
 
     def __generate_destination_filename(self, source: PosixPath) -> PosixPath:
-        image_format = self.config.get("image_format", "jpg")
+        image_format = self.config["site"]["image_format"]
         filename = PosixPath(self.dirs.assets_dir / source.stem).with_suffix(
             f".{image_format}"
         )
@@ -59,7 +59,7 @@ class ImageTask(BaseTask, ExifReader):
                 elif orientation == 8:
                     img = img.rotate(90, expand=True)
 
-                img.convert("RGB").save(dst, **self.config.get("image_options", {}))
+                img.convert("RGB").save(dst, **self.config["site"]["image_options"])
 
         for src in self.__sources:
             dst = self.__generate_destination_filename(src)

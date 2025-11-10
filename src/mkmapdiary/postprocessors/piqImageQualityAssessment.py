@@ -52,7 +52,7 @@ class PiqImageQualityAssessment(MultiAssetPostprocessor):
                 batch_scores = clipiqa(batch)  # [B]
                 scores.extend(batch_scores.cpu())
 
-        threshold = 0.1
+        threshold = self.config["features"]["iqa"]["threshold"]
 
         for asset, score in zip(img_assets, scores, strict=False):
             asset.quality = score.item()
