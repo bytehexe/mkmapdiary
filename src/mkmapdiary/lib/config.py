@@ -16,29 +16,61 @@ from mkmapdiary.util.locale import auto_detect_locale, auto_detect_timezone
 logger = logging.getLogger(__name__)
 
 
+class AutoValue:
+    """Placeholder class for auto-detected configuration values"""
+
+
 def auto_constructor(loader: yaml.SafeLoader, node: yaml.ScalarNode) -> Any:
     """Constructor for !auto tag that returns an AutoValue object"""
-    value = loader.construct_scalar(node)
-    if value == "site.timezone":
+
+    # Make sure the node has no value
+    if not isinstance(node, yaml.ScalarNode) or node.value not in ("", None):
+        raise ValueError("!auto tag does not accept a value")
+
+    return AutoValue()
+
+
+def calculate_auto_value(path: str) -> Any:
+    if path == "site.timezone":
         tz = auto_detect_timezone()
         if tz is None:
             raise ValueError("Could not auto-detect timezone")
         return tz
-    elif value == "site.locale":
+    elif path == "site.locale":
         loc = auto_detect_locale()
         if loc is None:
             raise ValueError("Could not auto-detect locale")
         return loc
-    elif value == "transcription.enabled":
+    elif path == "features.transcription.enabled":
         return importlib.util.find_spec("whisper") is not None
-    elif value == "iqa.enabled":
+    elif path == "features.iqa.enabled":
         return (
             importlib.util.find_spec("torch") is not None
             and importlib.util.find_spec("torchvision") is not None
             and importlib.util.find_spec("piq") is not None
         )
     else:
-        raise ValueError(f"Unknown auto value: {value}")
+        raise ValueError(f"Unknown auto value: {path}")
+
+
+def find_and_replace_auto_values(data: Any, base_path: str = "") -> Any:
+    """Recursively find and replace AutoValue instances in the data structure."""
+    if isinstance(data, dict):
+        return {
+            key: find_and_replace_auto_values(
+                value, f"{base_path}.{key}" if base_path else key
+            )
+            for key, value in data.items()
+        }
+    elif isinstance(data, list):
+        return [
+            find_and_replace_auto_values(item, f"{base_path}[{index}]")
+            for index, item in enumerate(data)
+        ]
+    elif isinstance(data, AutoValue):
+        return calculate_auto_value(base_path)
+    else:
+        return data
 
 
 def duration_constructor(loader: yaml.SafeLoader, node: yaml.ScalarNode) -> int:
@@ -71,6 +103,7 @@ def load_config_data(config: dict[str, Any]) -> dict[str, Any]:
     ) as defaults_file:
         schema = yaml.load(defaults_file, Loader=ConfigLoader)
 
+    config = find_and_replace_auto_values(config)
     jsonschema.validate(instance=config, schema=schema)
 
     return config

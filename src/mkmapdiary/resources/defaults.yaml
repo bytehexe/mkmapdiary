@@ -6,7 +6,7 @@
 features:
   # Feature configuration defaults
   transcription:
-    enabled: !auto transcription.enabled
+    enabled: !auto
   llms:
     enabled: true
     text_model: "llama3:8b"
@@ -18,14 +18,14 @@ features:
     enabled: true
     max_age: !duration 300 days
   iqa:
-    enabled: !auto iqa.enabled
+    enabled: !auto
 
 site:
   # Site configuration defaults
   image_format: jpg
   image_options: {}
-  locale: !auto site.locale
-  timezone: !auto site.timezone
+  locale: !auto
+  timezone: !auto
 
 debug:
   enable_user_cache: false

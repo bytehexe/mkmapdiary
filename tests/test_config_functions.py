@@ -58,98 +58,162 @@ class TestDurationConstructor:
 class TestAutoConstructor:
     """Test the auto_constructor function."""
 
-    @patch("mkmapdiary.lib.config.auto_detect_timezone")
-    def test_auto_constructor_timezone(self, mock_auto_detect_timezone: Mock) -> None:
-        """Test auto constructor for timezone detection."""
-        mock_auto_detect_timezone.return_value = "Europe/Berlin"
-
+    def test_auto_constructor_empty_value(self) -> None:
+        """Test auto constructor with empty value."""
         loader = MagicMock()
-        node = MagicMock()
-        loader.construct_scalar.return_value = "site.timezone"
+        node = yaml.ScalarNode(tag="!auto", value="")
 
         result = auto_constructor(loader, node)
+        from mkmapdiary.lib.config import AutoValue
+
+        assert isinstance(result, AutoValue)
+
+    def test_auto_constructor_none_value(self) -> None:
+        """Test auto constructor with None value."""
+        loader = MagicMock()
+        node = yaml.ScalarNode(tag="!auto", value=None)
+
+        result = auto_constructor(loader, node)
+        from mkmapdiary.lib.config import AutoValue
+
+        assert isinstance(result, AutoValue)
+
+    def test_auto_constructor_with_value_raises_error(self) -> None:
+        """Test auto constructor raises error when value is provided."""
+        loader = MagicMock()
+        node = yaml.ScalarNode(tag="!auto", value="site.timezone")
+
+        with pytest.raises(ValueError, match="!auto tag does not accept a value"):
+            auto_constructor(loader, node)
+
+
+class TestCalculateAutoValue:
+    """Test the calculate_auto_value function."""
+
+    @patch("mkmapdiary.lib.config.auto_detect_timezone")
+    def test_calculate_auto_value_timezone(
+        self, mock_auto_detect_timezone: Mock
+    ) -> None:
+        """Test calculate_auto_value for timezone detection."""
+        from mkmapdiary.lib.config import calculate_auto_value
+
+        mock_auto_detect_timezone.return_value = "Europe/Berlin"
+
+        result = calculate_auto_value("site.timezone")
         assert result == "Europe/Berlin"
         mock_auto_detect_timezone.assert_called_once()
 
     @patch("mkmapdiary.lib.config.auto_detect_timezone")
-    def test_auto_constructor_timezone_failure(
+    def test_calculate_auto_value_timezone_failure(
         self, mock_auto_detect_timezone: Mock
     ) -> None:
-        """Test auto constructor when timezone detection fails."""
+        """Test calculate_auto_value when timezone detection fails."""
+        from mkmapdiary.lib.config import calculate_auto_value
+
         mock_auto_detect_timezone.return_value = None
 
-        loader = MagicMock()
-        node = MagicMock()
-        loader.construct_scalar.return_value = "site.timezone"
-
         with pytest.raises(ValueError, match="Could not auto-detect timezone"):
-            auto_constructor(loader, node)
+            calculate_auto_value("site.timezone")
 
     @patch("mkmapdiary.lib.config.auto_detect_locale")
-    def test_auto_constructor_locale(self, mock_auto_detect_locale: Mock) -> None:
-        """Test auto constructor for locale detection."""
+    def test_calculate_auto_value_locale(self, mock_auto_detect_locale: Mock) -> None:
+        """Test calculate_auto_value for locale detection."""
+        from mkmapdiary.lib.config import calculate_auto_value
+
         mock_auto_detect_locale.return_value = "en_US.UTF-8"
 
-        loader = MagicMock()
-        node = MagicMock()
-        loader.construct_scalar.return_value = "site.locale"
-
-        result = auto_constructor(loader, node)
+        result = calculate_auto_value("site.locale")
         assert result == "en_US.UTF-8"
         mock_auto_detect_locale.assert_called_once()
 
     @patch("mkmapdiary.lib.config.auto_detect_locale")
-    def test_auto_constructor_locale_failure(
+    def test_calculate_auto_value_locale_failure(
         self, mock_auto_detect_locale: Mock
     ) -> None:
-        """Test auto constructor when locale detection fails."""
+        """Test calculate_auto_value when locale detection fails."""
+        from mkmapdiary.lib.config import calculate_auto_value
+
         mock_auto_detect_locale.return_value = None
 
-        loader = MagicMock()
-        node = MagicMock()
-        loader.construct_scalar.return_value = "site.locale"
-
         with pytest.raises(ValueError, match="Could not auto-detect locale"):
-            auto_constructor(loader, node)
+            calculate_auto_value("site.locale")
 
     @patch("mkmapdiary.lib.config.importlib.util.find_spec")
-    def test_auto_constructor_transcription_enabled(self, mock_find_spec: Mock) -> None:
-        """Test auto constructor for transcription capability detection."""
+    def test_calculate_auto_value_transcription_enabled(
+        self, mock_find_spec: Mock
+    ) -> None:
+        """Test calculate_auto_value for transcription capability detection."""
+        from mkmapdiary.lib.config import calculate_auto_value
+
         mock_find_spec.return_value = (
             MagicMock()
         )  # Non-None return means module is available
 
-        loader = MagicMock()
-        node = MagicMock()
-        loader.construct_scalar.return_value = "transcription.enabled"
-
-        result = auto_constructor(loader, node)
+        result = calculate_auto_value("features.transcription.enabled")
         assert result is True
         mock_find_spec.assert_called_once_with("whisper")
 
     @patch("mkmapdiary.lib.config.importlib.util.find_spec")
-    def test_auto_constructor_transcription_disabled(
+    def test_calculate_auto_value_transcription_disabled(
         self, mock_find_spec: Mock
     ) -> None:
-        """Test auto constructor when transcription is not available."""
+        """Test calculate_auto_value when transcription is not available."""
+        from mkmapdiary.lib.config import calculate_auto_value
+
         mock_find_spec.return_value = None  # None return means module is not available
 
-        loader = MagicMock()
-        node = MagicMock()
-        loader.construct_scalar.return_value = "transcription.enabled"
-
-        result = auto_constructor(loader, node)
+        result = calculate_auto_value("features.transcription.enabled")
         assert result is False
         mock_find_spec.assert_called_once_with("whisper")
 
-    def test_auto_constructor_unknown_value(self) -> None:
-        """Test auto constructor with unknown auto value."""
-        loader = MagicMock()
-        node = MagicMock()
-        loader.construct_scalar.return_value = "unknown.value"
+    def test_calculate_auto_value_unknown_value(self) -> None:
+        """Test calculate_auto_value with unknown auto value."""
+        from mkmapdiary.lib.config import calculate_auto_value
 
         with pytest.raises(ValueError, match="Unknown auto value: unknown.value"):
-            auto_constructor(loader, node)
+            calculate_auto_value("unknown.value")
+
+
+class TestFindAndReplaceAutoValues:
+    """Test the find_and_replace_auto_values function."""
+
+    @patch("mkmapdiary.lib.config.calculate_auto_value")
+    def test_find_and_replace_dict(self, mock_calculate: Mock) -> None:
+        """Test find_and_replace_auto_values with dictionary."""
+        from mkmapdiary.lib.config import AutoValue, find_and_replace_auto_values
+
+        mock_calculate.return_value = "Europe/Berlin"
+
+        data = {"site": {"timezone": AutoValue(), "name": "My Site"}}
+
+        result = find_and_replace_auto_values(data)
+        assert result["site"]["timezone"] == "Europe/Berlin"
+        assert result["site"]["name"] == "My Site"
+        mock_calculate.assert_called_once_with("site.timezone")
+
+    @patch("mkmapdiary.lib.config.calculate_auto_value")
+    def test_find_and_replace_list(self, mock_calculate: Mock) -> None:
+        """Test find_and_replace_auto_values with list."""
+        from mkmapdiary.lib.config import AutoValue, find_and_replace_auto_values
+
+        mock_calculate.return_value = "auto_value"
+
+        data = ["normal", AutoValue(), "other"]
+
+        result = find_and_replace_auto_values(data, "test_path")
+        assert result[0] == "normal"
+        assert result[1] == "auto_value"
+        assert result[2] == "other"
+        mock_calculate.assert_called_once_with("test_path[1]")
+
+    def test_find_and_replace_no_auto_values(self) -> None:
+        """Test find_and_replace_auto_values with no AutoValue objects."""
+        from mkmapdiary.lib.config import find_and_replace_auto_values
+
+        data = {"normal": "value", "number": 42, "list": ["a", "b", "c"]}
+
+        result = find_and_replace_auto_values(data)
+        assert result == data
 
 
 class TestConfigLoaderIntegration:
@@ -173,12 +237,30 @@ class TestConfigLoaderIntegration:
         mock_auto_detect_timezone.return_value = "America/New_York"
 
         yaml_content = """
-        timezone: !auto site.timezone
+        site:
+          timezone: !auto
+        """
+
+        config = yaml.load(yaml_content, Loader=ConfigLoader)
+        from mkmapdiary.lib.config import find_and_replace_auto_values
+
+        # Need to process auto values after loading
+        processed_config = find_and_replace_auto_values(config)
+
+        assert processed_config["site"]["timezone"] == "America/New_York"
+
+    def test_config_loader_auto_tag_creates_auto_value(self) -> None:
+        """Test that !auto tag creates AutoValue object."""
+        yaml_content = """
+        site:
+          timezone: !auto
         """
 
         config = yaml.load(yaml_content, Loader=ConfigLoader)
 
-        assert config["timezone"] == "America/New_York"
+        from mkmapdiary.lib.config import AutoValue
+
+        assert isinstance(config["site"]["timezone"], AutoValue)
 
     def test_config_loader_mixed_tags(self) -> None:
         """Test ConfigLoader with multiple custom tags."""
