@@ -1,6 +1,7 @@
 import importlib.util
 import logging
 import pathlib
+import shutil
 import sys
 from collections.abc import MutableMapping, Sequence
 from typing import Any
@@ -43,12 +44,20 @@ def calculate_auto_value(path: str) -> Any:
         return loc
     elif path == "features.transcription.enabled":
         return importlib.util.find_spec("whisper") is not None
-    elif path == "features.iqa.enabled":
-        return (
+    elif path == "features.iqa.method":
+        if (
             importlib.util.find_spec("torch") is not None
             and importlib.util.find_spec("torchvision") is not None
             and importlib.util.find_spec("piq") is not None
-        )
+        ):
+            return "clipiqa"
+        else:
+            return "simple"
+    elif (
+        path == "features.gpsbabel_import.enabled"
+        or path == "features.track_simplification.enabled"
+    ):
+        return bool(shutil.which("gpsbabel"))
     else:
         raise ValueError(f"Unknown auto value: {path}")
 
@@ -81,6 +90,14 @@ def duration_constructor(loader: yaml.SafeLoader, node: yaml.ScalarNode) -> int:
     return int(humanfriendly.parse_timespan(value))
 
 
+def distance_constructor(loader: yaml.SafeLoader, node: yaml.ScalarNode) -> float:
+    """Constructor for !distance tag that converts distance strings to meters"""
+    value = loader.construct_scalar(node)
+    if isinstance(value, (int, float)):
+        return float(value)
+    return float(humanfriendly.parse_length(value))
+
+
 class ConfigLoader(yaml.SafeLoader):
     """Custom YAML loader with !auto tag support"""
 
@@ -88,6 +105,7 @@ class ConfigLoader(yaml.SafeLoader):
 # Register the custom constructor only for our custom loader
 ConfigLoader.add_constructor("!auto", auto_constructor)
 ConfigLoader.add_constructor("!duration", duration_constructor)
+ConfigLoader.add_constructor("!distance", distance_constructor)
 
 
 def load_config_file(path: pathlib.Path) -> dict[str, Any]:

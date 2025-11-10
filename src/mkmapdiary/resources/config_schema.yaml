@@ -65,13 +65,11 @@ properties:
             type: boolean
             description: "Enable or disable geo correlation"
           time_offset:
-            anyOf:
-              - type: integer
-            description: "Time offset (e.g., '0 seconds', '5 minutes')"
+            type: integer
+            description: "Time offset in seconds (use !duration tag for human-readable format)"
           max_time_diff:
-            anyOf:
-              - type: integer
-            description: "Maximum time difference for correlation (e.g., '300 seconds')"
+            type: integer
+            description: "Maximum time difference for correlation in seconds (use !duration tag for human-readable format)"
         additionalProperties: false
 
       poi_detection:
@@ -81,17 +79,58 @@ properties:
             type: boolean
             description: "Enable or disable POI detection"
           max_age:
-            anyOf:
-              - type: integer
-            description: "Maximum age for POI data (e.g., '300 days')"
+            type: integer
+            description: "Maximum age for POI data in seconds (use !duration tag for human-readable format)"
         additionalProperties: false
 
       iqa:
         type: object
         properties:
+          method:
+            type: string
+            enum: ["clipiqa", "simple"]
+            description: "IQA method to use. Use !auto for automatic detection."
+          threshold:
+            type: number
+            description: "Threshold for 'clipiqa' method"
+          stddev_factor:
+            type: number
+            description: "Standard deviation factor for 'simple' method"
+        additionalProperties: false
+
+      entropy_filtering:
+        type: object
+        properties:
           enabled:
             type: boolean
-            description: "Enable or disable Image Quality Assessment (IQA). Use !auto for automatic detection."
+            description: "Enable or disable entropy filtering"
+          threshold:
+            type: number
+            description: "Entropy threshold for filtering"
+        additionalProperties: false
+
+      gpsbabel_import:
+        type: object
+        properties:
+          enabled:
+            type: boolean
+            description: "Enable or disable gpsbabel import. Use !auto for automatic detection."
+          formats:
+            type: object
+            description: "Supported GPS data file formats"
+            additionalProperties:
+              type: string
+        additionalProperties: false
+
+      track_simplification:
+        type: object
+        properties:
+          enabled:
+            type: boolean
+            description: "Enable or disable track simplification. Use !auto for automatic detection."
+          tolerance:
+            type: number
+            description: "Tolerance for track simplification in meters (use !distance tag for human-readable format)"
         additionalProperties: false
 
     additionalProperties: false

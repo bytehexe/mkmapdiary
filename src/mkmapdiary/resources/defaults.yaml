@@ -18,7 +18,27 @@ features:
     enabled: true
     max_age: !duration 300 days
   iqa:
+    # always enabled
+    method: !auto
+    threshold: 0.1 # For CLIPIQA
+    stddev_factor: 2 # For Simple
+  entropy_filtering:
+    enabled: true
+    threshold: 6.5
+  gpsbabel_import:
     enabled: !auto
+    # Supported GPS data file formats
+    # Key starting with a dot: indicates a file extension
+    # Key without a dot: indicates a tag from identify-cli
+    # Value: the format name to pass to gpsbabel
+    formats:
+      gpx: gpx
+      kml: kml
+      .bin: qstarz_bl-1000
+      .poi: qstarz_bl-1000
+  track_simplification:
+    enabled: !auto
+    tolerance: !distance 1 meter
 
 site:
   # Site configuration defaults
