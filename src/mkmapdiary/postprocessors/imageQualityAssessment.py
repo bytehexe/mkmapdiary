@@ -19,8 +19,10 @@ class ImageQualityAssessment(MultiAssetPostprocessor):
 
         self.assessor: MultiAssetPostprocessor
 
-        if self.config["features"]["iqa"]["method"] == "clipiqa":
-            logger.info("Image Quality Assessment is enabled.")
+        method = self.config["features"]["iqa"]["method"]
+        logger.info(f"Using image quality assessment method: {method}")
+
+        if method == "clipiqa":
             from mkmapdiary.postprocessors.piqImageQualityAssessment import (
                 PiqImageQualityAssessment,
             )
@@ -28,10 +30,6 @@ class ImageQualityAssessment(MultiAssetPostprocessor):
             self.assessor = PiqImageQualityAssessment(self.ai, self.config)
 
         else:
-            logger.info(
-                "Image Quality Assessment is disabled. Falling back to simple assessment."
-            )
-
             # for now, we only have simple assessment
             from mkmapdiary.postprocessors.simpleImageQualityAssessment import (
                 SimpleImageQualityAssessment,
