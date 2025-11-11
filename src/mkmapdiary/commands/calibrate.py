@@ -1,6 +1,7 @@
 import logging
 import tempfile
 from pathlib import Path
+from typing import Any
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import click
@@ -135,8 +136,21 @@ def write_calibration_data(data: dict, output: Path, dry_run: bool) -> None:
         logger.info(f"Dry run enabled; would write to {output}:", extra={"icon": "😎"})
         return
 
+    # Load existing data if file exists, otherwise start with empty dict
+    existing_data: dict[str, Any] = {}
+    if output.exists():
+        try:
+            with output.open("r", encoding="utf-8") as f:
+                existing_data = yaml.safe_load(f) or {}
+        except Exception as e:
+            logger.warning(f"Could not read existing calibration file {output}: {e}")
+            existing_data = {}
+
+    # Merge the calibration data, preserving other keys
+    existing_data.update(data)
+
     with output.open("w", encoding="utf-8") as f:
-        yaml.dump(data, f, sort_keys=False)
+        yaml.dump(existing_data, f, sort_keys=False)
 
     logger.info(f"Calibration data written to {output}", extra={"icon": "💾"})
 
