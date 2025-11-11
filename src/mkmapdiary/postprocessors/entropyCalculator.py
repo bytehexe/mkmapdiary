@@ -12,10 +12,11 @@ class EntropyCalculator(SingleAssetPostprocessor):
     def info(self) -> str:
         return "Calculating image entropy."
 
-    def processSingleAsset(self, asset: AssetRecord) -> None:
-        if asset.type != "image":
-            return
+    @classmethod
+    def filter(cls, asset: AssetRecord) -> bool:
+        return asset.type == "image"
 
+    def processSingleAsset(self, asset: AssetRecord) -> None:
         resize = 256
         img = Image.open(asset.path).convert("L").resize((resize, resize))
         arr = np.asarray(img, dtype=np.float32)

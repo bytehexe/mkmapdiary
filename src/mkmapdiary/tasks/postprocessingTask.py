@@ -48,6 +48,8 @@ class PostprocessingTask(BaseTask):
 
         for processor_class in postprocessors:
             for asset in self.db.assets:
+                if not processor_class.filter(asset):
+                    continue
                 yield {
                     "name": f"{processor_class.__name__}_{asset.path.stem}_{asset.id}",
                     "actions": [(__process, (processor_class, asset))],

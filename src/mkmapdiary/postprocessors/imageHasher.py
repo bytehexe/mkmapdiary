@@ -10,14 +10,15 @@ from mkmapdiary.postprocessors.base.singleAssetPostprocessor import (
 class ImageHasher(SingleAssetPostprocessor):
     """Postprocessor that computes and stores image hashes for duplicate detection."""
 
+    @classmethod
+    def filter(cls, asset: AssetRecord) -> bool:
+        return asset.type == "image"
+
     @property
     def info(self) -> str:
         return "Hashing images for duplicate detection."
 
     def processSingleAsset(self, asset: AssetRecord) -> None:
-        if asset.type != "image":
-            return
-
         with Image.open(asset.path) as img:
             asset.image_hash = whash(img)
             asset.color_hash = colorhash(img)
