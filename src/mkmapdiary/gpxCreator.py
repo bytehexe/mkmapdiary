@@ -10,7 +10,7 @@ import gpxpy.gpx
 import hdbscan
 import numpy as np
 import shapely
-from whenever import Date
+from whenever import Date, Instant
 
 from mkmapdiary.geoCluster import GeoCluster
 from mkmapdiary.lib.assetRegistry import AssetRegistry
@@ -79,8 +79,10 @@ class GpxCreator:
             for seg in trk.segments:
                 track_points_by_date: dict[Date, list[gpxpy.gpx.GPXTrackPoint]] = {}
 
+                last_time = Instant.MAX
                 for pt in seg.points:
                     if pt.time is not None:
+                        pt_time = Instant.from_py_datetime(pt.time)
                         pt_date = Date.from_py_date(pt.time.date())
                         # defaultdict will automatically create the entry if it doesn't exist
                         if pt_date not in track_points_by_date:
@@ -89,9 +91,14 @@ class GpxCreator:
 
                         # Store coordinates as (lon, lat) for consistent interface format
                         # Converting from GPX format (lat, lon) to interface format (lon, lat)
-                        self.__coords_by_date[pt_date].append(
-                            [pt.longitude, pt.latitude]
+                        time_diff = max(
+                            int(round((pt_time - last_time).in_seconds())), 1
                         )
+                        logger.info(f"Adding {time_diff} coordinate entries")
+                        self.__coords_by_date[pt_date].extend(
+                            [[pt.longitude, pt.latitude]] * time_diff
+                        )
+                        last_time = pt_time
 
                 # Create segments for each date
                 for pt_date, points in track_points_by_date.items():
