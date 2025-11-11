@@ -42,6 +42,8 @@ class Cr2Task(BaseTask, ExifReader):
         if exif.latitude is not None and exif.longitude is not None:
             asset.latitude = exif.latitude
             asset.longitude = exif.longitude
+        # Effects are already set by handle_image, but ensure they're preserved
+        asset.effects = calibration.effects.copy()
         yield asset
 
     def task_convert_raw(self) -> Iterator[dict[str, Any]]:

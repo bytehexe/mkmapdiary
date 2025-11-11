@@ -31,6 +31,7 @@ class ImageTask(BaseTask, ExifReader):
             latitude=exif_data.latitude,
             longitude=exif_data.longitude,
             orientation=exif_data.orientation,
+            effects=calibration.effects.copy(),
         )
 
         yield asset

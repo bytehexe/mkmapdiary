@@ -30,6 +30,17 @@ properties:
       - offset
     additionalProperties: false
 
+  effects:
+    type: array
+    description: "List of effects to apply"
+    items:
+      type: string
+      description: "Name of the effect"
+    examples:
+      - ["blur", "sepia"]
+      - ["grayscale", "vintage"]
+      - []
+
   # Alternative root-level format (for backward compatibility)
   timezone:
     type: string
@@ -41,7 +52,8 @@ properties:
     type: integer
     description: "Time offset in seconds (root-level format)"
 
-required:
-  - calibration
+anyOf:
+  - required: ["calibration"]
+  - required: ["effects"]
 
-additionalProperties: false
+additionalProperties: true

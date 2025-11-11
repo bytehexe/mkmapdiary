@@ -98,6 +98,7 @@ class GPXTask(HttpRequest):
                     path=dst,
                     type="gpx",
                     display_date=date,
+                    effects=[],  # GPX files typically don't have effects, but initialize empty list
                 )
                 self.db.add_asset(asset)
 

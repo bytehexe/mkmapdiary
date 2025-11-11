@@ -35,12 +35,14 @@ class AudioTask(BaseTask):
             path=self.__generate_destination_filename(source, ".mp3"),
             type="audio",
             timestamp_utc=timestamp,
+            effects=calibration.effects.copy(),
         )
 
         transcript_asset = AssetRecord(
             path=self.__generate_destination_filename(source, ".mp3.md"),
             type="transcript",
             timestamp_utc=timestamp,
+            effects=calibration.effects.copy(),
         )
 
         yield asset

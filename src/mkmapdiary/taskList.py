@@ -75,6 +75,7 @@ class TaskList(*tasks):  # type: ignore
             Calibration(
                 timezone=config["site"]["timezone"],
                 offset=0,
+                effects=[],
             ),
         ]
 
@@ -217,8 +218,11 @@ class TaskList(*tasks):  # type: ignore
         offset = data.get("calibration", {}).get(
             "offset", self.__calibration[-1].offset
         )
+        effects = data.get("effects", self.__calibration[-1].effects)
 
-        self.__calibration.append(Calibration(timezone=timezone, offset=offset))
+        self.__calibration.append(
+            Calibration(timezone=timezone, offset=offset, effects=effects)
+        )
         logger.debug(
             f"Applied calibration from {calibration_file}: timezone={timezone}, offset={offset}",
             extra={"icon": "🛠️"},

@@ -193,5 +193,80 @@ def manual(output: Path, offset: int, camera_tz: str) -> None:
     write_calibration_data(data, output, dry_run=False)
 
 
+@click.command()
+@click.option("-o", "--output", type=click.Path(path_type=Path), required=True)
+@click.option(
+    "--add",
+    "effects_to_add",
+    multiple=True,
+    help="Add effect(s) to the effects list. Can be used multiple times.",
+)
+@click.option(
+    "--remove",
+    "effects_to_remove",
+    multiple=True,
+    help="Remove effect(s) from the effects list. Can be used multiple times.",
+)
+@click.option(
+    "-n", "--dry-run", is_flag=True, help="Perform a dry run without writing output."
+)
+def effects(
+    output: Path,
+    effects_to_add: tuple[str, ...],
+    effects_to_remove: tuple[str, ...],
+    dry_run: bool,
+) -> None:
+    """Manage effects in calibration file."""
+
+    if not effects_to_add and not effects_to_remove:
+        logger.error("You must specify at least one effect to add or remove.")
+        return
+
+    if output.is_dir():
+        output = output / "calibration.yaml"
+
+    # Load existing data if file exists, otherwise start with empty dict
+    existing_data: dict[str, Any] = {}
+    if output.exists():
+        try:
+            with output.open("r", encoding="utf-8") as f:
+                existing_data = yaml.safe_load(f) or {}
+        except Exception as e:
+            logger.warning(f"Could not read existing calibration file {output}: {e}")
+            existing_data = {}
+
+    # Get current effects list or create empty list
+    current_effects = existing_data.get("effects", [])
+    if not isinstance(current_effects, list):
+        logger.warning("Existing effects is not a list, creating new effects list.")
+        current_effects = []
+
+    # Add new effects
+    for effect in effects_to_add:
+        if effect not in current_effects:
+            current_effects.append(effect)
+            logger.info(f"Added effect: {effect}")
+        else:
+            logger.warning(f"Effect '{effect}' already exists in the list.")
+
+    # Remove effects
+    for effect in effects_to_remove:
+        if effect in current_effects:
+            current_effects.remove(effect)
+            logger.info(f"Removed effect: {effect}")
+        else:
+            logger.warning(f"Effect '{effect}' not found in the list.")
+
+    # Update the effects in the data
+    data = {"effects": current_effects}
+
+    # Use the shared write function for consistency and validation
+    write_calibration_data(data, output, dry_run)
+
+    if not dry_run:
+        logger.info(f"Current effects: {current_effects}")
+
+
 calibrate.add_command(file)
 calibrate.add_command(manual)
+calibrate.add_command(effects)
