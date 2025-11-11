@@ -1,6 +1,5 @@
 import logging
 import pathlib
-import random
 import shutil
 from collections.abc import Iterator
 from typing import Any
@@ -109,9 +108,6 @@ class SiteTask(HttpRequest):
             logger.debug(f"With map: {page_info.with_map}")
             logger.debug(f"Gallery rows: {page_info.gallery_rows}")
 
-            # Randomize gallery assets
-            random.shuffle(page_info.gallery_assets)
-
             geo_assets = []
             for i, geo_asset in enumerate(page_info.map_assets):
                 geo_item = dict(
@@ -123,8 +119,6 @@ class SiteTask(HttpRequest):
                     quality=geo_asset.quality,
                 )
                 geo_assets.append(geo_item)
-
-            geo_assets.sort(key=lambda x: x["quality"] or 0)
 
             with open(index_path, "w") as f:
                 f.write(

@@ -4,6 +4,7 @@ import math
 import numpy as np
 import sklearn.cluster
 import sklearn.metrics.pairwise
+from scipy.optimize import dual_annealing
 
 from mkmapdiary.lib.asset import AssetRecord
 
@@ -102,6 +103,9 @@ class StartPage:
         assert len(self.gallery_assets) == self.target_gallery_count
         assert len(self.map_assets) == self.target_map_count
 
+        self.map_assets.sort(key=lambda a: a.quality or 0)
+        self._arrange_gallery_assets(self.gallery_assets)
+
     def _calculate_bucket(
         self,
         assets: list[AssetRecord],
@@ -112,14 +116,25 @@ class StartPage:
         if len(assets) <= bucket_size:
             return assets
 
+        total_distance_matrix = self._calculate_distance_matrix(
+            assets, with_geo=with_geo, with_non_geo=with_non_geo
+        )
+
+        # Continue with clustering
+        return self._cluster_assets(bucket_size, assets, total_distance_matrix)
+
+    @classmethod
+    def _calculate_distance_matrix(
+        cls, assets: list[AssetRecord], with_geo: bool, with_non_geo: bool
+    ) -> np.ndarray:
         if with_geo:
-            geo_distance_matrix = self._calculate_geo_distance_matrix(assets)
+            geo_distance_matrix = cls._calculate_geo_distance_matrix(assets)
         else:
             geo_distance_matrix = np.zeros((len(assets), len(assets)))
 
         if with_non_geo:
-            color_distance_matrix = self._calculate_color_distance_matrix(assets)
-            time_distance_matrix = self._calculate_time_distance_matrix(assets)
+            color_distance_matrix = cls._calculate_color_distance_matrix(assets)
+            time_distance_matrix = cls._calculate_time_distance_matrix(assets)
         else:
             color_distance_matrix = np.zeros((len(assets), len(assets)))
             time_distance_matrix = np.zeros((len(assets), len(assets)))
@@ -128,8 +143,7 @@ class StartPage:
             geo_distance_matrix + color_distance_matrix + time_distance_matrix
         )
 
-        # Continue with clustering
-        return self._cluster_assets(bucket_size, assets, total_distance_matrix)
+        return total_distance_matrix
 
     @classmethod
     def _cluster_assets(
@@ -242,3 +256,41 @@ class StartPage:
     @property
     def total_target_count(self) -> int:
         return self.target_gallery_count + self.target_map_count
+
+    @classmethod
+    def _arrange_gallery_assets(cls, gallery_assets: list[AssetRecord]) -> None:
+        """Arrange gallery assets to alternate between high and low quality."""
+
+        distance_matrix = cls._calculate_distance_matrix(
+            gallery_assets, with_geo=False, with_non_geo=True
+        )
+
+        # Invert the distance matrix to get similarity matrix
+        similarity_matrix = distance_matrix.max() - distance_matrix
+
+        # Target function
+        def _tour_length(order: np.ndarray) -> float:
+            """Calculate the total distance of the tour given an order of assets."""
+            order = np.argsort(order)  # reelle Werte → Permutation
+            return np.sum(similarity_matrix[order, np.roll(order, -1)])
+
+        # Dual annealing to arrange assets
+        bounds = [(0, 1)] * len(gallery_assets)
+
+        result = dual_annealing(_tour_length, bounds, seed=42)
+        initial_order = np.argsort(result.x)
+        # initial_distance = np.sum(similarity_matrix[initial_order, np.roll(initial_order, -1)])
+
+        # Apply initial arrangement
+        arranged_assets = [gallery_assets[i] for i in initial_order]
+
+        # Rotate to put best asset in second position
+        best_asset_index = max(
+            range(len(arranged_assets)),
+            key=lambda i: arranged_assets[i].quality or 0,
+        )
+        rotate_by = (best_asset_index - 1) % len(arranged_assets)
+        arranged_assets = arranged_assets[rotate_by:] + arranged_assets[:rotate_by]
+
+        gallery_assets.clear()
+        gallery_assets.extend(arranged_assets)

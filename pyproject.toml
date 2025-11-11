@@ -50,6 +50,7 @@ dependencies = [
     "pyyaml",
     "rawpy",
     "requests",
+    "scipy>=1.16.2",
     "shapely",
     "tabulate",
     "tzfpy",
