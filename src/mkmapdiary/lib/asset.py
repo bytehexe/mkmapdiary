@@ -48,12 +48,12 @@ class AssetRecord:
     longitude: float | None = None
     approx: bool | None = None
     orientation: int | None = None
-    is_duplicate: bool = False
+    is_duplicate: bool | None = None
     is_bad: bool = False
     quality: float | None = None
     entropy: float | None = None
     metadata: AssetMetadata | None = None
-    image_hash: imagehash.ImageHash | None = None
+    image_hash: imagehash.ImageMultiHash | None = None
     color_hash: imagehash.ImageHash | None = None
     embedding: list[float] | None = None
     effects: list[str] = dataclasses.field(default_factory=list)

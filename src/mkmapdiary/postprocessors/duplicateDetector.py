@@ -42,6 +42,11 @@ class DuplicateDetector(MultiAssetPostprocessor):
 
     def _process_duplicates_for_date_group(self, assets: list[AssetRecord]) -> None:
         """Process duplicate detection for a group of assets from the same display date."""
+        assets = [
+            a
+            for a in assets
+            if a.image_hash is not None and a.timestamp_utc is not None
+        ]
         hashes = [asset.image_hash for asset in assets]
 
         # Compute distance matrix
@@ -51,15 +56,18 @@ class DuplicateDetector(MultiAssetPostprocessor):
                 hash1: imagehash.ImageHash = hashes[i]  # type: ignore
                 hash2: imagehash.ImageHash = hashes[j]  # type: ignore
                 distance = abs(hash1 - hash2)
-                distance_matrix[i][j] = distance
-                distance_matrix[j][i] = distance
+                time_distance = abs(
+                    (assets[i].timestamp_utc - assets[j].timestamp_utc).in_minutes()  # type: ignore
+                )
+                distance_matrix[i][j] = distance + time_distance * 0.5
+                distance_matrix[j][i] = distance + time_distance * 0.5
 
         logger.debug(
             f"Distance matrix properties: min={distance_matrix[distance_matrix > 0].min()}, max={distance_matrix.max()}, mean={distance_matrix.mean()}"
         )
 
         # Compute cluster
-        threshold = 5
+        threshold = 10
         clustering = AgglomerativeClustering(
             n_clusters=None,
             distance_threshold=threshold,
@@ -81,5 +89,7 @@ class DuplicateDetector(MultiAssetPostprocessor):
                 # Mark all assets in this cluster as duplicates, except the best one
                 best_asset = max(cluster_assets, key=lambda a: a.quality or 0)
                 for asset in cluster_assets:
-                    if asset != best_asset:
+                    if asset == best_asset:
+                        asset.is_duplicate = False
+                    else:
                         asset.is_duplicate = True

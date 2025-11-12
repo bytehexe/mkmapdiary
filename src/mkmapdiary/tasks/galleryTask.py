@@ -1,4 +1,3 @@
-import pathlib
 from collections.abc import Iterator
 from typing import Any
 
@@ -25,11 +24,7 @@ class GalleryTask(BaseTask):
             geo_items = []
 
             for i, asset in enumerate(self.db.get_assets_by_date(date, "image")):
-                item = dict(
-                    basename=pathlib.PosixPath(asset.path).name,
-                )
-
-                gallery_items.append(item)
+                gallery_items.append(asset)
 
                 geo_asset = self.db.get_geotagged_asset_by_path(asset.path)
                 if geo_asset:

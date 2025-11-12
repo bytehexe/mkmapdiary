@@ -19,7 +19,15 @@ gpx_data = {{ gpx_data | tojson }};
 
 <div id="photo_gallery" markdown>
 {%- for item in gallery_items -%}
-![](assets/{{ item.basename }}){ height="200" width="200" }
+![](assets/{{ item.path.name }}){ height="200" width="200" data-markers="
+{%- if item.quality > 0.85 -%}excellent
+{%- elif item.quality > 0.7 -%}good
+{%- elif item.quality < 0.1 -%}bad
+{%- endif -%}
+{%- if item.entropy < 6.5 %} low_entropy{% endif -%}
+{%- if item.is_duplicate is true %} duplicate{% endif -%}
+{%- if item.is_duplicate is false %} canonical{% endif -%}
+" }
 {%- endfor -%}
 </div>
 {% endif %}
