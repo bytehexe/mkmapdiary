@@ -94,7 +94,6 @@ class GpxCreator:
                         time_diff = max(
                             int(round((pt_time - last_time).in_seconds())), 1
                         )
-                        logger.info(f"Adding {time_diff} coordinate entries")
                         self.__coords_by_date[pt_date].extend(
                             [[pt.longitude, pt.latitude]] * time_diff
                         )
