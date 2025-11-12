@@ -71,7 +71,15 @@ iqa = [
     "piq",
 ]
 
+autorotate = [
+    "huggingface_hub",
+    "onnxruntime",
+    "torchvision",
+]
+
 all = [
+    "huggingface_hub",
+    "onnxruntime",
     "openai-whisper",
     "torch",
     "torchvision",
@@ -210,6 +218,14 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module="piq.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module="onnxruntime.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module="huggingface_hub.*"
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]

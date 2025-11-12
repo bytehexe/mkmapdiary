@@ -35,11 +35,9 @@ properties:
     description: "List of effects to apply"
     items:
       type: string
+      enum:
+        - "autorotate"
       description: "Name of the effect"
-    examples:
-      - ["blur", "sepia"]
-      - ["grayscale", "vintage"]
-      - []
 
   # Alternative root-level format (for backward compatibility)
   timezone:

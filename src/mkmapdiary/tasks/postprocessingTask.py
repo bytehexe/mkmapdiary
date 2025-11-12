@@ -7,6 +7,7 @@ from doit import create_after
 from tabulate import tabulate
 
 from mkmapdiary.lib.asset import AssetRecord
+from mkmapdiary.postprocessors.autoRotator import AutoRotator
 from mkmapdiary.postprocessors.base.multiAssetPostprocessor import (
     MultiAssetPostprocessor,
 )
@@ -71,6 +72,7 @@ class PostprocessingTask(BaseTask):
             postprocessors: list[type[MultiAssetPostprocessor]] = [
                 ImageQualityAssessment,
                 DuplicateDetector,
+                AutoRotator,
                 # JournalSummarizer,
                 # ImageSummarizer,
                 # ImageEmbedder,
