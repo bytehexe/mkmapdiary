@@ -55,7 +55,7 @@ class DuplicateDetector(MultiAssetPostprocessor):
                 distance_matrix[j][i] = distance
 
         logger.debug(
-            "Distance matrix for duplicate detection:\n" + str(distance_matrix)
+            f"Distance matrix properties: min={distance_matrix[distance_matrix > 0].min()}, max={distance_matrix.max()}, mean={distance_matrix.mean()}"
         )
 
         # Compute cluster
