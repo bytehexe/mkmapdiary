@@ -1,4 +1,4 @@
-from imagehash import colorhash, crop_resistant_hash, whash
+from imagehash import colorhash, whash
 from PIL import Image
 
 from mkmapdiary.lib.asset import AssetRecord
@@ -20,5 +20,5 @@ class ImageHasher(SingleAssetPostprocessor):
 
     def processSingleAsset(self, asset: AssetRecord) -> None:
         with Image.open(asset.path) as img:
-            asset.image_hash = crop_resistant_hash(img, whash)
+            asset.image_hash = whash(img)
             asset.color_hash = colorhash(img)

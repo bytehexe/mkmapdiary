@@ -53,7 +53,7 @@ class AssetRecord:
     quality: float | None = None
     entropy: float | None = None
     metadata: AssetMetadata | None = None
-    image_hash: imagehash.ImageMultiHash | None = None
+    image_hash: imagehash.ImageHash | None = None
     color_hash: imagehash.ImageHash | None = None
     embedding: list[float] | None = None
     effects: list[str] = dataclasses.field(default_factory=list)
