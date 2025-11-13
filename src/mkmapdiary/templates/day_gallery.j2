@@ -17,6 +17,19 @@ gpx_data = {{ gpx_data | tojson }};
 
 ## {{ gallery_title }}
 
+<div id="gallery_controls">
+{% if has_duplicates %}
+<input type="checkbox" id="include_duplicates">
+<label for="include_duplicates">Include duplicates</label>
+{% endif %}
+{% if has_bad_photos %}
+<input type="checkbox" id="include_bad_quality">
+<label for="include_bad_quality">Include low quality photos</label>
+{% endif %}
+<input type="checkbox" id="show_quality_icons">
+<label for="show_quality_icons">Show quality icons</label>
+</div>
+
 <div id="photo_gallery" markdown>
 {%- for item in gallery_items -%}
 ![](assets/{{ item.path.name }}){ height="200" width="200" data-markers="

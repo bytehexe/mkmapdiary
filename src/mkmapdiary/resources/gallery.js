@@ -9,6 +9,7 @@ window.addEventListener("DOMContentLoaded", () => {
         maxRowHeight: 240,
         cssAnimation: false,
         imagesAnimationDuration: 50,
+        filter: computeFilter(),
     };
 
     if (window.is_main_page === true) {
@@ -19,11 +20,40 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 
     window.theGallery = $("#photo_gallery p");
-    window.theGallery.justifiedGallery(parameters).on('jg.complete', function () {
-        addQualityMarkers();
+    window.theGallery.justifiedGallery(parameters)
+
+    $("#include_duplicates, #include_bad_quality").on("change", function() {
+        var filter = computeFilter();
+        window.theGallery.justifiedGallery({'filter': filter});
     });
+
+    $("#show_quality_icons").on("change", function() {
+        if ($(this).is(":checked")) {
+            addQualityMarkers();
+        } else {
+            clearQualityMarkers();
+        }
+    });
+
 });
 
+function computeFilter() {
+    var include_duplicates = $("#include_duplicates").is(":checked");
+    var include_bad_quality = $("#include_bad_quality").is(":checked");
+
+    filters = [];
+    if (!include_duplicates) {
+        filters.push(":not([data-markers~=duplicate])");
+    }
+    if (!include_bad_quality) {
+        filters.push(":not([data-markers~=bad])");
+    }
+    return ":has(img" + filters.join("") + ")";
+}
+
+function clearQualityMarkers() {
+    $("#photo_gallery .quality_marker").remove();
+}
 
 function addQualityMarkers() {
     var $gallery_images = $("#photo_gallery img");
