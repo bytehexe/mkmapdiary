@@ -52,8 +52,6 @@ class GalleryTask(BaseTask):
                 f.write(
                     self.template(
                         "day_gallery.j2",
-                        map_title=self.config["strings"]["map_title"],
-                        gallery_title=self.config["strings"]["gallery_title"],
                         has_bad_photos=any(
                             asset.quality is not None and asset.quality < 0.1
                             for asset in gallery_items

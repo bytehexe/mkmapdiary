@@ -27,7 +27,6 @@ class DayPageTask(BaseTask):
                     self.template(
                         "day_base.j2",
                         formatted_date=formatted_date,
-                        journal_title=self.config["strings"]["journal_title"],
                         date=date,
                     ),
                 )

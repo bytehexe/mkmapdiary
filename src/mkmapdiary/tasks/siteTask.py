@@ -124,9 +124,6 @@ class SiteTask(HttpRequest):
                 f.write(
                     self.template(
                         "index.j2",
-                        home_title=self.config["strings"]["home_title"],
-                        gallery_title=self.config["strings"]["gallery_title"],
-                        map_title=self.config["strings"]["map_title"],
                         gallery_images=page_info.gallery_assets + page_info.map_assets,
                         map_images=geo_assets,
                         with_map=page_info.with_map,

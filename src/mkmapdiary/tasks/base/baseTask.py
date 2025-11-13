@@ -123,7 +123,7 @@ class BaseTask(ABC, metaclass=ABCMeta):
 
     def template(self, template_name: str, **params: Any) -> str:
         template = self.__template_env.get_template(template_name)
-        return template.render(**params)
+        return template.render(**params, strings=self.config["strings"])
 
     def make_unique_filename(
         self,
