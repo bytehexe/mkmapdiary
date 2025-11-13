@@ -23,7 +23,9 @@ window.addEventListener("DOMContentLoaded", () => {
 
 
   // Initialize map
-  const map = L.map('map_box');
+  const map = L.map('map_box', {
+    gestureHandling: true,
+  });
   window.theMap = map;
   var deferred = [];
 
