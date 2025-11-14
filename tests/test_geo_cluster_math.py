@@ -2,7 +2,7 @@ import math
 
 import pytest
 
-from mkmapdiary.geoCluster import GeoCluster
+from mkmapdiary.lib.geoCluster import GeoCluster
 
 
 class TestGeoClusterMathematicalFunctions:

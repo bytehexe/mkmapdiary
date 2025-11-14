@@ -13,8 +13,8 @@ import shapely
 from shapely.geometry import Point
 from whenever import Date, Instant
 
-from mkmapdiary.geoCluster import GeoCluster
 from mkmapdiary.lib.assetRegistry import AssetRegistry
+from mkmapdiary.lib.geoCluster import GeoCluster
 from mkmapdiary.poi.index import Index, IndexKey
 from mkmapdiary.util.log import ThisMayTakeAWhile
 from mkmapdiary.util.projection import LocalProjection

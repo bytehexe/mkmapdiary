@@ -12,9 +12,9 @@ from doit import create_after
 from tabulate import tabulate
 from whenever import Date
 
-from mkmapdiary.gpxCreator import GpxCreator
 from mkmapdiary.lib.asset import AssetRecord
 from mkmapdiary.lib.calibration import Calibration
+from mkmapdiary.lib.gpxCreator import GpxCreator
 from mkmapdiary.tasks.base.httpRequest import HttpRequest
 
 logger = logging.getLogger(__name__)

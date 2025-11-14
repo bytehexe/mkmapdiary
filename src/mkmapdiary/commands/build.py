@@ -17,7 +17,7 @@ from jsonschema.exceptions import ValidationError
 from tabulate import tabulate
 
 from .. import util
-from ..cache import Cache
+from ..lib.cache import Cache
 from ..lib.config import load_config_file, load_config_param
 from ..lib.dirs import Dirs
 from ..taskList import TaskList
