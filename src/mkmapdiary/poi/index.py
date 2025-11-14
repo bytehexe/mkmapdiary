@@ -3,12 +3,13 @@ import pathlib
 from threading import Lock
 from typing import Any, NamedTuple
 
-import numpy as np
 import shapely
 import yaml
 from shapely.geometry.base import BaseGeometry
 
+from mkmapdiary.poi.ballTree import BallTree
 from mkmapdiary.poi.ballTreeBuilder import BallTreeBuilder
+from mkmapdiary.poi.common import Poi
 from mkmapdiary.poi.indexBuilder import IndexBuilder, Region
 from mkmapdiary.poi.indexFileReader import IndexFileReader
 from mkmapdiary.poi.regionFinder import RegionFinder
@@ -29,15 +30,11 @@ class IndexProxy:
 
     def __init__(
         self,
-        ball_tree: Any,
-        center: shapely.Point,
-        bounding_radius: float,
+        ball_tree: BallTree,
         index_key: IndexKey,
         region_data: dict[str, Any] | None = None,
     ):
         self.ball_tree = ball_tree
-        self.center = center
-        self.bounding_radius = bounding_radius
         self.index_key = index_key
         # Cache raw data from idx files for reuse
         self.region_data = region_data or {}
@@ -81,25 +78,7 @@ class IndexProxy:
         """
         return self.index_key == key
 
-    def get_all(self) -> list:
-        """
-        Get all POIs within the bounding radius of the loaded geometry.
-
-        Returns:
-            List of POIs within the bounding radius
-        """
-        logger.info("Querying ball tree ...")
-        logger.debug("Bounding radius (meters): %s", self.bounding_radius)
-        logger.debug("Center coordinates (WGS): %s", self.center)
-        # Convert from Shapely Point (x=lon, y=lat) to BallTree expected (lat, lon) format
-        return self.ball_tree.query_radius(
-            np.array([self.center.y, self.center.x]),
-            r=self.bounding_radius,
-        )
-
-    def get_nearest(
-        self, n: int, point: shapely.Point | None = None
-    ) -> tuple[list, list[float]]:
+    def get_nearest(self, n: int, point: shapely.Point) -> tuple[list, list[float]]:
         """
         Get the n nearest POIs to a given point.
 
@@ -110,8 +89,6 @@ class IndexProxy:
         Returns:
             Tuple of (POI list, distances)
         """
-        if point is None:
-            point = self.center
 
         logger.info("Querying ball tree for nearest neighbors ...")
         logger.debug("Query point coordinates (WGS): %s", point)
@@ -119,6 +96,28 @@ class IndexProxy:
         return self.ball_tree.query(
             [point.y, point.x],  # type: ignore
             k=n,
+        )
+
+    def get_within_radius(
+        self,
+        radius: float,
+        point: shapely.Point,
+    ) -> list[Poi]:
+        """
+        Get all POIs within a given radius from a point.
+
+        Args:
+            radius: Radius in meters
+            point: Point to search from (defaults to center of loaded geometry)
+        Returns:
+            Tuple of (POI list, distances)
+        """
+        logger.info("Querying ball tree for points within radius ...")
+        logger.debug("Query point coordinates (WGS): %s", point)
+        # Convert from Shapely Point (x=lon, y=lat) to BallTree expected (lat, lon) format
+        return self.ball_tree.query_radius(
+            [point.y, point.x],  # type: ignore
+            radius,
         )
 
 
@@ -279,9 +278,6 @@ class Index:
         local_geo_data = local_projection.to_local(geo_data)
 
         logger.debug("Calculating center...")
-        center = local_projection.to_wgs(
-            shapely.centroid(local_projection.to_local(geo_data)),
-        )
 
         logger.debug("Calculating bounding radius...")
         if local_geo_data.area == 0:
@@ -295,8 +291,6 @@ class Index:
             except Exception as e:
                 logger.warning("Error occurred while calculating convex hull: %s", e)
             local_geo_data = local_geo_data.buffer(50, resolution=2, quad_segs=2)
-
-        bounding_radius = shapely.minimum_bounding_radius(local_geo_data)
 
         # Build the ball tree with the specified regions and ranks
         builder = BallTreeBuilder(self.filter_config)
@@ -330,8 +324,6 @@ class Index:
 
         return IndexProxy(
             ball_tree=ball_tree,
-            center=center,
-            bounding_radius=bounding_radius,
             index_key=key,
             region_data=region_data,
         )

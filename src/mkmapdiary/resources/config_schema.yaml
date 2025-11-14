@@ -81,6 +81,15 @@ properties:
           max_age:
             type: integer
             description: "Maximum age for POI data in seconds (use !duration tag for human-readable format)"
+          priorities:
+            type: object
+            description: "Symbol priorities for POI detection"
+            additionalProperties: false
+            patternProperties:
+              "^.*$":
+                type: ["integer", "null"]
+                description: "Priority value for the POI symbol (integer) or null to disable"
+
         additionalProperties: false
 
       iqa:

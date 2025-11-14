@@ -1,5 +1,13 @@
 # list=OR, items in list=AND
-# default index: POI
+# Example:
+# - symbol: "example_symbol"
+#   description: "Example description"
+#   filters:
+#     - key1: value1
+#       key2: value2
+#     - key3: value3
+# This matches (key1=value1 AND key2=value2) OR (key3=value3)
+
 
 # == Places ==
 - symbol: "city"
@@ -43,12 +51,117 @@
     - amenity: bus_station
 
 
-# == Natural Features ==
-- symbol: "waves"
-  description: "Beach"
+# == Accommodation ==
+- symbol: "accommodation"
+  description: "Accommodation (hotels, hostels, camping, etc.)"
+  filters:
+    - tourism: hotel
+    - building: hotel
+    - tourism: hostel
+    - tourism: guest_house
+    - tourism: camp_site
+    - tourism: alpine_hut
+
+# == Food & Dining ==
+- symbol: "restaurant"
+  description: "Restaurants and fine dining"
+  filters:
+    - amenity: restaurant
+- symbol: "cafe_bar"
+  description: "Cafes, bars, and casual dining"
+  filters:
+    - amenity: cafe
+    - amenity: bar
+    - amenity: pub
+    - amenity: biergarten
+    - amenity: fast_food
+    - amenity: ice_cream
+
+# == Cultural & Historic Sites ==
+- symbol: "museum"
+  description: "Museums and cultural sites"
+  filters:
+    - tourism: museum
+    - tourism: artwork
+- symbol: "historic"
+  description: "Historic sites and monuments"
+  filters:
+    - historic: monument
+    - historic: memorial
+    - historic: castle
+    - historic: fort
+    - historic: ruins
+    - historic: archaeological_site
+    - historic: battlefield
+
+# == Religious & Entertainment ==
+- symbol: "place_of_worship"
+  description: "Religious sites (all faiths)"
+  filters:
+    - amenity: place_of_worship
+- symbol: "entertainment"
+  description: "Entertainment venues"
+  filters:
+    - amenity: theatre
+    - amenity: cinema
+    - amenity: arts_centre
+    - amenity: nightclub
+
+# == Shopping & Services ==
+- symbol: "shopping"
+  description: "Shopping areas"
+  filters:
+    - amenity: marketplace
+    - shop: supermarket
+    - building: supermarket
+    - shop: mall
+- symbol: "services"
+  description: "Essential services"
+  filters:
+    - amenity: bank
+    - amenity: post_office
+    - amenity: hospital
+    - amenity: clinic
+    - amenity: pharmacy
+    - amenity: police
+    - amenity: fuel
+
+# == Recreation & Nature ==
+- symbol: "recreation"
+  description: "Parks and recreational facilities"
+  filters:
+    - leisure: park
+    - leisure: nature_reserve
+    - leisure: common
+    - leisure: playground
+    - leisure: sports_centre
+    - leisure: golf_course
+    - leisure: marina
+- symbol: "natural_features"
+  description: "Natural features and landscapes"
   filters:
     - natural: beach
-- symbol: "forest"
-  description: "Forest"
-  filters:
     - natural: forest
+    - natural: wood
+    - landuse: forest
+    - natural: peak
+    - natural: volcano
+    - natural: cave_entrance
+    - natural: spring
+    - waterway: waterfall
+- symbol: "landmarks"
+  description: "Man-made landmarks and structures"
+  filters:
+    - man_made: tower
+    - man_made: lighthouse
+    - man_made: windmill
+
+# == Transportation Hubs ==
+- symbol: "airport"
+  description: "Airport"
+  filters:
+    - aeroway: aerodrome
+- symbol: "ferry_terminal"
+  description: "Ferry terminal"
+  filters:
+    - amenity: ferry_terminal

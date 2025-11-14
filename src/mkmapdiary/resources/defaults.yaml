@@ -17,6 +17,13 @@ features:
   poi_detection:
     enabled: true
     max_age: !duration 300 days  # TODO: Not implemented - no code uses this configuration
+    priorities:
+      # Higher value = higher priority
+      # Default priority: 0
+      city: 100
+      town: 90
+      village: 80
+      train_station: 30
   iqa:
     # always enabled
     method: !auto

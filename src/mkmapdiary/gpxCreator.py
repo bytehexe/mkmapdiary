@@ -10,12 +10,14 @@ import gpxpy.gpx
 import hdbscan
 import numpy as np
 import shapely
+from shapely.geometry import Point
 from whenever import Date, Instant
 
 from mkmapdiary.geoCluster import GeoCluster
 from mkmapdiary.lib.assetRegistry import AssetRegistry
-from mkmapdiary.poi.index import Index
+from mkmapdiary.poi.index import Index, IndexKey
 from mkmapdiary.util.log import ThisMayTakeAWhile
+from mkmapdiary.util.projection import LocalProjection
 
 logger = logging.getLogger(__name__)
 
@@ -27,10 +29,12 @@ class GpxCreator:
         sources: Sequence[str | PosixPath],
         db: AssetRegistry,
         region_cache_dir: Path,
+        priorities: dict[str, int | None],
     ) -> None:
         self.__sources = sources
         self.__db = db
         self.__region_cache_dir = region_cache_dir
+        self.__priorities = priorities
         self.index_data = index_data
 
         # Data structures organized by date - using defaultdict for lazy initialization
@@ -216,11 +220,11 @@ class GpxCreator:
         current_proxy = None
 
         for cluster_data in all_clusters:
-            date = cluster_data["date"]
-            label = cluster_data["label"]
-            cluster = cluster_data["cluster"]
-            cluster_coords = cluster_data["cluster_coords"]
-            key = cluster_data["index_key"]
+            date: Date = cluster_data["date"]
+            label: int = cluster_data["label"]
+            cluster: GeoCluster = cluster_data["cluster"]
+            cluster_coords: list[tuple[float, float]] = cluster_data["cluster_coords"]
+            key: IndexKey = cluster_data["index_key"]
 
             # Add basic cluster waypoints first
             # cluster.mass_point returns (lon, lat) format, convert for GPX which expects (lat, lon)
@@ -261,27 +265,44 @@ class GpxCreator:
             # Convert mass_point (lon, lat) to shapely.Point for proxy.get_nearest
             mass_lon, mass_lat = cluster.mass_point
             if mass_lon is not None and mass_lat is not None:
-                from shapely.geometry import Point
-
                 logger.debug("Get nearest POI to cluster mass point")
                 mass_point = Point(mass_lon, mass_lat)  # Point expects (x=lon, y=lat)
-                nearest_pois, distances = proxy.get_nearest(1, mass_point)
 
-                logger.debug(
-                    f"Nearest POI: {nearest_pois[0]}" if nearest_pois else "None",
-                    extra={"icon": "⭐"},
-                )
-
-                # Create bounding circle; the geocluster performs outlier removal,
+                # Create convex hull and bounding circle; the geocluster performs outlier removal,
                 # so we use the original cluster coordinates
                 logger.debug("Creating cluster envelope for POI intersection test")
                 cluster_envelope = shapely.MultiPoint(cluster_coords).convex_hull
+                local_projection = LocalProjection(mass_point)
+                local_envelope = local_projection.to_local(cluster_envelope)
+                local_bounding_circle = shapely.minimum_bounding_circle(local_envelope)
+                local_center = local_bounding_circle.centroid
+                radius = local_bounding_circle.boundary.distance(local_center)
+                center = local_projection.to_wgs(local_center)
+                local_mass_point = local_projection.to_local(mass_point)
 
-                logger.debug("Testing POI intersection with cluster envelope")
-                if nearest_pois and shapely.Point(nearest_pois[0].coords).intersects(
-                    cluster_envelope,
-                ):
-                    poi = nearest_pois[0]
+                nearby_pois = proxy.get_within_radius(radius, center)
+                nearby_pois = [
+                    poi
+                    for poi in nearby_pois
+                    if self.__priorities.get(poi.symbol, 0) is not None
+                ]
+
+                nearby_pois.sort(
+                    key=lambda poi: (
+                        -(self.__priorities.get(poi.symbol, 0) or 0),
+                        local_projection.to_local(
+                            Point(poi.coords[0], poi.coords[1])
+                        ).distance(local_mass_point),
+                    )
+                )
+
+                for poi in nearby_pois:
+                    logger.debug(
+                        f"Nearest POI: {poi}" if nearby_pois else "None",
+                        extra={"icon": "⭐"},
+                    )
+
+                    logger.debug("Testing POI intersection with cluster envelope")
                     pwpt = gpxpy.gpx.GPXWaypoint(
                         latitude=poi.coords[1],
                         longitude=poi.coords[0],
@@ -290,6 +311,7 @@ class GpxCreator:
                         symbol="cluster-poi",
                     )
                     self.__gpx_data_by_date[date]["waypoints"].append(pwpt)
+                    break  # Only add the highest priority POI
 
     def __add_journal_markers(self) -> None:
         logger.debug("Adding journal markers for all dates")

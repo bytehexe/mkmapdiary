@@ -83,7 +83,11 @@ class GPXTask(HttpRequest):
 
             # Create GpxCreator - it will automatically discover all dates
             gc = GpxCreator(
-                index_data, self.__sources, self.db, self.dirs.region_cache_dir
+                index_data,
+                self.__sources,
+                self.db,
+                self.dirs.region_cache_dir,
+                priorities=self.config["features"]["poi_detection"]["priorities"],
             )
 
             # Generate GPX files for all discovered dates
