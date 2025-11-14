@@ -26,6 +26,9 @@ class GalleryTask(BaseTask):
             for i, asset in enumerate(self.db.get_assets_by_date(date, "image")):
                 gallery_items.append(asset)
 
+                if asset.is_bad or asset.is_duplicate:
+                    continue
+
                 geo_asset = self.db.get_geotagged_asset_by_path(asset.path)
                 if geo_asset:
                     geo_item = dict(
@@ -35,10 +38,13 @@ class GalleryTask(BaseTask):
                         lng=geo_asset.longitude,
                         index=i,
                         quality=geo_asset.quality,
+                        low_entropy=int(
+                            asset.entropy is not None and asset.entropy < 6.5
+                        ),
                     )
                     geo_items.append(geo_item)
 
-            geo_items.sort(key=lambda x: x["quality"] or 0)
+            geo_items.sort(key=lambda x: (-x["low_entropy"], x["quality"] or 0))  # type: ignore
 
             gpx = self.db.get_assets_by_date(date, "gpx")
             assert len(gpx) <= 1
