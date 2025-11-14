@@ -25,6 +25,7 @@ window.addEventListener("DOMContentLoaded", () => {
   // Initialize map
   const map = L.map('map_box', {
     gestureHandling: true,
+  	fullscreenControl: true,
   });
   window.theMap = map;
   var deferred = [];

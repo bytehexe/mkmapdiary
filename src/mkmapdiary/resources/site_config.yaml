@@ -47,6 +47,7 @@ extra_css:
   - https://cdn.jsdelivr.net/gh/iconoir-icons/iconoir@main/css/iconoir.css
   - https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css
   - https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.css
+  - https://unpkg.com/leaflet.fullscreen@2.4.0/Control.FullScreen.css
 
 
 extra_javascript:
@@ -58,6 +59,7 @@ extra_javascript:
   - path: https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js
   - path: https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js
   - path: https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.js
+  - path: https://unpkg.com/leaflet.fullscreen@2.4.0/Control.FullScreen.js
   - path: geo.js
   - path: audio.js
   - path: gallery.js
