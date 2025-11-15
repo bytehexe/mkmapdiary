@@ -62,7 +62,7 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  observer.observe(document.body, { childList: true, subtree: true });
+  observer.observe(document.body, { childList: true, subtree: false });
 
   document.addEventListener("glightbox:close", () => {
     if (window.imageOpenedInFullscreen && document.fullscreenElement != null) {
