@@ -62,11 +62,7 @@ class GalleryTask(BaseTask):
             else:
                 gpx_data = None
 
-            track_statistics_object = self.track_statistics.get(date, None)
-            if track_statistics_object is not None:
-                track_statistics = track_statistics_object.entries
-            else:
-                track_statistics = {}
+            track_statistics = self.track_statistics.get(date, None)
 
             with open(gallery_path, "w") as f:
                 f.write(

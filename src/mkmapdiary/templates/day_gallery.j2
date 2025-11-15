@@ -20,10 +20,10 @@ gpx_data = {{ gpx_data | tojson }};
 <tr>
     <td><b>Track</b></td>
     <td>
-        <i class="iconoir-dot-arrow-right"></i> {{ track_statistics["total"].distance | format_length }} · 
-        <i class="iconoir-arrow-up-right"></i> {{ track_statistics["total"].elevation_gain | format_length }} · 
-        <i class="iconoir-arrow-down-right"></i> {{ track_statistics["total"].elevation_loss | format_length }} · 
-        <i class="iconoir-timer"></i> {{ track_statistics["total"].time_moving | format_timespan }}
+        <i class="iconoir-dot-arrow-right"></i> {{ track_statistics.distance | format_length }} · 
+        <i class="iconoir-arrow-up-right"></i> {{ track_statistics.elevation_gain | format_length }} · 
+        <i class="iconoir-arrow-down-right"></i> {{ track_statistics.elevation_loss | format_length }} · 
+        <i class="iconoir-timer"></i> {{ track_statistics.time_moving | format_timespan }}
     </td>
 </tr>
 </table>

@@ -1,29 +1,21 @@
-import dataclasses
-
 import numpy as np
 import whenever
 from sklearn.metrics.pairwise import haversine_distances
 
 
-@dataclasses.dataclass
-class StatisticEntry:
-    time_moving: float = 0.0
-    distance: float = 0.0
-    elevation_gain: float = 0.0
-    elevation_loss: float = 0.0
-
-
 class Statistics:
     THRESHOLDS = {
-        # Upper speed thresholds in m/s
         "movement": 0.2,
         "unrealistic": 250.0,  # Ignore unrealistic speeds (previously "air" threshold)
     }
 
     def __init__(self) -> None:
-        self.entries: dict[str, StatisticEntry] = {
-            "total": StatisticEntry(),
-        }
+        # Direct attributes instead of entries dictionary
+        self.time_moving: float = 0.0
+        self.distance: float = 0.0
+        self.elevation_gain: float = 0.0
+        self.elevation_loss: float = 0.0
+
         self.__time: whenever.Instant | None = None
         self.__position: tuple[float, float] | None = None
         self.__elevation: float | None = None
@@ -45,7 +37,6 @@ class Statistics:
 
     def __set_elevation(
         self,
-        mode: str,
         elevation: float | None = None,
     ) -> None:
         if elevation is None or self.__elevation is None:
@@ -53,9 +44,9 @@ class Statistics:
 
         delta = elevation - self.__elevation
         if delta > 0:
-            self.entries[mode].elevation_gain += delta
+            self.elevation_gain += delta
         else:
-            self.entries[mode].elevation_loss += -delta
+            self.elevation_loss += -delta
 
     def add_entry(
         self,
@@ -87,10 +78,10 @@ class Statistics:
             self.reset()
             return
 
-        self.entries["total"].distance += distance
-        self.__set_elevation("total", elevation)
+        self.distance += distance
+        self.__set_elevation(elevation)
 
         if speed >= self.THRESHOLDS["movement"]:
-            self.entries["total"].time_moving += time_delta
+            self.time_moving += time_delta
 
         self.__set_point(time, position, elevation)
