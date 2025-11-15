@@ -36,9 +36,6 @@ tasks = [
     ImageTask,
     SiteTask,
     Cr2Task,
-    DayPageTask,
-    GalleryTask,
-    JournalTask,
     TextTask,
     MarkdownTask,
     AudioTask,
@@ -46,6 +43,9 @@ tasks = [
     QstarzTask,
     TagsTask,
     PostprocessingTask,
+    DayPageTask,
+    GalleryTask,
+    JournalTask,
 ]
 
 

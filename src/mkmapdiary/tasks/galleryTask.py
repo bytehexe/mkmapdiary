@@ -1,15 +1,23 @@
+from abc import abstractmethod
 from collections.abc import Iterator
 from typing import Any
 
 import whenever
 from doit import create_after
+from whenever import Date
 
+from ..lib.statistics import Statistics
 from .base.baseTask import BaseTask
 
 
 class GalleryTask(BaseTask):
     def __init__(self) -> None:
         super().__init__()
+
+    @property
+    @abstractmethod
+    def track_statistics(self) -> dict[Date, Statistics]:
+        raise NotImplementedError("GalleryTask does not provide track statistics.")
 
     @create_after("end_postprocessing")
     def task_build_gallery(self) -> Iterator[dict[str, Any]]:
@@ -54,6 +62,12 @@ class GalleryTask(BaseTask):
             else:
                 gpx_data = None
 
+            track_statistics_object = self.track_statistics.get(date, None)
+            if track_statistics_object is not None:
+                track_statistics = track_statistics_object.entries
+            else:
+                track_statistics = {}
+
             with open(gallery_path, "w") as f:
                 f.write(
                     self.template(
@@ -69,6 +83,7 @@ class GalleryTask(BaseTask):
                         geo_items=geo_items,
                         gpx_data=gpx_data,
                         gpx_file=str(gpx[0].path).split("/")[-1] if gpx else None,
+                        track_statistics=track_statistics,
                     ),
                 )
 

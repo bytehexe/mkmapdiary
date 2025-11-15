@@ -8,6 +8,7 @@ from typing import Any
 import dateutil.parser
 import ollama
 import whenever
+from humanfriendly import format_length, format_timespan
 from jinja2 import Environment, PackageLoader, StrictUndefined, select_autoescape
 
 from mkmapdiary.lib.assetRegistry import AssetRegistry
@@ -42,6 +43,8 @@ class BaseTask(ABC, metaclass=ABCMeta):
             autoescape=select_autoescape(),
             undefined=StrictUndefined,
         )
+        self.__template_env.filters["format_timespan"] = format_timespan
+        self.__template_env.filters["format_length"] = format_length
 
     @abstractmethod
     def handle(self, source: PosixPath) -> Any:

@@ -15,6 +15,7 @@ from whenever import Date, Instant
 
 from mkmapdiary.lib.assetRegistry import AssetRegistry
 from mkmapdiary.lib.geoCluster import GeoCluster
+from mkmapdiary.lib.statistics import Statistics
 from mkmapdiary.poi.index import Index, IndexKey
 from mkmapdiary.util.log import ThisMayTakeAWhile
 from mkmapdiary.util.projection import LocalProjection
@@ -41,6 +42,9 @@ class GpxCreator:
         self.__coords_by_date: defaultdict[Date, list[list[float]]] = defaultdict(list)
         self.__gpx_data_by_date: defaultdict[Date, dict[str, Any]] = defaultdict(
             lambda: {"waypoints": [], "tracks": [], "routes": []}
+        )
+        self.__statistics_by_date: defaultdict[Date, Statistics] = defaultdict(
+            Statistics
         )
 
         self.index = Index(self.index_data, self.__region_cache_dir, keep_pbf=True)
@@ -88,6 +92,14 @@ class GpxCreator:
                     if pt.time is not None:
                         pt_time = Instant.from_py_datetime(pt.time)
                         pt_date = Date.from_py_date(pt.time.date())
+                        if last_time == Instant.MAX:
+                            self.__statistics_by_date[pt_date].reset()
+
+                        self.__statistics_by_date[pt_date].add_entry(
+                            pt_time,
+                            (pt.longitude, pt.latitude),
+                            pt.elevation,
+                        )
                         # defaultdict will automatically create the entry if it doesn't exist
                         if pt_date not in track_points_by_date:
                             track_points_by_date[pt_date] = []
@@ -381,3 +393,7 @@ class GpxCreator:
     def get_available_dates(self) -> set[Date]:
         """Return all dates that are available in this GpxCreator instance."""
         return set(self.__gpx_data_by_date.keys())
+
+    def get_statistics(self) -> dict[Date, Statistics]:
+        """Return statistics for all dates processed by this GpxCreator instance."""
+        return dict(self.__statistics_by_date)

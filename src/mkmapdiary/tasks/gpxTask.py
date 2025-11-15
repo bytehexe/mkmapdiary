@@ -15,6 +15,7 @@ from whenever import Date
 from mkmapdiary.lib.asset import AssetRecord
 from mkmapdiary.lib.calibration import Calibration
 from mkmapdiary.lib.gpxCreator import GpxCreator
+from mkmapdiary.lib.statistics import Statistics
 from mkmapdiary.tasks.base.httpRequest import HttpRequest
 
 logger = logging.getLogger(__name__)
@@ -24,6 +25,11 @@ class GPXTask(HttpRequest):
     def __init__(self) -> None:
         super().__init__()
         self.__sources: list[PosixPath] = []
+        self.__statistics: dict[Date, Any] = {}
+
+    @property
+    def track_statistics(self) -> dict[Date, Statistics]:
+        return dict(self.__statistics)
 
     def handle_gpx(self, source: PosixPath, calibration: Calibration) -> list[Any]:
         self.__sources.append(source)
@@ -89,6 +95,8 @@ class GPXTask(HttpRequest):
                 self.dirs.region_cache_dir,
                 priorities=self.config["features"]["poi_detection"]["priorities"],
             )
+
+            self.__statistics = gc.get_statistics()
 
             # Generate GPX files for all discovered dates
             all_dates = gc.get_available_dates()

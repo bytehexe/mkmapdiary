@@ -13,6 +13,22 @@ gpx_data = {{ gpx_data | tojson }};
 </script>
 
 {% endif %}
+{% if track_statistics %}
+## Overview
+
+<table>
+<tr>
+    <td><b>Track</b></td>
+    <td>
+        <i class="iconoir-dot-arrow-right"></i> {{ track_statistics["total"].distance | format_length }} · 
+        <i class="iconoir-arrow-up-right"></i> {{ track_statistics["total"].elevation_gain | format_length }} · 
+        <i class="iconoir-arrow-down-right"></i> {{ track_statistics["total"].elevation_loss | format_length }} · 
+        <i class="iconoir-timer"></i> {{ track_statistics["total"].time_moving | format_timespan }}
+    </td>
+</tr>
+</table>
+
+{% endif %}
 {% if gallery_items %}
 
 ## {{ strings.gallery_title }}

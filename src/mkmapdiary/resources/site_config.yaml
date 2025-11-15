@@ -37,6 +37,8 @@ markdown_extensions:
   - pymdownx.blocks.html
   - pymdownx.blocks.admonition
   - pymdownx.superfences
+  - tables
+  - pymdownx.blocks.details
 
 extra_css:
   - extra.css
