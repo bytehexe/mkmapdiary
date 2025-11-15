@@ -74,53 +74,30 @@ window.addEventListener("DOMContentLoaded", () => {
 
   if (gpx_data) {
 
+    const iconoirIcon = function(iconName, colorClass) {
+      return new L.divIcon({
+        html: `<i class="iconoir-${iconName}"></i>`,
+        className: `${colorClass}`,
+        iconSize: [24, 24],
+        iconAnchor: [12, 12],
+      });
+    }
+
+    const poiIcon = function(symbol) {
+      return new iconoirIcon(symbol, 'map-simple-icon-light-blue');
+    }
+
     const invisibleIcon = new L.divIcon({
       html: '',          // No HTML content
       className: 'invisible-marker', 
       iconSize: [0, 0]
     });
 
-    const clusterIcon = new L.divIcon({
-      html: '<i class="iconoir iconoir-xmark"></i>',
-      className: 'map-simple-icon map-simple-icon-orange map-cluster-icon',
-      iconSize: [24, 24],
-      iconAnchor: [12, 12],
-    });
-
-    const startIcon = new L.divIcon({
-      html: '<i class="iconoir iconoir-play-solid"></i>',
-      className: 'map-simple-icon map-simple-icon-blue',
-      iconSize: [24, 24],
-      iconAnchor: [12, 12],
-    });
-
-    const endIcon = new L.divIcon({
-      html: '<i class="iconoir iconoir-pause-solid"></i>',
-      className: 'map-simple-icon map-simple-icon-blue',
-      iconSize: [24, 24],
-      iconAnchor: [12, 12],
-    });
-
-    const starIcon = new L.divIcon({
-      html: '<i class="iconoir iconoir-star-solid"></i>',
-      className: 'map-simple-icon map-simple-icon-green',
-      iconSize: [24, 24],
-      iconAnchor: [12, 12],
-    });
-
-    const markdownIcon = new L.divIcon({
-      html: '<i class="iconoir iconoir-book-solid"></i>',
-      className: 'map-simple-icon map-simple-icon-purple',
-      iconSize: [24, 24],
-      iconAnchor: [12, 12],
-    });
-
-    const audioIcon = new L.divIcon({
-      html: '<i class="iconoir iconoir-microphone-solid"></i>',
-      className: 'map-simple-icon map-simple-icon-purple',
-      iconSize: [24, 24],
-      iconAnchor: [12, 12],
-    });
+    // Standard icons
+    const clusterIcon = iconoirIcon('xmark', 'map-simple-icon-orange map-cluster-icon');
+    const starIcon = iconoirIcon('star-solid', 'map-simple-icon-green');
+    const markdownIcon = iconoirIcon('book-solid', 'map-simple-icon-purple');
+    const audioIcon = iconoirIcon('microphone-solid', 'map-simple-icon-purple');
 
     parser = new DOMParser();
     xmlDoc = parser.parseFromString(gpx_data, "text/xml");
@@ -136,11 +113,40 @@ window.addEventListener("DOMContentLoaded", () => {
         startIcon: invisibleIcon,
         endIcon: invisibleIcon,
         wptIcons: {
+          // Standard icons
           '': starIcon,
-          'cluster-mass': clusterIcon,
-          'cluster-center': invisibleIcon,
-          'markdown-journal-entry': markdownIcon,
-          'audio-journal-entry': audioIcon,
+          'mkmapdiary|cluster-mass': invisibleIcon,
+          'mkmapdiary|cluster-center': invisibleIcon,
+          'mkmapdiary|markdown-journal-entry': markdownIcon,
+          'mkmapdiary|audio-journal-entry': audioIcon,
+
+          // POI icons based on symbol field
+          'mkmapdiary|poi|city': poiIcon('city'),
+          'mkmapdiary|poi|town': poiIcon('building'),
+          'mkmapdiary|poi|village': poiIcon('neighbourhood'),
+          'mkmapdiary|poi|information': poiIcon('info-circle'),
+          'mkmapdiary|poi|tourism': poiIcon('spark-solid'),
+          'mkmapdiary|poi|picnic_site': poiIcon('home-table'),
+          'mkmapdiary|poi|viewpoint': poiIcon('camera'),
+          'mkmapdiary|poi|train_station': poiIcon('train'),
+          'mkmapdiary|poi|bus_stop': poiIcon('bus-stop'),
+          'mkmapdiary|poi|accommodation': poiIcon('bed'),
+          'mkmapdiary|poi|restaurant': poiIcon('cutlery'),
+          'mkmapdiary|poi|cafe_bar': poiIcon('coffee-cup'),
+          'mkmapdiary|poi|museum': poiIcon('palette'),
+          'mkmapdiary|poi|historic': poiIcon('historic-shield'),
+          'mkmapdiary|poi|place_of_worship': poiIcon('church'),
+          'mkmapdiary|poi|shopping': poiIcon('cart'),
+          'mkmapdiary|poi|services': poiIcon('spark-solid'),
+          'mkmapdiary|poi|recreation': poiIcon('soccer-ball'),
+          'mkmapdiary|poi|natural_features': poiIcon('spark-solid'),
+          'mkmapdiary|poi|landmarks': poiIcon('spark-solid'),
+          'mkmapdiary|poi|airport': poiIcon('airplane'),
+          'mkmapdiary|poi|ferry_terminal': poiIcon('sea-waves'),
+          'mkmapdiary|poi|forest_or_park': poiIcon('tree'),
+          'mkmapdiary|poi|beach': poiIcon('swimming'),
+          'mkmapdiary|poi|golf_course': poiIcon('golf'),
+          'mkmapdiary|poi|marina': poiIcon('sea-waves'),
         }
       }
     }).on('addpoint', function(e) {
@@ -160,7 +166,7 @@ window.addEventListener("DOMContentLoaded", () => {
       };
 
       // Unbind popup for journal waypoints
-      if (wpt_data.sym == "markdown-journal-entry" || wpt_data.sym == "audio-journal-entry") {
+      if (wpt_data.sym == "mkmapdiary|markdown-journal-entry" || wpt_data.sym == "mkmapdiary|audio-journal-entry") {
         var comment = get("cmt");
         e.point.unbindPopup().on('click', function() {
           console.log("Clicked waypoint with comment: " + comment);
@@ -178,7 +184,7 @@ window.addEventListener("DOMContentLoaded", () => {
       }
 
       // Add circle for cluster waypoints
-      if (wpt_data.sym == "cluster-center") {
+      if (wpt_data.sym == "mkmapdiary|cluster-center") {
         var pdop = parseFloat(wpt_data.pdop);
         deferred.push(new L.circle(e.point._latlng, {
           radius: pdop,

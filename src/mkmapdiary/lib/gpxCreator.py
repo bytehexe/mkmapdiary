@@ -234,7 +234,7 @@ class GpxCreator:
                 longitude=mlon,
                 name=f"Cluster {label}",
                 description=f"Cluster of {len(cluster_coords)} points and radius {cluster.radius:.1f} m",
-                symbol="cluster-mass",
+                symbol="mkmapdiary|cluster-mass",
             )
             self.__gpx_data_by_date[date]["waypoints"].append(mwpt)
 
@@ -245,7 +245,7 @@ class GpxCreator:
                 longitude=clon,
                 name=f"Cluster {label} Center",
                 description=f"Center of cluster {label}",
-                symbol="cluster-center",
+                symbol="mkmapdiary|cluster-center",
                 position_dilution=cluster.radius,
             )
             self.__gpx_data_by_date[date]["waypoints"].append(cwpt)
@@ -308,7 +308,7 @@ class GpxCreator:
                         longitude=poi.coords[0],
                         name=poi.name,
                         description=f"{poi.description} ({poi.rank})",
-                        symbol="cluster-poi",
+                        symbol=f"mkmapdiary|poi|{poi.symbol}",
                     )
                     self.__gpx_data_by_date[date]["waypoints"].append(pwpt)
                     break  # Only add the highest priority POI
@@ -350,7 +350,7 @@ class GpxCreator:
                 longitude=float(longitude),
                 name="Journal Entry",
                 comment=comment,
-                symbol=f"{asset.type}-journal-entry",
+                symbol=f"mkmapdiary|{asset.type}-journal-entry",
             )
             self.__gpx_data_by_date[date]["waypoints"].append(wpt)
 

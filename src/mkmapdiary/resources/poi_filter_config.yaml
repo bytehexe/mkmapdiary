@@ -30,10 +30,24 @@
   filters:
     - tourism: information
       information: office
+    - tourism: information
+      information: visitor_centre
 - symbol: "tourism"
   description: "Tourist attraction"
   filters:
-    - tourism: True
+    - tourism: aquarium
+    - tourism: zoo
+    - tourism: attraction
+    - tourism: gallery
+    - tourism: theme_park
+- symbol: "picnic_site"
+  description: "Picnic site"
+  filters:
+    - tourism: picnic_site
+- symbol: "viewpoint"
+  description: "Scenic viewpoint"
+  filters:
+    - tourism: viewpoint
 
 # == Public Transport ==
 - symbol: "train_station"
@@ -53,22 +67,29 @@
 
 # == Accommodation ==
 - symbol: "accommodation"
-  description: "Accommodation (hotels, hostels, camping, etc.)"
+  description: "Accommodation"
   filters:
     - tourism: hotel
     - building: hotel
     - tourism: hostel
     - tourism: guest_house
     - tourism: camp_site
+    - tourism: camp_pitch
+    - tourism: caravan_site
     - tourism: alpine_hut
+    - tourism: apartment
+    - tourism: chalet
+    - tourism: motel
+    - tourism: trail_riding_station
+    - tourism: wilderness_hut
 
 # == Food & Dining ==
 - symbol: "restaurant"
-  description: "Restaurants and fine dining"
+  description: "Restaurant"
   filters:
     - amenity: restaurant
 - symbol: "cafe_bar"
-  description: "Cafes, bars, and casual dining"
+  description: "Cafe or bar"
   filters:
     - amenity: cafe
     - amenity: bar
@@ -79,12 +100,12 @@
 
 # == Cultural & Historic Sites ==
 - symbol: "museum"
-  description: "Museums and cultural sites"
+  description: "Museum or cultural site"
   filters:
     - tourism: museum
     - tourism: artwork
 - symbol: "historic"
-  description: "Historic sites and monuments"
+  description: "Historic site or monument"
   filters:
     - historic: monument
     - historic: memorial
@@ -96,11 +117,11 @@
 
 # == Religious & Entertainment ==
 - symbol: "place_of_worship"
-  description: "Religious sites (all faiths)"
+  description: "Religious site or place of worship"
   filters:
     - amenity: place_of_worship
 - symbol: "entertainment"
-  description: "Entertainment venues"
+  description: "Entertainment venue"
   filters:
     - amenity: theatre
     - amenity: cinema
@@ -109,14 +130,14 @@
 
 # == Shopping & Services ==
 - symbol: "shopping"
-  description: "Shopping areas"
+  description: "Shopping area"
   filters:
     - amenity: marketplace
     - shop: supermarket
     - building: supermarket
     - shop: mall
 - symbol: "services"
-  description: "Essential services"
+  description: "Essential service"
   filters:
     - amenity: bank
     - amenity: post_office
@@ -128,29 +149,50 @@
 
 # == Recreation & Nature ==
 - symbol: "recreation"
-  description: "Parks and recreational facilities"
+  description: "Park or recreational facility"
   filters:
-    - leisure: park
-    - leisure: nature_reserve
     - leisure: common
     - leisure: playground
     - leisure: sports_centre
-    - leisure: golf_course
+
+- symbol: "marina"
+  description: "Marina or boating facility"
+  filters:
     - leisure: marina
-- symbol: "natural_features"
-  description: "Natural features and landscapes"
+
+- symbol: "golf_course"
+  description: "Golf course"
+  filters:
+    - leisure: golf_course
+
+- symbol: "beach"
+  description: "Beach or waterfront"
   filters:
     - natural: beach
+    - leisure: beach_resort
+    - tourism: beach_resort
+
+- symbol: forest_or_park
+  description: "Forest or park"
+  filters:
+    - landuse: forest
+    - leisure: forest
+    - leisure: park
     - natural: forest
     - natural: wood
-    - landuse: forest
+    - leisure: nature_reserve
+
+
+- symbol: "natural_features"
+  description: "Natural feature or landscape"
+  filters:
     - natural: peak
     - natural: volcano
     - natural: cave_entrance
     - natural: spring
     - waterway: waterfall
 - symbol: "landmarks"
-  description: "Man-made landmarks and structures"
+  description: "Man-made landmark or structure"
   filters:
     - man_made: tower
     - man_made: lighthouse
