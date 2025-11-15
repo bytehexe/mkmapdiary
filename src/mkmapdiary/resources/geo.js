@@ -37,9 +37,43 @@ window.addEventListener("DOMContentLoaded", () => {
 
   L.control.scale().addTo(map);
 
+  window.imageOpenedInFullscreen = false;
+
   const photoLayer = L.photo.cluster().on('click', function(evt) {
-    //evt.layer.bindPopup(L.Util.template(template, evt.layer.photo)).openPopup();
     GLightbox().openAt(evt.layer.photo.index);
+    if (document.fullscreenElement == document.getElementById('map_box')) {
+      window.imageOpenedInFullscreen = true;
+      document.getElementById("glightbox-body").requestFullscreen();
+    }
+  });
+
+  const observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      for (const node of mutation.addedNodes) {
+        if (node.id === "glightbox-body") {
+          document.dispatchEvent(new CustomEvent("glightbox:open"));
+        }
+      }
+      for (const node of mutation.removedNodes) {
+        if (node.id === "glightbox-body") {
+          document.dispatchEvent(new CustomEvent("glightbox:close"));
+        }
+      }
+    }
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  document.addEventListener("glightbox:close", () => {
+    if (window.imageOpenedInFullscreen && document.fullscreenElement != null) {
+      document.getElementById('map_box').requestFullscreen();
+    }
+    window.imageOpenedInFullscreen = false;
+  });
+  document.addEventListener("glightbox:open", () => {
+    if (document.fullscreenElement === null) {
+      window.imageOpenedInFullscreen = true;
+    }
   });
 
   window.ensure_photos_on_top = function() {
