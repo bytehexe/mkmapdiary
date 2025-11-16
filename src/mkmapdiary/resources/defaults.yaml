@@ -13,12 +13,14 @@ input_formats:
   gpsbabel:
     formats:
       # Do not add gpx here! It is the internal default format.
+      # Value: -i parameter passed to gpsbabel
       kml: kml
       .bin: qstarz_bl-1000
       .poi: qstarz_bl-1000
       .dat: null
   raw:
     formats:
+      # Value: any (except null, which means ignore)
       .cr2: raw
       .cr3: raw
       .crw: raw
