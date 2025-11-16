@@ -158,8 +158,13 @@ class GeoCluster:
             )
 
         # Step 1: Convex hull to reduce comparisons
-        hull = ConvexHull(pts)
-        hull_pts = pts[hull.vertices]
+        try:
+            hull = ConvexHull(pts)
+            hull_pts = pts[hull.vertices]
+        except Exception:
+            # Fallback: all points
+            hull_pts = pts
+
         # Convert from (lon, lat) interface to internal calculation format
         lon = np.radians(hull_pts[:, 0])  # longitude from first column
         lat = np.radians(hull_pts[:, 1])  # latitude from second column

@@ -209,6 +209,9 @@ class GpxCreator:
                 # Ignore overly large clusters
                 continue
 
+            if cluster.shape.is_empty:
+                continue
+
             # Get index key for this cluster
             logger.debug(f"Getting index key for cluster {label} on date {date}")
             key = index.get_key(cluster.shape)
