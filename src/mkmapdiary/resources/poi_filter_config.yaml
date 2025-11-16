@@ -114,6 +114,7 @@
     - historic: ruins
     - historic: archaeological_site
     - historic: battlefield
+    - archaeological_site: True
 
 # == Religious & Entertainment ==
 - symbol: "place_of_worship"
@@ -133,9 +134,9 @@
   description: "Shopping area"
   filters:
     - amenity: marketplace
-    - shop: supermarket
     - building: supermarket
-    - shop: mall
+    - building: retail
+    - shop: True
 - symbol: "services"
   description: "Essential service"
   filters:

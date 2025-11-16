@@ -181,6 +181,7 @@ window.addEventListener("DOMContentLoaded", () => {
           'mkmapdiary|poi|beach': poiIcon('swimming'),
           'mkmapdiary|poi|golf_course': poiIcon('golf'),
           'mkmapdiary|poi|marina': poiIcon('sea-waves'),
+          'mkmapdiary|poi|entertainment': poiIcon('cinema-old'),
         }
       }
     }).on('addpoint', function(e) {

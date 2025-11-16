@@ -47,6 +47,7 @@ features:
     priorities:
       # Higher value = higher priority
       # Default priority: 0
+      # Disable: null
       city: 100
       town: 90
       village: 80
