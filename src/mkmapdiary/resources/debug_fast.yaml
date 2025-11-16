@@ -1,0 +1,11 @@
+features:
+  iqa:
+    enabled: false
+  image_comparison:
+    enabled: false
+  entropy_filtering:
+    enabled: false
+  llms:
+    enabled: false
+  cr2:
+    use_thumbnail: true

@@ -40,6 +40,7 @@ def main(
     quiet: bool,
     no_cache: bool,
     profile: bool,
+    debug_fast: bool,
 ) -> None:
     # Add file logging for build command (console logging already configured at CLI level)
     add_file_logging(build_dir)
@@ -68,6 +69,22 @@ def main(
     except ValueError as e:
         logger.critical(f"Error loading default configuration: {e}")
         sys.exit(1)
+
+    # Apply debug fast mode overrides
+    if debug_fast:
+        logger.info("Debug fast mode enabled.", extra={"icon": "🐇"})
+        try:
+            config_data = util.deep_update(
+                config_data,
+                load_config_file(dirs.resources_dir / "debug_fast.yaml"),
+            )
+        except ValidationError as e:
+            logger.error(f"Debug fast configuration is invalid: {e.message}")
+            logger.info(f"Path: {'.'.join(str(p) for p in e.path)}")
+            sys.exit(1)
+        except ValueError as e:
+            logger.error(f"Error loading debug fast configuration: {e}")
+            sys.exit(1)
 
     # Load local user configuration
     user_config_file = dirs.user_config_file
@@ -340,6 +357,11 @@ def validate_param(
     is_flag=True,
     help="Enable profiling of the build process",
 )
+@click.option(
+    "--debug-fast",
+    is_flag=True,
+    help="Enable fast debug mode (for development purposes only). This disables slow features or uses faster alternatives.",
+)
 @click.argument(
     "source_dir",
     type=click.Path(path_type=pathlib.Path),
@@ -362,6 +384,7 @@ def build(
     num_processes: int,
     no_cache: bool,
     profile: bool,
+    debug_fast: bool,
 ) -> None:
     """Build the map diary from source directory to distribution directory."""
     # Get verbosity settings from CLI group context
@@ -404,5 +427,6 @@ def build(
             quiet=quiet,
             no_cache=no_cache,
             profile=profile,
+            debug_fast=debug_fast,
         )
     # Note: main() will call sys.exit()
