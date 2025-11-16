@@ -16,15 +16,15 @@ from mkmapdiary.lib.dirs import Dirs
 from .lib.assetRegistry import AssetRegistry
 from .tasks import (
     AudioTask,
-    Cr2Task,
     DayPageTask,
     GalleryTask,
+    GpsbabelInputTask,
     GPXTask,
     ImageTask,
     JournalTask,
     MarkdownTask,
     PostprocessingTask,
-    QstarzTask,
+    RawInputTask,
     SiteTask,
     TagsTask,
     TextTask,
@@ -35,12 +35,12 @@ logger = logging.getLogger(__name__)
 tasks = [
     ImageTask,
     SiteTask,
-    Cr2Task,
+    RawInputTask,
     TextTask,
     MarkdownTask,
     AudioTask,
     GPXTask,
-    QstarzTask,
+    GpsbabelInputTask,
     TagsTask,
     PostprocessingTask,
     DayPageTask,
@@ -64,8 +64,6 @@ class TaskList(*tasks):  # type: ignore
         cache: MutableMapping,
         scan: bool = True,
     ):
-        super().__init__()
-
         self.__config = config
         self.__cache = cache
         self.__dirs = dirs
@@ -78,6 +76,8 @@ class TaskList(*tasks):  # type: ignore
                 effects=[],
             ),
         ]
+
+        super().__init__()
 
         # Store assets by date and then type
         self.__db = AssetRegistry()

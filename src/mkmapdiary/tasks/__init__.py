@@ -1,27 +1,27 @@
 from .audioTask import AudioTask
-from .cr2Task import Cr2Task
 from .dayPageTask import DayPageTask
 from .galleryTask import GalleryTask
+from .gpsbabelInputTask import GpsbabelInputTask
 from .gpxTask import GPXTask
 from .imageTask import ImageTask
 from .journalTask import JournalTask
 from .markdownTask import MarkdownTask
 from .postprocessingTask import PostprocessingTask
-from .qstarzTask import QstarzTask
+from .rawInputTask import RawInputTask
 from .siteTask import SiteTask
 from .tagsTask import TagsTask
 from .textTask import TextTask
 
 __all__ = [
     "AudioTask",
-    "Cr2Task",
+    "RawInputTask",
     "DayPageTask",
     "GalleryTask",
     "GPXTask",
     "ImageTask",
     "JournalTask",
     "MarkdownTask",
-    "QstarzTask",
+    "GpsbabelInputTask",
     "SiteTask",
     "TagsTask",
     "TextTask",

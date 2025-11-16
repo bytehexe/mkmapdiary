@@ -8,14 +8,15 @@ import rawpy
 
 from mkmapdiary.lib.asset import AssetRecord
 from mkmapdiary.lib.calibration import Calibration
+from mkmapdiary.tasks.base.multiFormat import MultiFormat
 
 from .base.exifReader import ExifReader
-from .imageTask import BaseTask
 
 
-class Cr2Task(BaseTask, ExifReader):
+class RawInputTask(MultiFormat, ExifReader):
     def __init__(self) -> None:
         super().__init__()
+        self.setup_multiformat("raw", self.__handle_raw)
         self.__sources: list[PosixPath] = []
 
     @abstractmethod
@@ -26,7 +27,9 @@ class Cr2Task(BaseTask, ExifReader):
         filename = PosixPath(self.dirs.files_dir / source.stem).with_suffix(".jpeg")
         return self.make_unique_filename(source, filename)
 
-    def handle_ext_cr2(self, source: PosixPath, calibration: Calibration) -> Generator:
+    def __handle_raw(
+        self, source: PosixPath, calibration: Calibration, _option: str
+    ) -> Generator:
         self.__sources.append(source)
         intermediate_file = self.__generate_intermediate_filename(source)
         assets = list(self.handle_image(intermediate_file, calibration))

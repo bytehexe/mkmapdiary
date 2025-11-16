@@ -35,6 +35,36 @@ definitions:
     additionalProperties: false
 
 properties:
+  input_formats:
+    type: object
+    description: "Input format configuration settings"
+    properties:
+      gpsbabel:
+        type: object
+        properties:
+          formats:
+            type: object
+            description: "Supported GPS data file formats"
+            additionalProperties:
+              anyOf:
+                - type: "string"
+                - type: "null"
+              description: "Format name to pass to gpsbabel, or null to disable"
+        additionalProperties: false
+      raw:
+        type: object
+        properties:
+          formats:
+            type: object
+            description: "Supported raw image file formats"
+            additionalProperties:
+              anyOf:
+                - type: "string"
+                - type: "null"
+              description: "Format name to pass to libraw, or null to disable"
+
+    additionalProperties: false
+
   features:
     type: object
     description: "Feature configuration settings"
@@ -135,19 +165,6 @@ properties:
           threshold:
             type: number
             description: "Entropy threshold for filtering"
-        additionalProperties: false
-
-      gpsbabel_import:
-        type: object
-        properties:
-          enabled:
-            type: boolean
-            description: "Enable or disable gpsbabel import. Use !auto for automatic detection."
-          formats:
-            type: object
-            description: "Supported GPS data file formats"
-            additionalProperties:
-              type: string
         additionalProperties: false
 
       track_simplification:

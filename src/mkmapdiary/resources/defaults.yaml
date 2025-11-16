@@ -3,6 +3,31 @@
 # The !auto value indicates that the value is automatically determined
 # based on system settings.
 
+input_formats:
+  # Supported file formats
+  # --
+  # formats:
+  # Key starting with a dot: indicates a file extension
+  # Key without a dot: indicates a tag from identify-cli
+  # Value: the format name to pass to the respective input handler; null to ignore the file
+  gpsbabel:
+    formats:
+      # Do not add gpx here! It is the internal default format.
+      kml: kml
+      .bin: qstarz_bl-1000
+      .poi: qstarz_bl-1000
+      .dat: null
+  raw:
+    formats:
+      .cr2: raw
+      .cr3: raw
+      .crw: raw
+      .nef: raw
+      .nrw: raw
+      .arw: raw
+      .sr2: raw
+      .srf: raw
+
 features:
   # Feature configuration defaults
   cr2:
@@ -36,17 +61,6 @@ features:
     threshold: 6.5  # TODO: Not implemented - no code uses this configuration
   image_comparison:
     enabled: true
-  gpsbabel_import:
-    enabled: !auto  # TODO: Not implemented - only auto-detection logic exists
-    # Supported GPS data file formats
-    # Key starting with a dot: indicates a file extension
-    # Key without a dot: indicates a tag from identify-cli
-    # Value: the format name to pass to gpsbabel
-    formats:  # TODO: Not implemented - no code uses this configuration
-      gpx: gpx
-      kml: kml
-      .bin: qstarz_bl-1000
-      .poi: qstarz_bl-1000
   track_simplification:
     enabled: !auto  # TODO: Not implemented - only auto-detection logic exists
     tolerance: !distance 1 meter  # TODO: Not implemented - no code uses this configuration
