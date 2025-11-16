@@ -10,7 +10,7 @@ features:
   transcription:
     enabled: !auto
   llms:
-    enabled: true  # TODO: Not implemented - no code checks this flag
+    enabled: true
     text_model: "llama3:8b"  # TODO: Not implemented - individual llm_prompts.*.model used instead
   geo_correlation:
     enabled: true  # TODO: Not implemented - no code checks this flag, correlation always runs
@@ -29,13 +29,13 @@ features:
   iqa:
     enabled: true
     method: !auto
-    threshold: 0.1 # For CLIPIQA
+    threshold: 0.1  # For CLIPIQA
     stddev_factor: 2 # For Simple
   entropy_filtering:
-    enabled: true  # TODO: Not implemented - no code uses this configuration
+    enabled: true
     threshold: 6.5  # TODO: Not implemented - no code uses this configuration
   image_comparison:
-    enabled: true  # TODO: Not implemented - no code uses this configuration
+    enabled: true
   gpsbabel_import:
     enabled: !auto  # TODO: Not implemented - only auto-detection logic exists
     # Supported GPS data file formats
