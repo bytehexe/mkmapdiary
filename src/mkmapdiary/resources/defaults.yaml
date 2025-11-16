@@ -5,6 +5,8 @@
 
 features:
   # Feature configuration defaults
+  cr2:
+    use_thumbnail: false
   transcription:
     enabled: !auto
   llms:
@@ -25,13 +27,15 @@ features:
       village: 80
       train_station: 30
   iqa:
-    # always enabled
+    enabled: true
     method: !auto
     threshold: 0.1 # For CLIPIQA
     stddev_factor: 2 # For Simple
   entropy_filtering:
     enabled: true  # TODO: Not implemented - no code uses this configuration
     threshold: 6.5  # TODO: Not implemented - no code uses this configuration
+  image_comparison:
+    enabled: true  # TODO: Not implemented - no code uses this configuration
   gpsbabel_import:
     enabled: !auto  # TODO: Not implemented - only auto-detection logic exists
     # Supported GPS data file formats

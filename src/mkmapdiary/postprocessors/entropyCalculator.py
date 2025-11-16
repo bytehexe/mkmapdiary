@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 import numpy as np
 from PIL import Image
 
@@ -12,11 +14,19 @@ class EntropyCalculator(SingleAssetPostprocessor):
     def info(self) -> str:
         return "Calculating image entropy."
 
+    def __init__(self, ai: Callable, config: dict) -> None:
+        super().__init__(ai, config)
+        self.__enabled = config["features"]["entropy_filtering"]["enabled"]
+
     @classmethod
     def filter(cls, asset: AssetRecord) -> bool:
         return asset.type == "image"
 
     def processSingleAsset(self, asset: AssetRecord) -> None:
+        if not self.__enabled:
+            asset.entropy = 8.0
+            return
+
         resize = 256
         img = Image.open(asset.path).convert("L").resize((resize, resize))
         arr = np.asarray(img, dtype=np.float32)

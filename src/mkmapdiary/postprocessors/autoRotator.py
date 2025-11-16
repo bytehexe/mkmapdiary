@@ -18,18 +18,21 @@ class AutoRotator(MultiAssetPostprocessor):
         return "Auto-rotating images based on content"
 
     def __init__(self, ai: Callable[..., Any], config: dict) -> None:
+        super().__init__(ai, config)
+
+    def processAllAssets(self, assets: list[AssetRecord]) -> None:
+        if not (any("autorotate" in asset.effects for asset in assets)):
+            return  # No assets to process
+
         import onnxruntime as ort
+        import torchvision.transforms as T
         from huggingface_hub import hf_hub_download
 
-        super().__init__(ai, config)
         model_path = hf_hub_download(
             repo_id="DuarteBarbosa/deep-image-orientation-detection",
             filename="orientation_model_v2_0.9882.onnx",
         )
         self.sess = ort.InferenceSession(model_path)
-
-    def processAllAssets(self, assets: list[AssetRecord]) -> None:
-        import torchvision.transforms as T
 
         # Pre-processing transforms
         transform = T.Compose(

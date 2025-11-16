@@ -29,3 +29,6 @@ env/
 # vim swap files
 *.swp
 *~
+
+# Profiling data
+mkmapdiary_profile.prof

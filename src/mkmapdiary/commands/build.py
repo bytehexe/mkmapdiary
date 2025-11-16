@@ -3,9 +3,11 @@ import locale
 import logging
 import os
 import pathlib
+import queue
 import sys
 import tempfile
 from collections.abc import MutableMapping
+from contextlib import nullcontext
 from typing import Any
 
 import click
@@ -37,6 +39,7 @@ def main(
     verbose: bool,
     quiet: bool,
     no_cache: bool,
+    profile: bool,
 ) -> None:
     # Add file logging for build command (console logging already configured at CLI level)
     add_file_logging(build_dir)
@@ -267,6 +270,20 @@ def main(
         extra_config=doit_config,
     ).run(proccess_args)
     logger.info("Done.", extra={"icon": "✅"})
+
+    if profile:
+        import yappi
+        from doit.runner import MThreadRunner
+
+        yappi.get_func_stats(
+            filter_callback=lambda stat: not yappi.module_matches(stat, [queue])
+            and not yappi.func_matches(stat, [MThreadRunner.execute_task_subprocess]),
+        ).save("mkmapdiary_profile.prof", type="pstat")
+        logger.info(
+            "Profile data saved to mkmapdiary_profile.prof",
+            extra={"icon": "📊"},
+        )
+
     sys.exit(exitcode)
 
 
@@ -318,6 +335,11 @@ def validate_param(
     is_flag=True,
     help="Disable cache in the home directory (not recommended)",
 )
+@click.option(
+    "--profile",
+    is_flag=True,
+    help="Enable profiling of the build process",
+)
 @click.argument(
     "source_dir",
     type=click.Path(path_type=pathlib.Path),
@@ -339,6 +361,7 @@ def build(
     always_execute: bool,
     num_processes: int,
     no_cache: bool,
+    profile: bool,
 ) -> None:
     """Build the map diary from source directory to distribution directory."""
     # Get verbosity settings from CLI group context
@@ -354,24 +377,25 @@ def build(
     if persistent_build and build_dir is None:
         build_dir = source_dir.with_name(source_dir.name + "_build")
 
-    if build_dir is None:
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            temp_build_dir = pathlib.Path(tmpdirname)
-            main(
-                dist_dir=dist_dir,
-                build_dir=temp_build_dir,
-                source_dir=source_dir,
-                params=params,
-                always_execute=always_execute,
-                num_processes=num_processes,
-                verbose=verbose,
-                quiet=quiet,
-                no_cache=no_cache,
-            )
+    if profile:
+        import yappi
+
+        yappi.set_clock_type("wall")
+        profile_context = yappi.run()
     else:
+        profile_context = nullcontext()
+
+    build_dir_context: Any
+    if build_dir is None:
+        build_dir_context = tempfile.TemporaryDirectory()
+    else:
+        build_dir_context = nullcontext(build_dir)
+
+    with build_dir_context as tmpdirname, profile_context:
+        temp_build_dir = pathlib.Path(tmpdirname)
         main(
             dist_dir=dist_dir,
-            build_dir=build_dir,
+            build_dir=temp_build_dir,
             source_dir=source_dir,
             params=params,
             always_execute=always_execute,
@@ -379,4 +403,6 @@ def build(
             verbose=verbose,
             quiet=quiet,
             no_cache=no_cache,
+            profile=profile,
         )
+    # Note: main() will call sys.exit()

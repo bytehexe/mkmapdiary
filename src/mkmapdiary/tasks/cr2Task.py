@@ -50,6 +50,21 @@ class Cr2Task(BaseTask, ExifReader):
         """Convert a RAW image to JPEG."""
 
         def _convert(src: PosixPath, dst: PosixPath) -> None:
+            if self.config["features"]["cr2"]["use_thumbnail"]:
+                with rawpy.imread(str(src)) as raw:
+                    thumb = raw.extract_thumb()
+                    if thumb.format == rawpy.ThumbFormat.JPEG:
+                        with open(dst, "wb") as f:
+                            f.write(thumb.data)
+                        return
+                    elif thumb.format == rawpy.ThumbFormat.BITMAP:
+                        imageio.imwrite(dst, thumb.data)
+                        return
+                    else:
+                        raise ValueError(
+                            f"Unsupported thumbnail format: {thumb.format}"
+                        )
+
             with rawpy.imread(str(src)) as raw:
                 rgb = raw.postprocess(
                     use_camera_wb=True,  # Kamera-Weißabgleich

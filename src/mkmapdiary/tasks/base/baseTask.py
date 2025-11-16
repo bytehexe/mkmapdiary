@@ -170,6 +170,10 @@ class BaseTask(ABC, metaclass=ABCMeta):
         self, prompt: str, model: str, message_params: dict | None = None, **params: Any
     ) -> str:
         """Generate text using an AI model."""
+
+        if not self.config["features"]["llms"]["enabled"]:
+            return ""
+
         message = {"role": "user", "content": prompt}
         if message_params is not None:
             message.update(message_params)

@@ -77,6 +77,10 @@ autorotate = [
     "torchvision",
 ]
 
+profile = [
+    "yappi",
+]
+
 all = [
     "huggingface_hub",
     "onnxruntime",
@@ -84,6 +88,7 @@ all = [
     "torch",
     "torchvision",
     "piq",
+    "yappi",
 ]
 
 [project.scripts]
@@ -230,6 +235,10 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module="humanfriendly.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module="yappi.*"
 ignore_missing_imports = true
 
 [tool.coverage.run]

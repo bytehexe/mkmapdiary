@@ -39,6 +39,14 @@ properties:
     type: object
     description: "Feature configuration settings"
     properties:
+      cr2:
+        type: object
+        properties:
+          use_thumbnail:
+            type: boolean
+            description: "Use embedded thumbnail for CR2 images if available"
+        additionalProperties: false
+
       transcription:
         type: object
         properties:
@@ -95,6 +103,9 @@ properties:
       iqa:
         type: object
         properties:
+          enabled:
+            type: boolean
+            description: "Enable or disable image quality assessment"
           method:
             type: string
             enum: ["clipiqa", "simple"]
@@ -105,6 +116,14 @@ properties:
           stddev_factor:
             type: number
             description: "Standard deviation factor for 'simple' method"
+        additionalProperties: false
+
+      image_comparison:
+        type: object
+        properties:
+          enabled:
+            type: boolean
+            description: "Enable or disable image comparison feature"
         additionalProperties: false
 
       entropy_filtering:
