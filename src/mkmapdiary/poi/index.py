@@ -1,5 +1,6 @@
 import logging
 import pathlib
+from collections.abc import Callable
 from threading import Lock
 from typing import Any, NamedTuple
 
@@ -133,9 +134,10 @@ class Index:
         cache_dir: pathlib.Path,
         keep_pbf: bool = False,
         rank_offset: tuple[int, int] = (-1, 1),
+        fixed_rank: tuple[int, int] | None = None,
     ):
         with lock:
-            self.__init(index_data, cache_dir, keep_pbf, rank_offset)
+            self.__init(index_data, cache_dir, keep_pbf, rank_offset, fixed_rank)
 
     def __init(
         self,
@@ -143,6 +145,7 @@ class Index:
         cache_dir: pathlib.Path,
         keep_pbf: bool,
         rank_offset: tuple[int, int],
+        fixed_rank: tuple[int, int] | None,
     ) -> None:
         with open(
             pathlib.Path(__file__).parent.parent
@@ -160,6 +163,7 @@ class Index:
         self.cache_dir = cache_dir
         self.keep_pbf = keep_pbf
         self.rank_offset = rank_offset
+        self.fixed_rank = fixed_rank
         self.finder = RegionFinder(self.geofabrik_data)
 
     def get_key(self, geo_data: BaseGeometry) -> IndexKey:
@@ -237,8 +241,11 @@ class Index:
         if rank is None:
             raise ValueError("Invalid rank calculated for the area of interest.")
 
-        min_rank = clip_rank(rank + self.rank_offset[0])
-        max_rank = clip_rank(rank + self.rank_offset[1])
+        if self.fixed_rank is not None:
+            min_rank, max_rank = self.fixed_rank
+        else:
+            min_rank = clip_rank(rank + self.rank_offset[0])
+            max_rank = clip_rank(rank + self.rank_offset[1])
 
         # Create IndexKey with all regions and calculated ranks
         key = IndexKey(regions=regions, min_rank=min_rank, max_rank=max_rank)
@@ -251,7 +258,6 @@ class Index:
     def load_regions(
         self,
         key: IndexKey,
-        geo_data: BaseGeometry,
         existing_proxy: IndexProxy | None = None,
     ) -> IndexProxy:
         """
@@ -272,25 +278,6 @@ class Index:
         if existing_proxy is not None and existing_proxy.matches_key(key):
             logger.info("Reusing existing proxy with exact matching key")
             return existing_proxy
-
-        logger.debug("Projecting geo data to local coordinates...")
-        local_projection = LocalProjection(geo_data)
-        local_geo_data = local_projection.to_local(geo_data)
-
-        logger.debug("Calculating center...")
-
-        logger.debug("Calculating bounding radius...")
-        if local_geo_data.area == 0:
-            logger.debug(
-                "Area is zero, buffering geometry by 50 meters to avoid issues...",
-            )
-            try:
-                # Compute convex hull to simplify geometry before buffering
-                # This helps avoid memory issues, otherwise buffering complex geometries can be very expensive
-                local_geo_data = local_geo_data.convex_hull
-            except Exception as e:
-                logger.warning("Error occurred while calculating convex hull: %s", e)
-            local_geo_data = local_geo_data.buffer(50, resolution=2, quad_segs=2)
 
         # Build the ball tree with the specified regions and ranks
         builder = BallTreeBuilder(self.filter_config)
@@ -327,3 +314,20 @@ class Index:
             index_key=key,
             region_data=region_data,
         )
+
+    def batch_load_regions(
+        self,
+        keys: list[tuple[IndexKey, Callable, dict]],
+    ) -> None:
+        """
+        Batch load multiple IndexProxies for the given list of IndexKeys,
+        reusing existing proxies where possible.
+        """
+
+        current_proxy: IndexProxy | None = None
+
+        for key, callback, kwargs in keys:
+            logger.info("Loading regions (with potential reuse of existing proxy)")
+            proxy = self.load_regions(key, existing_proxy=current_proxy)
+            current_proxy = proxy  # Store for potential reuse in next keys
+            callback(proxy, **kwargs)

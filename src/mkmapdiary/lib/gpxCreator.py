@@ -270,7 +270,7 @@ class GpxCreator:
 
             # Load regions with potential reuse of existing proxy
             logger.debug("Loading regions (with potential reuse of existing proxy)")
-            proxy = index.load_regions(key, cluster.shape, existing_proxy=current_proxy)
+            proxy = index.load_regions(key, existing_proxy=current_proxy)
             current_proxy = proxy  # Store for potential reuse in next clusters
 
             logger.debug("Index proxy loaded, querying nearest POI")
