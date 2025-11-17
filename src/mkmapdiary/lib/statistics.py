@@ -1,6 +1,10 @@
+import logging
+
 import numpy as np
 import whenever
 from sklearn.metrics.pairwise import haversine_distances
+
+logger = logging.getLogger(__name__)
 
 
 class Statistics:
@@ -29,24 +33,39 @@ class Statistics:
         self,
         time: whenever.Instant,
         position: tuple[float, float],  # (lon, lat)
-        elevation: float | None = None,
     ) -> None:
         self.__time = time
         self.__position = position
-        self.__elevation = elevation
 
     def __set_elevation(
         self,
-        elevation: float | None = None,
+        elevation: float | None,
+        time_delta: float,
     ) -> None:
-        if elevation is None or self.__elevation is None:
+        if elevation is None:
+            self.__elevation = None
+            return
+        elif self.__elevation is None:
+            self.__elevation = elevation
             return
 
         delta = elevation - self.__elevation
+        if time_delta > 0:
+            elevation_rate = delta / time_delta
+            if elevation_rate > 3 or elevation_rate < -8:
+                # Ignore unrealistic elevation changes
+                self.__elevation = elevation
+                return
+
+        if abs(delta) < 5:
+            # Smooth out small elevation changes
+            return
+
         if delta > 0:
             self.elevation_gain += delta
         else:
             self.elevation_loss += -delta
+        self.__elevation = elevation
 
     def add_entry(
         self,
@@ -55,7 +74,8 @@ class Statistics:
         elevation: float | None = None,
     ) -> None:
         if self.__time is None:
-            self.__set_point(time, position, elevation)
+            self.__set_point(time, position)
+            self.__set_elevation(elevation, 0.0)
             return
 
         assert self.__time is not None
@@ -79,9 +99,9 @@ class Statistics:
             return
 
         self.distance += distance
-        self.__set_elevation(elevation)
+        self.__set_elevation(elevation, time_delta)
 
         if speed >= self.THRESHOLDS["movement"]:
             self.time_moving += time_delta
 
-        self.__set_point(time, position, elevation)
+        self.__set_point(time, position)
