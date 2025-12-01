@@ -74,22 +74,22 @@ function addQualityMarkers() {
         for (var marker of markers) {
             var $marker_span = $("<i></i>")
             if (marker === "good") {
-                $marker_span.addClass("iconoir-star").attr("title", "Good quality");
+                $marker_span.addClass("iconoir-star").attr("title", window.quality_strings.good);
                 $qm.append($marker_span);
             } else if (marker === "bad") {
-                $marker_span.addClass("iconoir-priority-down").attr("title", "Bad quality");
+                $marker_span.addClass("iconoir-priority-down").attr("title", window.quality_strings.bad);
                 $qm.append($marker_span);
             } else if (marker === "excellent") {
-                $marker_span.addClass("iconoir-flower").attr("title", "Excellent quality");
+                $marker_span.addClass("iconoir-flower").attr("title", window.quality_strings.excellent);
                 $qm.append($marker_span);
             } else if (marker === "low_entropy") {
-                $marker_span.addClass("iconoir-priority-medium").attr("title", "Low entropy");
+                $marker_span.addClass("iconoir-priority-medium").attr("title", window.quality_strings.low_entropy);
                 $qm.append($marker_span);
             } else if (marker === "duplicate") {
-                $marker_span.addClass("iconoir-minus-square").attr("title", "Duplicate image");
+                $marker_span.addClass("iconoir-minus-square").attr("title", window.quality_strings.duplicate);
                 $qm.append($marker_span);
             } else if (marker === "canonical") {
-                $marker_span.addClass("iconoir-plus-circle").attr("title", "Canonical image");
+                $marker_span.addClass("iconoir-plus-circle").attr("title", window.quality_strings.canonical);
                 $qm.append($marker_span);
             }
         }

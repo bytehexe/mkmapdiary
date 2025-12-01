@@ -119,3 +119,21 @@ msgstr "Fotos mit geringer Qualität einschließen"
 
 msgid "show_quality_icons"
 msgstr "Qualitätssymbole anzeigen"
+
+msgid "quality_good"
+msgstr "Gute Qualität"
+
+msgid "quality_bad"
+msgstr "Schlechte Qualität"
+
+msgid "quality_excellent"
+msgstr "Ausgezeichnete Qualität"
+
+msgid "quality_low_entropy"
+msgstr "Geringe Entropie"
+
+msgid "quality_duplicate"
+msgstr "Duplikat"
+
+msgid "quality_canonical"
+msgstr "Kanonisches Bild"

@@ -103,6 +103,12 @@ strings:
   include_duplicates: null
   include_low_quality: null
   show_quality_icons: null
+  quality_good: null
+  quality_bad: null
+  quality_excellent: null
+  quality_low_entropy: null
+  quality_duplicate: null
+  quality_canonical: null
 
 llm_prompts:
   # LLM prompt templates

@@ -119,3 +119,21 @@ msgstr "Include low quality photos"
 
 msgid "show_quality_icons"
 msgstr "Show quality icons"
+
+msgid "quality_good"
+msgstr "Good quality"
+
+msgid "quality_bad"
+msgstr "Bad quality"
+
+msgid "quality_excellent"
+msgstr "Excellent quality"
+
+msgid "quality_low_entropy"
+msgstr "Low entropy"
+
+msgid "quality_duplicate"
+msgstr "Duplicate image"
+
+msgid "quality_canonical"
+msgstr "Canonical image"

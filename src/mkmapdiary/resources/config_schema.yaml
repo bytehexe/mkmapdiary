@@ -258,6 +258,18 @@ properties:
         $ref: "#/definitions/customString"
       show_quality_icons:
         $ref: "#/definitions/customString"
+      quality_good:
+        $ref: "#/definitions/customString"
+      quality_bad:
+        $ref: "#/definitions/customString"
+      quality_excellent:
+        $ref: "#/definitions/customString"
+      quality_low_entropy:
+        $ref: "#/definitions/customString"
+      quality_duplicate:
+        $ref: "#/definitions/customString"
+      quality_canonical:
+        $ref: "#/definitions/customString"
     additionalProperties: false
 
   llm_prompts:

@@ -1,5 +1,13 @@
 <script>
 highlight_max_rows = 1;
+quality_strings = {
+    good: {{ strings.quality_good | tojson }},
+    bad: {{ strings.quality_bad | tojson }},
+    excellent: {{ strings.quality_excellent | tojson }},
+    low_entropy: {{ strings.quality_low_entropy | tojson }},
+    duplicate: {{ strings.quality_duplicate | tojson }},
+    canonical: {{ strings.quality_canonical | tojson }}
+};
 </script>
 {% if geo_items or gpx_data %}
 ## {{ strings.map_title }} { .hidden }
