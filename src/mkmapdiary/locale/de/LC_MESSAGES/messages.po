@@ -89,3 +89,33 @@ msgstr ""
 "Ausgabe-Beispiel:"
 "\n"
 "{example}"
+
+msgid "zoom_to_fit"
+msgstr "Auf Größe zoomen"
+
+msgid "download_gpx"
+msgstr "GPX herunterladen"
+
+msgid "legend_track"
+msgstr "Route"
+
+msgid "legend_waypoints"
+msgstr "Wegpunkte"
+
+msgid "legend_activity_areas"
+msgstr "Aktivitätsbereiche"
+
+msgid "legend_journal_entries"
+msgstr "Tagebucheinträge"
+
+msgid "overview_title"
+msgstr "Übersicht"
+
+msgid "include_duplicates"
+msgstr "Duplikate einschließen"
+
+msgid "include_low_quality"
+msgstr "Fotos mit geringer Qualität einschließen"
+
+msgid "show_quality_icons"
+msgstr "Qualitätssymbole anzeigen"

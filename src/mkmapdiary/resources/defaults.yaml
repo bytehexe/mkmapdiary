@@ -93,6 +93,16 @@ strings:
   summarize_journal_entry_prompt: null
   summarize_image_prompt: null
   assess_image_quality_prompt: null
+  zoom_to_fit: null
+  download_gpx: null
+  legend_track: null
+  legend_waypoints: null
+  legend_activity_areas: null
+  legend_journal_entries: null
+  overview_title: null
+  include_duplicates: null
+  include_low_quality: null
+  show_quality_icons: null
 
 llm_prompts:
   # LLM prompt templates

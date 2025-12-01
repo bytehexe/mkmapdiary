@@ -89,3 +89,33 @@ msgstr ""
 "Output Example:"
 "\n"
 "{example}"
+
+msgid "zoom_to_fit"
+msgstr "Zoom to fit"
+
+msgid "download_gpx"
+msgstr "Download GPX"
+
+msgid "legend_track"
+msgstr "Track"
+
+msgid "legend_waypoints"
+msgstr "Waypoints"
+
+msgid "legend_activity_areas"
+msgstr "Activity areas"
+
+msgid "legend_journal_entries"
+msgstr "Journal entries"
+
+msgid "overview_title"
+msgstr "Overview"
+
+msgid "include_duplicates"
+msgstr "Include duplicates"
+
+msgid "include_low_quality"
+msgstr "Include low quality photos"
+
+msgid "show_quality_icons"
+msgstr "Show quality icons"

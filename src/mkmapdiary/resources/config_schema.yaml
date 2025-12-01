@@ -238,6 +238,26 @@ properties:
         $ref: "#/definitions/customString"
       assess_image_quality_prompt:
         $ref: "#/definitions/customString"
+      zoom_to_fit:
+        $ref: "#/definitions/customString"
+      download_gpx:
+        $ref: "#/definitions/customString"
+      legend_track:
+        $ref: "#/definitions/customString"
+      legend_waypoints:
+        $ref: "#/definitions/customString"
+      legend_activity_areas:
+        $ref: "#/definitions/customString"
+      legend_journal_entries:
+        $ref: "#/definitions/customString"
+      overview_title:
+        $ref: "#/definitions/customString"
+      include_duplicates:
+        $ref: "#/definitions/customString"
+      include_low_quality:
+        $ref: "#/definitions/customString"
+      show_quality_icons:
+        $ref: "#/definitions/customString"
     additionalProperties: false
 
   llm_prompts:
