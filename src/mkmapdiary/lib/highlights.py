@@ -11,8 +11,8 @@ from mkmapdiary.lib.asset import AssetRecord
 logger = logging.getLogger(__name__)
 
 
-class StartPage:
-    def __init__(self, assets: list[AssetRecord], config: dict):
+class Highlights:
+    def __init__(self, assets: list[AssetRecord], config: dict, day_page: bool = False):
         self.assets = assets
         self.config = config
 
@@ -39,13 +39,19 @@ class StartPage:
         # Calculate mode
         if not geo_assets:
             self.with_map = False
-            self.target_gallery_count = 24
+            if day_page:
+                self.target_gallery_count = 8
+            else:
+                self.target_gallery_count = 24
             self.target_map_count = 0
             self.gallery_rows = 3
         else:
             self.with_map = True
             self.target_gallery_count = 8
-            self.target_map_count = 10
+            if day_page:
+                self.target_map_count = 0
+            else:
+                self.target_map_count = 10
             self.gallery_rows = 1
 
         # Ensure we don't request more map assets than available
@@ -260,6 +266,9 @@ class StartPage:
     @classmethod
     def _arrange_gallery_assets(cls, gallery_assets: list[AssetRecord]) -> None:
         """Arrange gallery assets to alternate between high and low quality."""
+
+        if len(gallery_assets) <= 2:
+            return
 
         distance_matrix = cls._calculate_distance_matrix(
             gallery_assets, with_geo=False, with_non_geo=True

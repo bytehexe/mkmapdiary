@@ -5,7 +5,7 @@ import pytest
 import whenever
 
 from mkmapdiary.lib.asset import AssetRecord
-from mkmapdiary.lib.startPage import StartPage
+from mkmapdiary.lib.highlights import Highlights
 
 
 class TestStartPageTimeDistanceMatrix:
@@ -13,7 +13,7 @@ class TestStartPageTimeDistanceMatrix:
 
     def test_calculate_time_distance_matrix_empty_assets(self) -> None:
         """Test time distance matrix calculation with empty asset list."""
-        result = StartPage._calculate_time_distance_matrix([])
+        result = Highlights._calculate_time_distance_matrix([])
         assert result.shape == (0, 0)
 
     def test_calculate_time_distance_matrix_single_asset(self) -> None:
@@ -24,7 +24,7 @@ class TestStartPageTimeDistanceMatrix:
             timestamp_utc=whenever.Instant.from_utc(2023, 1, 1, 12, 0, 0),
         )
 
-        result = StartPage._calculate_time_distance_matrix([asset])
+        result = Highlights._calculate_time_distance_matrix([asset])
 
         # Single asset should result in 1x1 matrix with value 0
         assert result.shape == (1, 1)
@@ -45,7 +45,7 @@ class TestStartPageTimeDistanceMatrix:
             ),  # 1 PM (1 hour later)
         )
 
-        result = StartPage._calculate_time_distance_matrix([asset1, asset2])
+        result = Highlights._calculate_time_distance_matrix([asset1, asset2])
 
         # Should be 2x2 symmetric matrix
         assert result.shape == (2, 2)
@@ -75,7 +75,7 @@ class TestStartPageTimeDistanceMatrix:
             )
             assets.append(asset)
 
-        result = StartPage._calculate_time_distance_matrix(assets)
+        result = Highlights._calculate_time_distance_matrix(assets)
 
         # Should be 5x5 symmetric matrix
         assert result.shape == (5, 5)
@@ -110,7 +110,7 @@ class TestStartPageTimeDistanceMatrix:
             )
             assets.append(asset)
 
-        result = StartPage._calculate_time_distance_matrix(assets)
+        result = Highlights._calculate_time_distance_matrix(assets)
 
         # Should be 3x3 matrix with all zeros (same timestamps)
         assert result.shape == (3, 3)
@@ -131,7 +131,7 @@ class TestStartPageTimeDistanceMatrix:
 
         # Should raise AssertionError for None timestamp when comparing assets
         with pytest.raises(AssertionError):
-            StartPage._calculate_time_distance_matrix([asset1, asset2])
+            Highlights._calculate_time_distance_matrix([asset1, asset2])
 
     def test_calculate_time_distance_matrix_extreme_time_differences(self) -> None:
         """Test time distance matrix with extreme time differences."""
@@ -146,7 +146,7 @@ class TestStartPageTimeDistanceMatrix:
             timestamp_utc=whenever.Instant.from_utc(2023, 12, 31, 23, 59, 59),
         )
 
-        result = StartPage._calculate_time_distance_matrix([asset1, asset2])
+        result = Highlights._calculate_time_distance_matrix([asset1, asset2])
 
         # Should handle extreme differences properly
         assert result.shape == (2, 2)
@@ -176,7 +176,7 @@ class TestStartPageTimeDistanceMatrix:
             timestamp_utc=base_time + whenever.TimeDelta(milliseconds=200),
         )
 
-        result = StartPage._calculate_time_distance_matrix([asset1, asset2, asset3])
+        result = Highlights._calculate_time_distance_matrix([asset1, asset2, asset3])
 
         # Should be 3x3 matrix
         assert result.shape == (3, 3)
@@ -220,7 +220,7 @@ class TestStartPageTimeDistanceMatrix:
             ),
         ]
 
-        result = StartPage._calculate_time_distance_matrix(assets)
+        result = Highlights._calculate_time_distance_matrix(assets)
 
         # Should be 4x4 matrix
         assert result.shape == (4, 4)
@@ -244,7 +244,7 @@ class TestStartPageGeoDistanceMatrix:
 
     def test_calculate_geo_distance_matrix_empty_assets(self) -> None:
         """Test geo distance matrix calculation with empty asset list."""
-        result = StartPage._calculate_geo_distance_matrix([])
+        result = Highlights._calculate_geo_distance_matrix([])
         # Empty input should return 0x0 matrix
         assert result.shape == (0, 0)
 
@@ -257,7 +257,7 @@ class TestStartPageGeoDistanceMatrix:
             longitude=13.404954,
         )
 
-        result = StartPage._calculate_geo_distance_matrix([asset])
+        result = Highlights._calculate_geo_distance_matrix([asset])
 
         # Single asset should result in 1x1 matrix with value 0
         assert result.shape == (1, 1)
@@ -279,7 +279,7 @@ class TestStartPageGeoDistanceMatrix:
             longitude=2.294351,
         )
 
-        result = StartPage._calculate_geo_distance_matrix([asset_berlin, asset_paris])
+        result = Highlights._calculate_geo_distance_matrix([asset_berlin, asset_paris])
 
         # Should be 2x2 symmetric matrix
         assert result.shape == (2, 2)
@@ -326,7 +326,7 @@ class TestStartPageGeoDistanceMatrix:
             ),
         ]
 
-        result = StartPage._calculate_geo_distance_matrix(assets)
+        result = Highlights._calculate_geo_distance_matrix(assets)
 
         # Should be 4x4 symmetric matrix
         assert result.shape == (4, 4)
@@ -371,7 +371,7 @@ class TestStartPageGeoDistanceMatrix:
             ),
         ]
 
-        result = StartPage._calculate_geo_distance_matrix(assets)
+        result = Highlights._calculate_geo_distance_matrix(assets)
 
         # Should be 3x3 matrix
         assert result.shape == (3, 3)
@@ -404,7 +404,7 @@ class TestStartPageGeoDistanceMatrix:
             )
             assets.append(asset)
 
-        result = StartPage._calculate_geo_distance_matrix(assets)
+        result = Highlights._calculate_geo_distance_matrix(assets)
 
         # Should be 3x3 matrix with all zeros
         assert result.shape == (3, 3)
@@ -427,7 +427,7 @@ class TestStartPageGeoDistanceMatrix:
             ),
         ]
 
-        result = StartPage._calculate_geo_distance_matrix(assets)
+        result = Highlights._calculate_geo_distance_matrix(assets)
 
         # Should be 2x2 matrix
         assert result.shape == (2, 2)
@@ -465,7 +465,7 @@ class TestStartPageGeoDistanceMatrix:
             ),
         ]
 
-        result = StartPage._calculate_geo_distance_matrix(assets)
+        result = Highlights._calculate_geo_distance_matrix(assets)
 
         # Should be 3x3 matrix
         assert result.shape == (3, 3)
@@ -500,7 +500,7 @@ class TestStartPageGeoDistanceMatrix:
 
         # Should raise an AssertionError when coordinates are None
         with pytest.raises(AssertionError):
-            StartPage._calculate_geo_distance_matrix([asset_valid, asset_invalid])
+            Highlights._calculate_geo_distance_matrix([asset_valid, asset_invalid])
 
     def test_calculate_geo_distance_matrix_distance_ordering(self) -> None:
         """Test that geographic distances are ordered correctly."""
@@ -532,7 +532,7 @@ class TestStartPageGeoDistanceMatrix:
             ),
         ]
 
-        result = StartPage._calculate_geo_distance_matrix(assets)
+        result = Highlights._calculate_geo_distance_matrix(assets)
 
         # Should be 4x4 matrix
         assert result.shape == (4, 4)

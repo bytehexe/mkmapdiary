@@ -8,7 +8,7 @@ import sass
 import yaml
 from doit import create_after
 
-from mkmapdiary.lib.startPage import StartPage
+from mkmapdiary.lib.highlights import Highlights
 
 from .base.httpRequest import HttpRequest
 
@@ -101,7 +101,7 @@ class SiteTask(HttpRequest):
             images = self.db.get_assets_by_type("image")
 
             logger.info("Generating index page data ...")
-            page_info = StartPage(images, self.config)
+            page_info = Highlights(images, self.config)
             logger.info("Generating index page ...")
             logger.debug(f"Gallery assets: {len(page_info.gallery_assets)}")
             logger.debug(f"Map assets: {len(page_info.map_assets)}")

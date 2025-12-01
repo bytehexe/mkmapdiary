@@ -2,7 +2,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
     // Justified Gallery
 
-    var parameters = {
+    var highlight_parameters = {
         margins: 3,
         border: 0,
         rowHeight: 120,
@@ -10,17 +10,26 @@ window.addEventListener("DOMContentLoaded", () => {
         cssAnimation: false,
         imagesAnimationDuration: 50,
         filter: computeFilter(),
+        lastRow: 'hide',
+        maxRowsCount: window.highlight_max_rows,
     };
 
-    if (window.is_main_page === true) {
-        parameters.maxRowsCount = window.gallery_max_rows;
-        parameters.lastRow = 'hide';
-    } else {
-        parameters.lastRow = 'center';
-    }
+    var gallery_parameters = {
+        margins: 3,
+        border: 0,
+        rowHeight: 150,
+        maxRowHeight: 300,
+        cssAnimation: false,
+        imagesAnimationDuration: 50,
+        filter: computeFilter(),
+        lastRow: 'center',
+    };
+
+    window.theHighlights = $("#highlights p");
+    window.theHighlights.justifiedGallery(highlight_parameters)
 
     window.theGallery = $("#photo_gallery p");
-    window.theGallery.justifiedGallery(parameters)
+    window.theGallery.justifiedGallery(gallery_parameters)
 
     $("#include_duplicates, #include_bad_quality").on("change", function() {
         var filter = computeFilter();

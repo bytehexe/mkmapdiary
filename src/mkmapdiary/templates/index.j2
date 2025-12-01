@@ -1,12 +1,12 @@
 # {{ strings.home_title }}
 
-<div id="photo_gallery" class="startpage" markdown>
+<div id="highlights" class="startpage" markdown>
 {%- for item in gallery_images -%}
 ![](assets/{{ item.path.name }}){ height="200" width="200" }
 {%- endfor -%}
 </div>
 <script>
-gallery_max_rows = {{ gallery_rows }};
+highlight_max_rows = {{ gallery_rows }};
 is_main_page = true;
 </script>
 

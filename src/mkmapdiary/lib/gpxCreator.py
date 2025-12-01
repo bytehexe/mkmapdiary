@@ -31,12 +31,14 @@ class GpxCreator:
         db: AssetRegistry,
         region_cache_dir: Path,
         priorities: dict[str, int | None],
+        skip_poi_detection: bool = False,
     ) -> None:
         self.__sources = sources
         self.__db = db
         self.__region_cache_dir = region_cache_dir
         self.__priorities = priorities
         self.index_data = index_data
+        self.__skip_poi_detection = skip_poi_detection
 
         # Data structures organized by date - using defaultdict for lazy initialization
         self.__coords_by_date: defaultdict[Date, list[list[float]]] = defaultdict(list)
@@ -153,6 +155,13 @@ class GpxCreator:
 
     def __compute_clusters(self) -> None:
         logger.debug("Computing geospatial clusters for all dates")
+
+        if self.__skip_poi_detection:
+            logger.info(
+                "Skipping POI detection as per configuration",
+                extra={"icon": "⏭️"},
+            )
+            return
 
         # First pass: compute all clusters and their index keys
         all_clusters = []

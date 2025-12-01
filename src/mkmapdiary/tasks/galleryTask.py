@@ -6,6 +6,7 @@ import whenever
 from doit import create_after
 from whenever import Date
 
+from ..lib.highlights import Highlights
 from ..lib.statistics import Statistics
 from .base.baseTask import BaseTask
 
@@ -28,10 +29,13 @@ class GalleryTask(BaseTask):
                 self.dirs.docs_dir / "templates" / f"{date.format_iso()}_gallery.md"
             )
 
+            images = self.db.get_assets_by_date(date, "image")
+            page_info = Highlights(images, self.config, day_page=True)
+
             gallery_items = []
             geo_items = []
 
-            for i, asset in enumerate(self.db.get_assets_by_date(date, "image")):
+            for i, asset in enumerate(images):
                 gallery_items.append(asset)
 
                 if asset.is_bad or asset.is_duplicate:
@@ -44,7 +48,7 @@ class GalleryTask(BaseTask):
                         thumbnail="assets/" + str(asset.path).split("/")[-1],
                         lat=geo_asset.latitude,
                         lng=geo_asset.longitude,
-                        index=i,
+                        index=i + len(page_info.gallery_assets),
                         quality=geo_asset.quality,
                         low_entropy=int(
                             asset.entropy is not None and asset.entropy < 6.5
@@ -75,6 +79,7 @@ class GalleryTask(BaseTask):
                         has_duplicates=any(
                             asset.is_duplicate for asset in gallery_items
                         ),
+                        highlight_images=page_info.gallery_assets,
                         gallery_items=gallery_items,
                         geo_items=geo_items,
                         gpx_data=gpx_data,

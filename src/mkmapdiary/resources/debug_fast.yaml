@@ -9,3 +9,5 @@ features:
     enabled: false
   cr2:
     use_thumbnail: true
+  poi_detection:
+    enabled: false

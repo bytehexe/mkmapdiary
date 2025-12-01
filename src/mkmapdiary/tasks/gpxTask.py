@@ -93,6 +93,9 @@ class GPXTask(HttpRequest):
                 self.__sources,
                 self.db,
                 self.dirs.region_cache_dir,
+                skip_poi_detection=not self.config["features"]["poi_detection"][
+                    "enabled"
+                ],
                 priorities=self.config["features"]["poi_detection"]["priorities"],
             )
 
