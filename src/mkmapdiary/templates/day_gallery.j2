@@ -39,7 +39,7 @@ gpx_data = {{ gpx_data | tojson }};
         <span title="{{ strings.track_distance }}"><i class="iconoir-dot-arrow-right"></i> {{ track_statistics.distance | format_length }}</span> · 
         <span title="{{ strings.track_elevation_gain }}"><i class="iconoir-arrow-up-right"></i> {{ track_statistics.elevation_gain | format_length }}</span> · 
         <span title="{{ strings.track_elevation_loss }}"><i class="iconoir-arrow-down-right"></i> {{ track_statistics.elevation_loss | format_length }}</span> · 
-        <span title="{{ strings.track_time_moving }}"><i class="iconoir-timer"></i> {{ track_statistics.time_moving | format_timespan }}</span> · 
+        <span title="{{ strings.track_time_moving }}"><i class="iconoir-timer"></i> {{ track_statistics.time_moving | format_timespan_hours }}</span> · 
         <span title="{{ strings.track_total_time }}"><i class="iconoir-calendar"></i> {{ track_statistics.total_time | format_timespan }}</span>
     </td>
 </tr>

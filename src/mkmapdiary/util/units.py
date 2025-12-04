@@ -15,6 +15,19 @@ def format_time(seconds: float) -> str:
     return f"{int(days)} d {hours_left} h"
 
 
+def format_time_hours(seconds: float) -> str:
+    """Time formatting with hours as the biggest unit: # (s|min|h) # (s|min)"""
+    if seconds < 60:
+        return f"{seconds:.0f} s"
+    minutes = seconds / 60
+    if minutes < 60:
+        seconds_left = int(seconds % 60)
+        return f"{int(minutes)} min {seconds_left:02d} s"
+    hours = minutes / 60
+    minutes_left = int(minutes % 60)
+    return f"{int(hours)} h {minutes_left:02d} min"
+
+
 def format_distance(meters: float) -> str:
     """Rough distance formatting from meters to #.## (unit)"""
     if meters < 1000:

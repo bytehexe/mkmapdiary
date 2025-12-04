@@ -14,7 +14,7 @@ from mkmapdiary.lib.assetRegistry import AssetRegistry
 from mkmapdiary.lib.calibration import Calibration
 from mkmapdiary.lib.dirs import Dirs
 from mkmapdiary.util.cache import with_cache
-from mkmapdiary.util.units import format_distance, format_time
+from mkmapdiary.util.units import format_distance, format_time, format_time_hours
 
 ai_lock = threading.Lock()
 
@@ -44,6 +44,7 @@ class BaseTask(ABC, metaclass=ABCMeta):
             undefined=StrictUndefined,
         )
         self.__template_env.filters["format_timespan"] = format_time
+        self.__template_env.filters["format_timespan_hours"] = format_time_hours
         self.__template_env.filters["format_length"] = format_distance
 
     @abstractmethod
