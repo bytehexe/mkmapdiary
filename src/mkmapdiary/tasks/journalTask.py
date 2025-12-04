@@ -1,7 +1,6 @@
 import logging
 import pathlib
 from collections.abc import Iterator
-from datetime import datetime
 from typing import Any
 
 import whenever
@@ -57,21 +56,35 @@ class JournalTask(BaseTask):
 
                 # Ensure asset_data is not None before creating item
                 if asset_data is not None:
-                    timestamp = (
-                        asset_data.timestamp_utc.format_iso()
-                        if asset_data.timestamp_utc
-                        else None
-                    )
-                    assert isinstance(timestamp, (str, type(None))), (
-                        "Timestamp should be a string or None"
-                    )
+                    # Use timestamp_geo if available, fall back to timestamp_utc
+                    timestamp_obj = asset_data.timestamp_geo or asset_data.timestamp_utc
+
+                    if timestamp_obj:
+                        # Format time
+                        time_str = (
+                            timestamp_obj.format_iso()
+                            .split("T")[1]
+                            .split("+")[0]
+                            .split("-")[0]
+                            .split("Z")[0][:8]
+                        )
+
+                        # Extract timezone info
+                        if asset_data.timestamp_geo and hasattr(
+                            asset_data.timestamp_geo, "tz"
+                        ):
+                            timezone_str = str(asset_data.timestamp_geo.tz)
+                        else:
+                            timezone_str = "UTC"
+                    else:
+                        time_str = ""
+                        timezone_str = ""
 
                     item = dict(
                         type=asset.type,
                         path=pathlib.PosixPath(asset.path).name,
-                        time=datetime.fromisoformat(timestamp).strftime("%X")
-                        if timestamp
-                        else "",
+                        time=time_str,
+                        timezone=timezone_str,
                         latitude=asset_data.latitude,
                         longitude=asset_data.longitude,
                         location=location,
