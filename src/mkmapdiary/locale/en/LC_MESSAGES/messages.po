@@ -137,3 +137,18 @@ msgstr "Duplicate image"
 
 msgid "quality_canonical"
 msgstr "Canonical image"
+
+msgid "track_label"
+msgstr "Track"
+
+msgid "track_distance"
+msgstr "Distance"
+
+msgid "track_elevation_gain"
+msgstr "Elevation Gain"
+
+msgid "track_elevation_loss"
+msgstr "Elevation Loss"
+
+msgid "track_time_moving"
+msgstr "Time Moving"

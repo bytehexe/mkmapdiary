@@ -270,6 +270,16 @@ properties:
         $ref: "#/definitions/customString"
       quality_canonical:
         $ref: "#/definitions/customString"
+      track_label:
+        $ref: "#/definitions/customString"
+      track_distance:
+        $ref: "#/definitions/customString"
+      track_elevation_gain:
+        $ref: "#/definitions/customString"
+      track_elevation_loss:
+        $ref: "#/definitions/customString"
+      track_time_moving:
+        $ref: "#/definitions/customString"
     additionalProperties: false
 
   llm_prompts:

@@ -109,6 +109,11 @@ strings:
   quality_low_entropy: null
   quality_duplicate: null
   quality_canonical: null
+  track_label: null
+  track_distance: null
+  track_elevation_gain: null
+  track_elevation_loss: null
+  track_time_moving: null
 
 llm_prompts:
   # LLM prompt templates
