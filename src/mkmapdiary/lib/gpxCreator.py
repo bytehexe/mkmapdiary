@@ -91,6 +91,10 @@ class GpxCreator:
             for seg in trk.segments:
                 track_points_by_date: dict[Date, list[gpxpy.gpx.GPXTrackPoint]] = {}
 
+                # Apply smoothing to the elevation data to reduce noise
+                seg.smooth(horizontal=True, vertical=True, remove_extremes=True)
+                seg.smooth(horizontal=True, vertical=True)
+
                 last_time = Instant.MAX
                 for pt in seg.points:
                     if pt.time is not None:

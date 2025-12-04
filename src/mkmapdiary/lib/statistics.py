@@ -57,7 +57,7 @@ class Statistics:
         delta = elevation - self.__elevation
         if time_delta > 0:
             elevation_rate = delta / time_delta
-            if elevation_rate > 3 or elevation_rate < -8:
+            if elevation_rate > 8 or elevation_rate < -8:
                 # Ignore unrealistic elevation changes
                 self.__elevation = elevation
                 return
