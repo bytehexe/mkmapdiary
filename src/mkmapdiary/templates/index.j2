@@ -15,9 +15,32 @@ is_main_page = true;
 {%- if with_map -%}
 
 <div id="map_box" class="startpage"></div>
+{% if gpx_data %}
+<div id="map-legend" class="map-legend" markdown> [{{ strings.zoom_to_fit }}](#){ id="showall_link" } |
+<span class="text-indigo">▪︎</span> {{ strings.legend_track }} ·
+<span class="text-green">▪︎</span> {{ strings.legend_waypoints }} ·
+<span class="text-orange">▪︎</span> {{ strings.legend_activity_areas }} ·
+<span class="text-purple">▪︎</span> {{ strings.legend_journal_entries }}</div>
+{% endif %}
 <script>
 photo_data = {{ map_images | tojson }};
-gpx_data = null;
+gpx_data = {{ gpx_data | tojson }};
 </script>
 
 {%- endif -%}
+{% if track_statistics %}
+## {{ strings.overview_title }}
+
+<table>
+<tr>
+    <td><b>{{ strings.track_label }}</b></td>
+    <td>
+        <span title="{{ strings.track_distance }}"><i class="iconoir-dot-arrow-right"></i> {{ track_statistics.distance | format_length }}</span> · 
+        <span title="{{ strings.track_elevation_gain }}"><i class="iconoir-arrow-up-right"></i> {{ track_statistics.elevation_gain | format_length }}</span> · 
+        <span title="{{ strings.track_elevation_loss }}"><i class="iconoir-arrow-down-right"></i> {{ track_statistics.elevation_loss | format_length }}</span> · 
+        <span title="{{ strings.track_time_moving }}"><i class="iconoir-timer"></i> {{ track_statistics.time_moving | format_timespan }}</span>
+    </td>
+</tr>
+</table>
+
+{% endif %}

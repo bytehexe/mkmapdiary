@@ -4,11 +4,14 @@ import shutil
 from collections.abc import Iterator
 from typing import Any
 
+import gpxpy
+import gpxpy.gpx
 import sass
 import yaml
 from doit import create_after
 
 from mkmapdiary.lib.highlights import Highlights
+from mkmapdiary.lib.statistics import Statistics
 
 from .base.httpRequest import HttpRequest
 
@@ -120,6 +123,43 @@ class SiteTask(HttpRequest):
                 )
                 geo_assets.append(geo_item)
 
+            # Collect all GPX data and statistics, respecting ignore_dates
+            ignore_dates = self.config.get("ignore_dates", [])
+            all_dates = self.db.get_all_dates(ignore_dates)
+
+            # Merge all GPX tracks into one
+            merged_gpx = gpxpy.gpx.GPX()
+            overall_statistics = Statistics()
+
+            for date in all_dates:
+                gpx_assets = self.db.get_assets_by_date(date, "gpx")
+                if gpx_assets:
+                    with open(gpx_assets[0].path) as f:
+                        gpx_content = gpxpy.parse(f)
+                        # Add all tracks from this GPX to the merged one
+                        for track in gpx_content.tracks:
+                            merged_gpx.tracks.append(track)
+                        for waypoint in gpx_content.waypoints:
+                            merged_gpx.waypoints.append(waypoint)
+                        for route in gpx_content.routes:
+                            merged_gpx.routes.append(route)
+
+                    # Add statistics from this date if available
+                    if date in self.track_statistics:  # type: ignore[attr-defined]
+                        date_stats = self.track_statistics[date]  # type: ignore[attr-defined]
+                        overall_statistics.distance += date_stats.distance
+                        overall_statistics.elevation_gain += date_stats.elevation_gain
+                        overall_statistics.elevation_loss += date_stats.elevation_loss
+                        overall_statistics.time_moving += date_stats.time_moving
+
+            # Convert merged GPX to XML if we have any tracks
+            gpx_data = merged_gpx.to_xml() if merged_gpx.tracks else None
+
+            # Only include statistics if we have meaningful data
+            track_statistics = (
+                overall_statistics if overall_statistics.distance > 0 else None
+            )
+
             with open(index_path, "w") as f:
                 f.write(
                     self.template(
@@ -128,6 +168,8 @@ class SiteTask(HttpRequest):
                         map_images=geo_assets,
                         with_map=page_info.with_map,
                         gallery_rows=page_info.gallery_rows,
+                        gpx_data=gpx_data,
+                        track_statistics=track_statistics,
                     ),
                 )
 

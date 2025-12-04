@@ -101,7 +101,11 @@ window.addEventListener("DOMContentLoaded", () => {
     showAllLink.addEventListener("click", function(event) {
       event.preventDefault();
       if (combinedBounds.isValid()) {
-        map.fitBounds(combinedBounds.pad(0.1));
+        if (window.is_main_page) {
+          map.fitBounds(combinedBounds);
+        } else {
+          map.fitBounds(combinedBounds.pad(0.1));
+        }
       }
     });
   }
@@ -227,8 +231,12 @@ window.addEventListener("DOMContentLoaded", () => {
         }));
       }
     }).on('loaded', function(e) {
-      combinedBounds.extend(e.target.getBounds());
-      map.fitBounds(combinedBounds.pad(0.1));
+      if (!window.is_main_page) {
+        combinedBounds.extend(e.target.getBounds());
+        map.fitBounds(combinedBounds.pad(0.1));
+      } else {
+        map.fitBounds(combinedBounds);
+      }
       for (const layer of deferred) {
         layer.addTo(map);
       }
