@@ -172,7 +172,7 @@ properties:
         properties:
           enabled:
             type: boolean
-            description: "Enable or disable track simplification. Use !auto for automatic detection."
+            description: "Enable or disable track simplification"
           tolerance:
             type: number
             description: "Tolerance for track simplification in meters (use !distance tag for human-readable format)"

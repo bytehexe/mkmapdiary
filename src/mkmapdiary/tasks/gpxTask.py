@@ -97,6 +97,11 @@ class GPXTask(HttpRequest):
                     "enabled"
                 ],
                 priorities=self.config["features"]["poi_detection"]["priorities"],
+                simplification_tolerance=(
+                    self.config["features"]["track_simplification"]["tolerance"]
+                    if self.config["features"]["track_simplification"]["enabled"]
+                    else 0.0
+                ),
             )
 
             self.__statistics = gc.get_statistics()

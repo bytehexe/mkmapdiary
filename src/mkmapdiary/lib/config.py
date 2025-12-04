@@ -60,10 +60,7 @@ def calculate_auto_value(path: str) -> Any:
             return "clipiqa"
         else:
             return "simple"
-    elif (
-        path == "features.gpsbabel_import.enabled"
-        or path == "features.track_simplification.enabled"
-    ):
+    elif path == "features.gpsbabel_import.enabled":
         return bool(shutil.which("gpsbabel"))
     else:
         raise ValueError(f"Unknown auto value: {path}")

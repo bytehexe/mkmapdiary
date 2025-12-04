@@ -65,8 +65,8 @@ features:
   image_comparison:
     enabled: true
   track_simplification:
-    enabled: !auto  # TODO: Not implemented - only auto-detection logic exists
-    tolerance: !distance 1 meter  # TODO: Not implemented - no code uses this configuration
+    enabled: true
+    tolerance: !distance 1 meter  # Simplification tolerance in meters; set to 0 to disable
 
 site:
   # Site configuration defaults

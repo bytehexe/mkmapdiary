@@ -32,6 +32,7 @@ class GpxCreator:
         region_cache_dir: Path,
         priorities: dict[str, int | None],
         skip_poi_detection: bool = False,
+        simplification_tolerance: float = 0.0,
     ) -> None:
         self.__sources = sources
         self.__db = db
@@ -39,6 +40,7 @@ class GpxCreator:
         self.__priorities = priorities
         self.index_data = index_data
         self.__skip_poi_detection = skip_poi_detection
+        self.__simplification_tolerance = simplification_tolerance
 
         # Data structures organized by date - using defaultdict for lazy initialization
         self.__coords_by_date: defaultdict[Date, list[list[float]]] = defaultdict(list)
@@ -394,6 +396,10 @@ class GpxCreator:
 
         # Add tracks for this date
         for track in self.__gpx_data_by_date[date]["tracks"]:
+            # Apply simplification to each track segment if tolerance > 0
+            if self.__simplification_tolerance > 0:
+                for segment in track.segments:
+                    segment.simplify(max_distance=self.__simplification_tolerance)
             gpx_out.tracks.append(track)
 
         # Add routes for this date
