@@ -116,6 +116,7 @@ strings:
   track_elevation_gain: null
   track_elevation_loss: null
   track_time_moving: null
+  track_total_time: null
 
 llm_prompts:
   # LLM prompt templates

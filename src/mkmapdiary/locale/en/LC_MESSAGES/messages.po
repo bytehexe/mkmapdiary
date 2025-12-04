@@ -152,3 +152,6 @@ msgstr "Elevation Loss"
 
 msgid "track_time_moving"
 msgstr "Time Moving"
+
+msgid "track_total_time"
+msgstr "Total Time"

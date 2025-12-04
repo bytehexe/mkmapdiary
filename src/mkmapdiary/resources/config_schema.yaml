@@ -288,6 +288,8 @@ properties:
         $ref: "#/definitions/customString"
       track_time_moving:
         $ref: "#/definitions/customString"
+      track_total_time:
+        $ref: "#/definitions/customString"
     additionalProperties: false
 
   llm_prompts:

@@ -16,16 +16,19 @@ class Statistics:
     def __init__(self) -> None:
         # Direct attributes instead of entries dictionary
         self.time_moving: float = 0.0
+        self.total_time: float = 0.0
         self.distance: float = 0.0
         self.elevation_gain: float = 0.0
         self.elevation_loss: float = 0.0
 
         self.__time: whenever.Instant | None = None
+        self.__first_time: whenever.Instant | None = None
         self.__position: tuple[float, float] | None = None
         self.__elevation: float | None = None
 
     def reset(self) -> None:
         self.__time = None
+        self.__first_time = None
         self.__position = None
         self.__elevation = None
 
@@ -35,6 +38,8 @@ class Statistics:
         position: tuple[float, float],  # (lon, lat)
     ) -> None:
         self.__time = time
+        if self.__first_time is None:
+            self.__first_time = time
         self.__position = position
 
     def __set_elevation(
@@ -103,5 +108,9 @@ class Statistics:
 
         if speed >= self.THRESHOLDS["movement"]:
             self.time_moving += time_delta
+
+        # Update total time (time between first and last timestamp)
+        if self.__first_time is not None:
+            self.total_time = (time - self.__first_time).in_seconds()
 
         self.__set_point(time, position)

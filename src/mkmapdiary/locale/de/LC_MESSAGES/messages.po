@@ -152,3 +152,6 @@ msgstr "Höhenverlust"
 
 msgid "track_time_moving"
 msgstr "Bewegungszeit"
+
+msgid "track_total_time"
+msgstr "Gesamtzeit"

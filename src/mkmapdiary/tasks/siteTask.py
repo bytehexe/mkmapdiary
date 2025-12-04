@@ -130,6 +130,8 @@ class SiteTask(HttpRequest):
             # Merge all GPX tracks into one
             merged_gpx = gpxpy.gpx.GPX()
             overall_statistics = Statistics()
+            first_timestamp = None
+            last_timestamp = None
 
             for date in all_dates:
                 gpx_assets = self.db.get_assets_by_date(date, "gpx")
@@ -151,6 +153,29 @@ class SiteTask(HttpRequest):
                         overall_statistics.elevation_gain += date_stats.elevation_gain
                         overall_statistics.elevation_loss += date_stats.elevation_loss
                         overall_statistics.time_moving += date_stats.time_moving
+
+            # Calculate total time from merged GPX tracks
+            if merged_gpx.tracks:
+                for track in merged_gpx.tracks:
+                    for segment in track.segments:
+                        for point in segment.points:
+                            if point.time is not None:
+                                if (
+                                    first_timestamp is None
+                                    or point.time < first_timestamp
+                                ):
+                                    first_timestamp = point.time
+                                if (
+                                    last_timestamp is None
+                                    or point.time > last_timestamp
+                                ):
+                                    last_timestamp = point.time
+
+            # Set total_time if we have both timestamps
+            if first_timestamp is not None and last_timestamp is not None:
+                overall_statistics.total_time = (
+                    last_timestamp - first_timestamp
+                ).total_seconds()
 
             # Convert merged GPX to XML if we have any tracks
             gpx_data = merged_gpx.to_xml() if merged_gpx.tracks else None
