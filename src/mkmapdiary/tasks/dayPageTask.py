@@ -31,7 +31,7 @@ class DayPageTask(BaseTask):
                     ),
                 )
 
-        for date in self.db.get_all_dates():
+        for date in self.db.get_all_dates(self.config.get("ignore_dates")):
             if date is None:
                 continue
 

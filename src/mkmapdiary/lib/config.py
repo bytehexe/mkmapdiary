@@ -4,17 +4,24 @@ import pathlib
 import shutil
 import sys
 from collections.abc import MutableMapping, Sequence
+from datetime import date
 from typing import Any
 
 import humanfriendly
-import jsonschema
 import yaml
 from jsonschema.exceptions import ValidationError
+from jsonschema.validators import Draft7Validator, create
 
 from mkmapdiary import util
 from mkmapdiary.util.locale import auto_detect_locale, auto_detect_timezone
 
 logger = logging.getLogger(__name__)
+
+
+# Create a custom type checker that recognizes datetime.date as 'date'
+type_checker = Draft7Validator.TYPE_CHECKER.redefine(
+    "date", lambda checker, instance: isinstance(instance, date)
+)
 
 
 class AutoValue:
@@ -122,7 +129,15 @@ def load_config_data(config: dict[str, Any]) -> dict[str, Any]:
         schema = yaml.load(defaults_file, Loader=ConfigLoader)
 
     config = find_and_replace_auto_values(config)
-    jsonschema.validate(instance=config, schema=schema)
+
+    # Create custom validator that recognizes date type
+    CustomValidator = create(
+        meta_schema=Draft7Validator.META_SCHEMA,
+        validators=Draft7Validator.VALIDATORS,
+        type_checker=type_checker,
+    )
+
+    CustomValidator(schema).validate(config)
 
     return config
 

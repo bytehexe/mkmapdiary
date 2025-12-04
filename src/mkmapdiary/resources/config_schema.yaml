@@ -208,6 +208,14 @@ properties:
         description: "Enable or disable user cache for debugging"
     additionalProperties: false
 
+  ignore_dates:
+    type: array
+    description: "List of dates to ignore (skip day pages and GPX generation)"
+    items:
+      type: date
+      description: "Date in yyyy-mm-dd format (YAML auto-parses to datetime.date)"
+    default: []
+
   strings:
     type: object
     description: "Custom translation strings"

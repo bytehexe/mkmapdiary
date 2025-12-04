@@ -78,6 +78,8 @@ site:
 debug:
   enable_user_cache: false
 
+ignore_dates: []
+
 strings:
   # Override translation strings here by providing custom values
   journal_title: null

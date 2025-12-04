@@ -1,4 +1,5 @@
 import dataclasses
+import datetime
 import pathlib
 import threading
 from typing import Any
@@ -90,7 +91,9 @@ class AssetRegistry:
             )
             return sorted_assets
 
-    def get_all_dates(self) -> list[whenever.Date]:
+    def get_all_dates(
+        self, ignore_dates: list[datetime.date] | None = None
+    ) -> list[whenever.Date]:
         assert self.has_display_date, (
             "AssetRegistry must track display dates to get all dates"
         )
@@ -100,6 +103,12 @@ class AssetRegistry:
             for asset in self.__assets:
                 if asset.display_date:
                     dates.add(asset.display_date)
+
+            # Filter out ignored dates
+            if ignore_dates:
+                ignored = {whenever.Date.from_py_date(d) for d in ignore_dates}
+                dates = dates - ignored
+
             return sorted(list(dates))
 
     def get_assets_by_type(
@@ -250,7 +259,9 @@ class AssetRegistry:
             }
         )
 
-    def get_geotagged_journal_dates(self) -> list[whenever.Date]:
+    def get_geotagged_journal_dates(
+        self, ignore_dates: list[datetime.date] | None = None
+    ) -> list[whenever.Date]:
         with self.lock:
             dates = set()
             for asset in self.__assets:
@@ -261,4 +272,10 @@ class AssetRegistry:
                     and asset.display_date
                 ):
                     dates.add(asset.display_date)
+
+            # Filter out ignored dates
+            if ignore_dates:
+                ignored = {whenever.Date.from_py_date(d) for d in ignore_dates}
+                dates = dates - ignored
+
             return sorted(list(dates))

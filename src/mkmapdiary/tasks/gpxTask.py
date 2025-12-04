@@ -103,6 +103,13 @@ class GPXTask(HttpRequest):
 
             # Generate GPX files for all discovered dates
             all_dates = gc.get_available_dates()
+
+            # Filter out ignored dates
+            ignore_dates = self.config.get("ignore_dates", [])
+            if ignore_dates:
+                ignored = {Date.from_py_date(d) for d in ignore_dates}
+                all_dates = all_dates - ignored
+
             logger.debug(f"Generating GPX files for dates: {sorted(all_dates)}")
 
             for date in all_dates:
@@ -133,8 +140,16 @@ class GPXTask(HttpRequest):
             if source.exists():
                 source_dates.update(self.__get_contained_dates(source))
 
+        # Filter out ignored dates from source_dates
+        ignore_dates = self.config.get("ignore_dates", [])
+        if ignore_dates:
+            ignored = {Date.from_py_date(d) for d in ignore_dates}
+            source_dates = source_dates - ignored
+
         # Add geotagged journal dates
-        all_dates = source_dates | set(self.db.get_geotagged_journal_dates())
+        all_dates = source_dates | set(
+            self.db.get_geotagged_journal_dates(ignore_dates)
+        )
 
         # Create target file paths
         for date in all_dates:
