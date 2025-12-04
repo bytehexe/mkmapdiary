@@ -28,7 +28,7 @@ class Statistics:
 
     def reset(self) -> None:
         self.__time = None
-        self.__first_time = None
+        # Don't reset __first_time to maintain accurate total_time calculation
         self.__position = None
         self.__elevation = None
 
