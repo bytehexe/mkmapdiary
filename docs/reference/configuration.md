@@ -38,9 +38,21 @@ features:
     max_time_diff: !duration 300 seconds   # Maximum correlation window
   
   poi_detection:
-    enabled: true                           # Enable POI detection
+    enabled: false                          # Enable POI detection (requires PostgreSQL+PostGIS)
+    connection:
+      host: localhost                       # PostgreSQL host
+      database: mkmapdiary                  # Database name
+      user: mkmapdiary                      # Database user
+      password: null                        # Database password (null for no password)
     max_age: !duration 300 days            # Maximum age for POI data
+    priorities:                             # Symbol priority (higher = more important, null = disabled)
+      city: 100
+      town: 90
+      village: 80
+      train_station: 30
 ```
+
+**Note:** POI detection is disabled by default and requires PostgreSQL with PostGIS. See [How to Set Up POI Detection](../how-to_guides/setup-poi-detection.md) for detailed setup instructions.
 
 ### Site Section
 
@@ -220,7 +232,17 @@ features:
     max_time_diff: !duration 10 minutes
   poi_detection:
     enabled: true
+    connection:
+      host: localhost
+      database: mkmapdiary
+      user: mkmapdiary
+      password: my_secure_password
     max_age: !duration 180 days
+    priorities:
+      city: 100
+      town: 90
+      village: 80
+      train_station: 30
 
 site:
   image_format: jpg
