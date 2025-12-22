@@ -13,6 +13,8 @@ from typing import Any
 import click
 import doit.reporter
 import doit.task
+import poiidx
+import yaml
 from doit.cmd_base import ModuleTaskLoader
 from doit.doit_cmd import DoitMain
 from jsonschema.exceptions import ValidationError
@@ -209,6 +211,20 @@ def main(
             f"Error: Distribution directory '{dist_dir}' is not empty and does not contain an index.html file.",
         )
         sys.exit(1)
+
+    # Check if poi is enabled, if so, initialize poiidx
+    if config_data["features"]["poi_detection"]["enabled"]:
+        filter_config_file = dirs.resources_dir / "poi_filter_config.yaml"
+        with open(filter_config_file) as f:
+            filter_config = yaml.safe_load(f)
+
+        poiidx.init(
+            filter_config=filter_config,
+            database=config_data["features"]["poi_detection"]["connection"]["database"],
+            host=config_data["features"]["poi_detection"]["connection"]["host"],
+            user=config_data["features"]["poi_detection"]["connection"]["user"],
+            password=config_data["features"]["poi_detection"]["connection"]["password"],
+        )
 
     # Create directories
     if not dist_dir.is_dir():

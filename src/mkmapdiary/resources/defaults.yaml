@@ -44,7 +44,12 @@ features:
     time_offset: !duration 0 seconds  # TODO: Not implemented - no code uses this offset
     max_time_diff: !duration 300 seconds
   poi_detection:
-    enabled: true
+    enabled: false
+    connection:
+      host: localhost
+      database: mkmapdiary
+      user: mkmapdiary
+      password: null
     max_age: !duration 300 days  # TODO: Not implemented - no code uses this configuration
     priorities:
       # Higher value = higher priority

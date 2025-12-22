@@ -9,6 +9,7 @@ import gpxpy
 import gpxpy.gpx
 import hdbscan
 import numpy as np
+import poiidx
 import shapely
 from shapely.geometry import Point
 from whenever import Date, Instant
@@ -16,7 +17,6 @@ from whenever import Date, Instant
 from mkmapdiary.lib.assetRegistry import AssetRegistry
 from mkmapdiary.lib.geoCluster import GeoCluster
 from mkmapdiary.lib.statistics import Statistics
-from mkmapdiary.poi.index import Index, IndexKey
 from mkmapdiary.util.log import ThisMayTakeAWhile
 from mkmapdiary.util.projection import LocalProjection
 
@@ -50,8 +50,6 @@ class GpxCreator:
         self.__statistics_by_date: defaultdict[Date, Statistics] = defaultdict(
             Statistics
         )
-
-        self.index = Index(self.index_data, self.__region_cache_dir, keep_pbf=True)
 
         self.__init()
 
@@ -176,12 +174,9 @@ class GpxCreator:
             clusters_for_date = self.__compute_clusters_for_date(date)
             all_clusters.extend(clusters_for_date)
 
-        # Sort clusters by index key to group similar ones together
-        all_clusters.sort(key=lambda x: x["index_key"])
-
         # Second pass: process clusters in index key order for optimal performance
         logger.debug(f"Processing {len(all_clusters)} clusters grouped by index key")
-        self.__process_sorted_clusters(all_clusters)
+        self.__process_clusters(all_clusters)
 
     def __compute_clusters_for_date(self, date: Date) -> list[dict]:
         """Compute clusters for a date and return cluster data with index keys."""
@@ -205,7 +200,6 @@ class GpxCreator:
             clusterer.fit(np.radians(coords_array))
 
         # Create index once to get index keys for all clusters in this date
-        index = self.index
         clusters_data = []
 
         labels = clusterer.labels_
@@ -229,7 +223,6 @@ class GpxCreator:
 
             # Get index key for this cluster
             logger.debug(f"Getting index key for cluster {label} on date {date}")
-            key = index.get_key(cluster.shape)
 
             # Store cluster data for later processing
             cluster_data = {
@@ -237,24 +230,20 @@ class GpxCreator:
                 "label": label,
                 "cluster": cluster,
                 "cluster_coords": cluster_coords,
-                "index_key": key,
             }
             clusters_data.append(cluster_data)
 
         logger.debug(f"Found {len(clusters_data)} valid clusters for date {date}")
         return clusters_data
 
-    def __process_sorted_clusters(self, all_clusters: list[dict]) -> None:
+    def __process_clusters(self, all_clusters: list[dict]) -> None:
         """Process clusters sorted by index key for optimal performance."""
-        index = self.index
-        current_proxy = None
 
         for cluster_data in all_clusters:
             date: Date = cluster_data["date"]
             label: int = cluster_data["label"]
             cluster: GeoCluster = cluster_data["cluster"]
             cluster_coords: list[tuple[float, float]] = cluster_data["cluster_coords"]
-            key: IndexKey = cluster_data["index_key"]
 
             # Add basic cluster waypoints first
             # cluster.mass_point returns (lon, lat) format, convert for GPX which expects (lat, lon)
@@ -288,8 +277,6 @@ class GpxCreator:
 
             # Load regions with potential reuse of existing proxy
             logger.debug("Loading regions (with potential reuse of existing proxy)")
-            proxy = index.load_regions(key, existing_proxy=current_proxy)
-            current_proxy = proxy  # Store for potential reuse in next clusters
 
             logger.debug("Index proxy loaded, querying nearest POI")
             # Convert mass_point (lon, lat) to shapely.Point for proxy.get_nearest
@@ -310,18 +297,31 @@ class GpxCreator:
                 center = local_projection.to_wgs(local_center)
                 local_mass_point = local_projection.to_local(mass_point)
 
-                nearby_pois = proxy.get_within_radius(radius, center)
+                logger.debug(
+                    f"Cluster bounding circle center: {center}, radius: {radius} m"
+                )
+
+                nearby_pois = poiidx.get_nearest_pois(center, max_distance=radius)
+
+                logger.debug(f"Found {len(nearby_pois)} nearby POIs")
+
                 nearby_pois = [
                     poi
                     for poi in nearby_pois
-                    if self.__priorities.get(poi.symbol, 0) is not None
+                    if self.__priorities.get(poi["symbol"], 0) is not None
                 ]
+
+                # Compute center points
+                for poi in nearby_pois:
+                    shape = poi["coordinates"]
+                    local_center = local_projection.to_local(shape).centroid
+                    poi["center"] = local_projection.to_wgs(local_center)
 
                 nearby_pois.sort(
                     key=lambda poi: (
-                        -(self.__priorities.get(poi.symbol, 0) or 0),
+                        -(self.__priorities.get(poi["symbol"], 0) or 0),
                         local_projection.to_local(
-                            Point(poi.coords[0], poi.coords[1])
+                            Point(poi["center"].x, poi["center"].y)
                         ).distance(local_mass_point),
                     )
                 )
@@ -334,11 +334,11 @@ class GpxCreator:
 
                     logger.debug("Testing POI intersection with cluster envelope")
                     pwpt = gpxpy.gpx.GPXWaypoint(
-                        latitude=poi.coords[1],
-                        longitude=poi.coords[0],
-                        name=poi.name,
-                        description=f"{poi.description} ({poi.rank})",
-                        symbol=f"mkmapdiary|poi|{poi.symbol}",
+                        latitude=poi["center"].y,
+                        longitude=poi["center"].x,
+                        name=poi["name"],
+                        description=f"{poi['symbol']} ({poi['rank']})",
+                        symbol=f"mkmapdiary|poi|{poi['symbol']}",
                     )
                     self.__gpx_data_by_date[date]["waypoints"].append(pwpt)
                     break  # Only add the highest priority POI

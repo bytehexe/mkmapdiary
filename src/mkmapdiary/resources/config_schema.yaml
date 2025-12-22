@@ -116,6 +116,23 @@ properties:
           enabled:
             type: boolean
             description: "Enable or disable POI detection"
+          connection:
+            type: object
+            description: "Database connection settings for POI detection"
+            properties:
+              host:
+                type: string
+                description: "Database host"
+              database:
+                type: string
+                description: "Database name"
+              user:
+                type: string
+                description: "Database user"
+              password:
+                type: ["string", "null"]
+                description: "Database password"
+            additionalProperties: false
           max_age:
             type: integer
             description: "Maximum age for POI data in seconds (use !duration tag for human-readable format)"
