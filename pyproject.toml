@@ -44,7 +44,7 @@ dependencies = [
     "osmium>=4.0.0",
     "Pillow",
     "platformdirs",
-    "poiidx>=0.0.3",
+    "poiidx>=0.0.4",
     "pydub",
     "pyexiftool",
     "pyproj",
