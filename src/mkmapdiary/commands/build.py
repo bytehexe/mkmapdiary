@@ -212,20 +212,6 @@ def main(
         )
         sys.exit(1)
 
-    # Check if poi is enabled, if so, initialize poiidx
-    if config_data["features"]["poi_detection"]["enabled"]:
-        filter_config_file = dirs.resources_dir / "poi_filter_config.yaml"
-        with open(filter_config_file) as f:
-            filter_config = yaml.safe_load(f)
-
-        poiidx.init(
-            filter_config=filter_config,
-            database=config_data["features"]["poi_detection"]["connection"]["database"],
-            host=config_data["features"]["poi_detection"]["connection"]["host"],
-            user=config_data["features"]["poi_detection"]["connection"]["user"],
-            password=config_data["features"]["poi_detection"]["connection"]["password"],
-        )
-
     # Create directories
     if not dist_dir.is_dir():
         dist_dir.mkdir(parents=True, exist_ok=True)
@@ -265,6 +251,21 @@ def main(
     logger.debug(
         f"Found {n_assets} assets" + (f":\n{asset_str}" if n_assets > 0 else "."),
     )
+
+    # Check if poi is enabled, if so, initialize poiidx
+    if config_data["features"]["poi_detection"]["enabled"]:
+        logger.info("Initializing POI index ...", extra={"icon": "🗺️"})
+        filter_config_file = dirs.resources_dir / "poi_filter_config.yaml"
+        with open(filter_config_file) as f:
+            filter_config = yaml.safe_load(f)
+
+        poiidx.init(
+            filter_config=filter_config,
+            database=config_data["features"]["poi_detection"]["connection"]["database"],
+            host=config_data["features"]["poi_detection"]["connection"]["host"],
+            user=config_data["features"]["poi_detection"]["connection"]["user"],
+            password=config_data["features"]["poi_detection"]["connection"]["password"],
+        )
 
     proccess_args = []
     if always_execute:
