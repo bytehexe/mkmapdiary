@@ -2,7 +2,17 @@
 
 <div id="highlights" class="startpage" markdown>
 {%- for item in gallery_images -%}
-![](assets/{{ item.path.name }}){ height="200" width="200" }
+![](assets/{{ item.path.name }}){ height="200" width="200" data-description=".gallery-caption-{{ item.id }}" }
+{%- endfor -%}
+</div>
+</div><div id="gallery_captions" markdown>
+{%- for item in gallery_images -%}
+<div class="glightbox-desc gallery-caption-{{ item.id }}">
+<i class="iconoir iconoir-clock"></i> {{ item.time }}
+{%- if item.timezone %} · <i class="iconoir iconoir-time-zone"></i> {{ item.timezone }}{% endif %}
+{%- if item.location %} · <i class="iconoir iconoir-map-pin"></i> {{ item.location }}{% endif %}
+{%- if item.location_admin %} · <i class="iconoir iconoir-map"></i> {{ item.location_admin }}{% endif %}
+</div>
 {%- endfor -%}
 </div>
 <script>

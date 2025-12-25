@@ -14,7 +14,7 @@ quality_strings = {
 
 <div id="highlights" class="startpage" markdown>
 {%- for item in highlight_images -%}
-![](assets/{{ item.path.name }}){ height="200" width="200" }
+![](assets/{{ item.path.name }}){ height="200" width="200" data-description=".gallery-caption-{{ item.id }}" }
 {%- endfor -%}
 </div>
 <div id="map_box"></div>
@@ -73,7 +73,16 @@ gpx_data = {{ gpx_data | tojson }};
 {%- if item.entropy < 6.5 %} low_entropy{% endif -%}
 {%- if item.is_duplicate is true %} duplicate{% endif -%}
 {%- if item.is_duplicate is false %} canonical{% endif -%}
-" }
+" data-description=".gallery-caption-{{ item.id }}" }
+{%- endfor -%}
+</div><div id="gallery_captions" markdown>
+{%- for item in gallery_items -%}
+<div class="glightbox-desc gallery-caption-{{ item.id }}">
+<i class="iconoir iconoir-clock"></i> {{ item.time }}
+{%- if item.timezone %} · <i class="iconoir iconoir-time-zone"></i> {{ item.timezone }}{% endif %}
+{%- if item.location %} · <i class="iconoir iconoir-map-pin"></i> {{ item.location }}{% endif %}
+{%- if item.location_admin %} · <i class="iconoir iconoir-map"></i> {{ item.location_admin }}{% endif %}
+</div>
 {%- endfor -%}
 </div>
 {% endif %}

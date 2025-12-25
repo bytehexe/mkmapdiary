@@ -8,6 +8,7 @@ import shapely
 import whenever
 from doit import create_after
 
+from ..lib.fmt import location_string, time_string
 from .base.baseTask import BaseTask
 
 logger = logging.getLogger(__name__)
@@ -35,55 +36,10 @@ class JournalTask(BaseTask):
                 logger.debug(f"Processing asset: {asset.path} of type {asset.type}")
                 asset_data = self.db.get_asset_by_path(asset.path)
 
-                if (
-                    asset_data is not None
-                    and asset_data.latitude is not None
-                    and asset_data.longitude is not None
-                ):
-                    # Type assertions since we've checked asset_data is not None
-                    latitude = asset_data.latitude
-                    longitude = asset_data.longitude
-                    assert isinstance(latitude, (int, float)), (
-                        "Latitude should be numeric"
-                    )
-                    assert isinstance(longitude, (int, float)), (
-                        "Longitude should be numeric"
-                    )
-
-                    north_south = "N" if latitude >= 0 else "S"
-                    east_west = "E" if longitude >= 0 else "W"
-                    location = f"{abs(latitude):.4f}° {north_south}, {abs(longitude):.4f}° {east_west}"
-                else:
-                    location = None
-
                 # Ensure asset_data is not None before creating item
                 if asset_data is not None:
-                    # Use timestamp_geo if available, fall back to timestamp_utc
-                    timestamp_obj = asset_data.timestamp_geo or asset_data.timestamp_utc
-
-                    if timestamp_obj:
-                        # Format time
-                        obj_dt = timestamp_obj.py_datetime()
-                        # Include day name if timestamp is from a different date
-                        if (
-                            obj_dt.year != date.year
-                            or obj_dt.month != date.month
-                            or obj_dt.day != date.day
-                        ):
-                            time_str = obj_dt.strftime("%A %H:%M:%S")
-                        else:
-                            time_str = obj_dt.strftime("%H:%M:%S")
-
-                        # Extract timezone info
-                        if asset_data.timestamp_geo and hasattr(
-                            asset_data.timestamp_geo, "tz"
-                        ):
-                            timezone_str = str(asset_data.timestamp_geo.tz)
-                        else:
-                            timezone_str = "UTC"
-                    else:
-                        time_str = ""
-                        timezone_str = ""
+                    location = location_string(asset_data)
+                    time_str, timezone_str = time_string(asset_data, date)
 
                     if (
                         asset_data.latitude is not None

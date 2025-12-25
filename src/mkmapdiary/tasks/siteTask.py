@@ -1,3 +1,4 @@
+import dataclasses
 import logging
 import pathlib
 import shutil
@@ -6,13 +7,16 @@ from typing import Any
 
 import gpxpy
 import gpxpy.gpx
+import poiidx
 import sass
+import shapely
 import yaml
 from doit import create_after
 
 from mkmapdiary.lib.highlights import Highlights
 from mkmapdiary.lib.statistics import Statistics
 
+from ..lib.fmt import location_string, time_string
 from .base.httpRequest import HttpRequest
 
 logger = logging.getLogger(__name__)
@@ -185,11 +189,29 @@ class SiteTask(HttpRequest):
                 overall_statistics if overall_statistics.distance > 0 else None
             )
 
+            gallery_items = []
+            for asset in page_info.gallery_assets + page_info.map_assets:
+                dict_asset = dataclasses.asdict(asset)
+                dict_asset["time"], dict_asset["timezone"] = time_string(
+                    asset,
+                    None,
+                )
+                dict_asset["location"] = location_string(asset)
+                if asset.latitude is not None and asset.longitude is not None:
+                    dict_asset["location_admin"] = (
+                        poiidx.get_administrative_hierarchy_string(
+                            shapely.geometry.Point(asset.longitude, asset.latitude),
+                        )
+                    )
+                else:
+                    dict_asset["location_admin"] = None
+                gallery_items.append(dict_asset)
+
             with open(index_path, "w") as f:
                 f.write(
                     self.template(
                         "index.j2",
-                        gallery_images=page_info.gallery_assets + page_info.map_assets,
+                        gallery_images=gallery_items,
                         map_images=geo_assets,
                         with_map=page_info.with_map,
                         gallery_rows=page_info.gallery_rows,

@@ -10,7 +10,7 @@
 {% endif %}
 <div class="metadata">
 <i class="iconoir iconoir-clock"></i> {{ asset.time }}
-{% if asset.timezone %} <i class="iconoir iconoir-time-zone"></i> {{ asset.timezone }}{% endif %}
+{% if asset.timezone %}· <i class="iconoir iconoir-time-zone"></i> {{ asset.timezone }}{% endif %}
 {% if asset.location %}· <i class="iconoir iconoir-map-pin"></i> <a href="#" class="location-link" data-lat="{{ asset.latitude }}" data-lng="{{ asset.longitude }}">{{ asset.location }}</a>{% endif %}
 {% if asset.location_admin %}· <i class="iconoir iconoir-map"></i> {{ asset.location_admin }}{% endif %}
 </div>

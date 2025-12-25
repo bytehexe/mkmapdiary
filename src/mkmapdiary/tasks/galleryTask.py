@@ -1,11 +1,15 @@
+import dataclasses
 from abc import abstractmethod
 from collections.abc import Iterator
 from typing import Any
 
+import poiidx
+import shapely
 import whenever
 from doit import create_after
 from whenever import Date
 
+from ..lib.fmt import location_string, time_string
 from ..lib.highlights import Highlights
 from ..lib.statistics import Statistics
 from .base.baseTask import BaseTask
@@ -36,7 +40,24 @@ class GalleryTask(BaseTask):
             geo_items = []
 
             for i, asset in enumerate(images):
-                gallery_items.append(asset)
+                model_dict = dataclasses.asdict(asset)
+
+                if asset.latitude is not None and asset.longitude is not None:
+                    model_dict["location_admin"] = (
+                        poiidx.get_administrative_hierarchy_string(
+                            shapely.geometry.Point(asset.longitude, asset.latitude)
+                        )
+                    )
+                else:
+                    model_dict["location_admin"] = None
+                location = location_string(asset)
+                time_str, timezone_str = time_string(asset, date)
+
+                model_dict["time"] = time_str
+                model_dict["timezone"] = timezone_str
+                model_dict["location"] = location
+
+                gallery_items.append(model_dict)
 
                 if asset.is_bad or asset.is_duplicate:
                     continue
@@ -73,11 +94,11 @@ class GalleryTask(BaseTask):
                     self.template(
                         "day_gallery.j2",
                         has_bad_photos=any(
-                            asset.quality is not None and asset.quality < 0.1
+                            asset["quality"] is not None and asset["quality"] < 0.1
                             for asset in gallery_items
                         ),
                         has_duplicates=any(
-                            asset.is_duplicate for asset in gallery_items
+                            asset["is_duplicate"] for asset in gallery_items
                         ),
                         highlight_images=page_info.gallery_assets,
                         gallery_items=gallery_items,
