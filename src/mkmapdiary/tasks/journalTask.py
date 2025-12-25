@@ -3,6 +3,8 @@ import pathlib
 from collections.abc import Iterator
 from typing import Any
 
+import poiidx
+import shapely
 import whenever
 from doit import create_after
 
@@ -61,13 +63,16 @@ class JournalTask(BaseTask):
 
                     if timestamp_obj:
                         # Format time
-                        time_str = (
-                            timestamp_obj.format_iso()
-                            .split("T")[1]
-                            .split("+")[0]
-                            .split("-")[0]
-                            .split("Z")[0][:8]
-                        )
+                        obj_dt = timestamp_obj.py_datetime()
+                        # Include day name if timestamp is from a different date
+                        if (
+                            obj_dt.year != date.year
+                            or obj_dt.month != date.month
+                            or obj_dt.day != date.day
+                        ):
+                            time_str = obj_dt.strftime("%A %H:%M:%S")
+                        else:
+                            time_str = obj_dt.strftime("%H:%M:%S")
 
                         # Extract timezone info
                         if asset_data.timestamp_geo and hasattr(
@@ -80,6 +85,20 @@ class JournalTask(BaseTask):
                         time_str = ""
                         timezone_str = ""
 
+                    if (
+                        asset_data.latitude is not None
+                        and asset_data.longitude is not None
+                    ):
+                        language = self.config["site"]["locale"].split("_")[0]
+                        location_admin = poiidx.get_administrative_hierarchy_string(
+                            shapely.geometry.Point(
+                                asset_data.longitude, asset_data.latitude
+                            ),
+                            language,
+                        )
+                    else:
+                        location_admin = None
+
                     item = dict(
                         type=asset.type,
                         path=pathlib.PosixPath(asset.path).name,
@@ -88,6 +107,7 @@ class JournalTask(BaseTask):
                         latitude=asset_data.latitude,
                         longitude=asset_data.longitude,
                         location=location,
+                        location_admin=location_admin,
                         id=asset_data.id,
                     )
                     assets.append(item)
