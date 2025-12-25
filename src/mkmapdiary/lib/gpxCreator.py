@@ -1,7 +1,7 @@
 import logging
 import warnings
 from collections import defaultdict
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from pathlib import Path, PosixPath
 from typing import Any
 
@@ -33,6 +33,8 @@ class GpxCreator:
         priorities: dict[str, int | None],
         skip_poi_detection: bool = False,
         simplification_tolerance: float = 0.0,
+        gettext: Callable = lambda x: x,
+        language: str = "en",
     ) -> None:
         self.__sources = sources
         self.__db = db
@@ -41,6 +43,8 @@ class GpxCreator:
         self.index_data = index_data
         self.__skip_poi_detection = skip_poi_detection
         self.__simplification_tolerance = simplification_tolerance
+        self.__gettext = gettext
+        self.__language = language
 
         # Data structures organized by date - using defaultdict for lazy initialization
         self.__coords_by_date: defaultdict[Date, list[list[float]]] = defaultdict(list)
@@ -332,12 +336,16 @@ class GpxCreator:
                         extra={"icon": "⭐"},
                     )
 
-                    logger.debug("Testing POI intersection with cluster envelope")
+                    admin = poiidx.get_administrative_hierarchy_string(
+                        poi["center"], self.__language
+                    )
                     pwpt = gpxpy.gpx.GPXWaypoint(
                         latitude=poi["center"].y,
                         longitude=poi["center"].x,
                         name=poi["name"],
-                        description=f"{poi['symbol']} ({poi['rank']})",
+                        description=self.__gettext(
+                            f"A {poi['symbol']} in {{admin}} (rank {{rank}})"
+                        ).format(admin=admin, rank=poi["rank"]),
                         symbol=f"mkmapdiary|poi|{poi['symbol']}",
                     )
                     self.__gpx_data_by_date[date]["waypoints"].append(pwpt)

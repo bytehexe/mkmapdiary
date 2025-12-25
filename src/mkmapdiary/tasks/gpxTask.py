@@ -87,6 +87,7 @@ class GPXTask(HttpRequest):
             index_data = self.httpRequest("https://download.geofabrik.de/index-v1.json")
             assert isinstance(index_data, dict), "Invalid index data received"
 
+            language = self.config["site"]["locale"].split("_")[0]
             # Create GpxCreator - it will automatically discover all dates
             gc = GpxCreator(
                 index_data,
@@ -102,6 +103,8 @@ class GPXTask(HttpRequest):
                     if self.config["features"]["track_simplification"]["enabled"]
                     else 0.0
                 ),
+                gettext=self.gettext,
+                language=language,
             )
 
             self.__statistics = gc.get_statistics()

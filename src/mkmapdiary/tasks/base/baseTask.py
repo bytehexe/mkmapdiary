@@ -53,6 +53,11 @@ class BaseTask(ABC, metaclass=ABCMeta):
 
     @property
     @abstractmethod
+    def gettext(self) -> Callable:
+        """Property to access the gettext function."""
+
+    @property
+    @abstractmethod
     def config(self) -> dict:
         """Property to access the configuration."""
 

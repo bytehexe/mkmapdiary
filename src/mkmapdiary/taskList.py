@@ -1,6 +1,6 @@
 import logging
 import sys
-from collections.abc import Iterator, MutableMapping
+from collections.abc import Callable, Iterator, MutableMapping
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
@@ -63,11 +63,13 @@ class TaskList(*tasks):  # type: ignore
         dirs: Dirs,
         cache: MutableMapping,
         scan: bool = True,
+        gettext: Callable = lambda x: x,
     ):
         self.__config = config
         self.__cache = cache
         self.__dirs = dirs
         self.__pre_assets: list[Iterator[AssetRecord]] = []
+        self.__gettext = gettext
 
         self.__calibration = [
             Calibration(
@@ -84,6 +86,11 @@ class TaskList(*tasks):  # type: ignore
         if scan:
             self.__scan()
             self.finalize_assets()
+
+    @property
+    def gettext(self) -> Callable:
+        """Property to access the gettext function."""
+        return self.__gettext
 
     @property
     def dirs(self) -> Dirs:

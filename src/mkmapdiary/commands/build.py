@@ -240,7 +240,7 @@ def main(
         cache = Cache(dirs.cache_db_path)
 
     dirs.create_dirs = True
-    taskList = TaskList(dict(config_data), dirs, cache)
+    taskList = TaskList(dict(config_data), dirs, cache, gettext=lang.gettext)
 
     n_assets = taskList.db.count_assets()
 

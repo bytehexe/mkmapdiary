@@ -155,3 +155,84 @@ msgstr "Time Moving"
 
 msgid "track_total_time"
 msgstr "Total Time"
+
+msgid "A city in {admin} (rank {rank})"
+msgstr "A city in {admin} (rank {rank})"
+
+msgid "A town in {admin} (rank {rank})"
+msgstr "A town in {admin} (rank {rank})"
+
+msgid "A village in {admin} (rank {rank})"
+msgstr "A village in {admin} (rank {rank})"
+
+msgid "A information in {admin} (rank {rank})"
+msgstr "A tourist information in {admin} (rank {rank})"
+
+msgid "A tourism in {admin} (rank {rank})"
+msgstr "A tourist attraction in {admin} (rank {rank})"
+
+msgid "A picnic_site in {admin} (rank {rank})"
+msgstr "A picnic site in {admin} (rank {rank})"
+
+msgid "A viewpoint in {admin} (rank {rank})"
+msgstr "A viewpoint in {admin} (rank {rank})"
+
+msgid "A train_station in {admin} (rank {rank})"
+msgstr "A train station in {admin} (rank {rank})"
+
+msgid "A bus_stop in {admin} (rank {rank})"
+msgstr "A bus stop in {admin} (rank {rank})"
+
+msgid "A accommodation in {admin} (rank {rank})"
+msgstr "Accommodation in {admin} (rank {rank})"
+
+msgid "A restaurant in {admin} (rank {rank})"
+msgstr "A restaurant in {admin} (rank {rank})"
+
+msgid "A cafe_bar in {admin} (rank {rank})"
+msgstr "A cafe or bar in {admin} (rank {rank})"
+
+msgid "A museum in {admin} (rank {rank})"
+msgstr "A museum in {admin} (rank {rank})"
+
+msgid "A historic in {admin} (rank {rank})"
+msgstr "A historic site in {admin} (rank {rank})"
+
+msgid "A place_of_worship in {admin} (rank {rank})"
+msgstr "A place of worship in {admin} (rank {rank})"
+
+msgid "A entertainment in {admin} (rank {rank})"
+msgstr "An entertainment venue in {admin} (rank {rank})"
+
+msgid "A shopping in {admin} (rank {rank})"
+msgstr "A shopping area in {admin} (rank {rank})"
+
+msgid "A services in {admin} (rank {rank})"
+msgstr "A service facility in {admin} (rank {rank})"
+
+msgid "A recreation in {admin} (rank {rank})"
+msgstr "A recreational facility in {admin} (rank {rank})"
+
+msgid "A marina in {admin} (rank {rank})"
+msgstr "A marina in {admin} (rank {rank})"
+
+msgid "A golf_course in {admin} (rank {rank})"
+msgstr "A golf course in {admin} (rank {rank})"
+
+msgid "A beach in {admin} (rank {rank})"
+msgstr "A beach in {admin} (rank {rank})"
+
+msgid "A forest_or_park in {admin} (rank {rank})"
+msgstr "A forest or park in {admin} (rank {rank})"
+
+msgid "A natural_features in {admin} (rank {rank})"
+msgstr "A natural feature in {admin} (rank {rank})"
+
+msgid "A landmarks in {admin} (rank {rank})"
+msgstr "A landmark in {admin} (rank {rank})"
+
+msgid "A airport in {admin} (rank {rank})"
+msgstr "An airport in {admin} (rank {rank})"
+
+msgid "A ferry_terminal in {admin} (rank {rank})"
+msgstr "A ferry terminal in {admin} (rank {rank})"
