@@ -339,11 +339,17 @@ class GpxCreator:
                         extra={"icon": "⭐"},
                     )
 
+                    max_admin_level = None
+                    if poi["admin_level"] is not None:
+                        max_admin_level = poi["admin_level"] - 1
+
                     if self.__skip_poi_detection:
                         admin = ""
                     else:
                         admin = poiidx.get_administrative_hierarchy_string(
-                            poi["center"], self.__language
+                            poi["center"],
+                            self.__language,
+                            max_admin_level=max_admin_level,
                         )
 
                     pwpt = gpxpy.gpx.GPXWaypoint(
