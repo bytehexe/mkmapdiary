@@ -197,7 +197,11 @@ class SiteTask(HttpRequest):
                     None,
                 )
                 dict_asset["location"] = location_string(asset)
-                if asset.latitude is not None and asset.longitude is not None:
+                if (
+                    self.config["features"]["poi_detection"]["enabled"]
+                    and asset.latitude is not None
+                    and asset.longitude is not None
+                ):
                     dict_asset["location_admin"] = (
                         poiidx.get_administrative_hierarchy_string(
                             shapely.geometry.Point(asset.longitude, asset.latitude),

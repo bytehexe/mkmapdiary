@@ -42,7 +42,8 @@ class JournalTask(BaseTask):
                     time_str, timezone_str = time_string(asset_data, date)
 
                     if (
-                        asset_data.latitude is not None
+                        self.config["features"]["poi_detection"]["enabled"]
+                        and asset_data.latitude is not None
                         and asset_data.longitude is not None
                     ):
                         language = self.config["site"]["locale"].split("_")[0]

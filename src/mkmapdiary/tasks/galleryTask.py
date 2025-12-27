@@ -42,7 +42,11 @@ class GalleryTask(BaseTask):
             for i, asset in enumerate(images):
                 model_dict = dataclasses.asdict(asset)
 
-                if asset.latitude is not None and asset.longitude is not None:
+                if (
+                    self.config["features"]["poi_detection"]["enabled"]
+                    and asset.latitude is not None
+                    and asset.longitude is not None
+                ):
                     model_dict["location_admin"] = (
                         poiidx.get_administrative_hierarchy_string(
                             shapely.geometry.Point(asset.longitude, asset.latitude)

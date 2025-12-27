@@ -305,7 +305,10 @@ class GpxCreator:
                     f"Cluster bounding circle center: {center}, radius: {radius} m"
                 )
 
-                nearby_pois = poiidx.get_nearest_pois(center, max_distance=radius)
+                if self.__skip_poi_detection:
+                    nearby_pois = []
+                else:
+                    nearby_pois = poiidx.get_nearest_pois(center, max_distance=radius)
 
                 logger.debug(f"Found {len(nearby_pois)} nearby POIs")
 
@@ -336,9 +339,13 @@ class GpxCreator:
                         extra={"icon": "⭐"},
                     )
 
-                    admin = poiidx.get_administrative_hierarchy_string(
-                        poi["center"], self.__language
-                    )
+                    if self.__skip_poi_detection:
+                        admin = ""
+                    else:
+                        admin = poiidx.get_administrative_hierarchy_string(
+                            poi["center"], self.__language
+                        )
+
                     pwpt = gpxpy.gpx.GPXWaypoint(
                         latitude=poi["center"].y,
                         longitude=poi["center"].x,
