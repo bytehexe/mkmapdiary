@@ -10,8 +10,9 @@ import jsonschema
 import whenever
 import yaml
 
+from mkmapdiary import util
 from mkmapdiary.lib.asset import AssetRecord
-from mkmapdiary.lib.config import load_config_param
+from mkmapdiary.lib.config import load_config_file, load_config_param
 from mkmapdiary.lib.dirs import Dirs
 from mkmapdiary.taskList import TaskList
 
@@ -70,8 +71,12 @@ def file(
         tempdir_path = Path(tempdir)
         dirs = Dirs(tempdir_path, tempdir_path, tempdir_path, False)
 
-        config = load_config_param("site.timezone=UTC")
-        taskList = TaskList(config, dirs, dict(), scan=False)
+        # Load default config to get all required sections including input_formats
+        default_config = dirs.resources_dir / "defaults.yaml"
+        config = load_config_file(default_config)
+        # Override timezone
+        config = util.deep_update(config, load_config_param("site.timezone=UTC"))  # type: ignore
+        taskList = TaskList(config, dirs, dict(), scan=False)  # type: ignore
         assets = list(taskList.handle_path(image))
         if not assets:
             logger.error("No assets found in the specified image.")

@@ -2,6 +2,7 @@
 """Tkinter UI for mkmapdiary - A travel journal generator."""
 
 import io
+import logging
 import os
 import pathlib
 import threading
@@ -27,9 +28,22 @@ from .commands.inspect import inspect as inspect_command
 def capture_command_output(
     func: Callable[..., Any], *args: Any, **kwargs: Any
 ) -> tuple[str, int]:
-    """Capture output from a Click command."""
+    """Capture output from a Click command, including logging output."""
     output_buffer = io.StringIO()
     error_buffer = io.StringIO()
+    log_buffer = io.StringIO()
+
+    # Create a logging handler to capture log messages
+    log_handler = logging.StreamHandler(log_buffer)
+    log_handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter("%(message)s")
+    log_handler.setFormatter(formatter)
+
+    # Add handler to root logger
+    root_logger = logging.getLogger()
+    original_level = root_logger.level
+    root_logger.addHandler(log_handler)
+    root_logger.setLevel(logging.DEBUG)
 
     try:
         with redirect_stdout(output_buffer), redirect_stderr(error_buffer):
@@ -37,7 +51,11 @@ def capture_command_output(
 
         output = output_buffer.getvalue()
         error = error_buffer.getvalue()
+        logs = log_buffer.getvalue()
 
+        # Combine all outputs
+        if logs:
+            output = logs + output
         if error:
             output += "\n" + error
 
@@ -45,7 +63,11 @@ def capture_command_output(
     except SystemExit as e:
         output = output_buffer.getvalue()
         error = error_buffer.getvalue()
+        logs = log_buffer.getvalue()
 
+        # Combine all outputs
+        if logs:
+            output = logs + output
         if error:
             output += "\n" + error
 
@@ -53,13 +75,22 @@ def capture_command_output(
     except Exception as e:
         output = output_buffer.getvalue()
         error = error_buffer.getvalue()
+        logs = log_buffer.getvalue()
 
+        # Combine all outputs
+        if logs:
+            output = logs + output
         error_msg = f"\nError: {str(e)}"
         if error:
             output += "\n" + error
         output += error_msg
 
         return output, 1
+    finally:
+        # Remove the handler and restore original level
+        root_logger.removeHandler(log_handler)
+        root_logger.setLevel(original_level)
+        log_handler.close()
 
 
 class MkmapdiaryUI:

@@ -1,12 +1,15 @@
 import logging
 import tempfile
+from collections.abc import MutableMapping
 from pathlib import Path
+from typing import Any
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import click
 from tabulate import tabulate
 
-from mkmapdiary.lib.config import load_config_param
+from mkmapdiary import util
+from mkmapdiary.lib.config import load_config_file, load_config_param
 from mkmapdiary.lib.dirs import Dirs
 from mkmapdiary.taskList import TaskList
 
@@ -15,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 @click.command()
 @click.option(
-    "-tz",
+    "--tz",
     type=str,
     default="localtime",
     help="Timezone to be used.",
@@ -34,8 +37,12 @@ def inspect(source: Path, tz: str) -> None:
         tempdir_path = Path(tempdir)
         dirs = Dirs(tempdir_path, tempdir_path, tempdir_path, False)
 
-        config = load_config_param(f"site.timezone={tz}")
-        taskList = TaskList(config, dirs, dict(), scan=False)
+        # Load default config to get all required sections including input_formats
+        default_config = dirs.resources_dir / "defaults.yaml"
+        config: MutableMapping[str, Any] = load_config_file(default_config)
+        # Override timezone
+        config = util.deep_update(config, load_config_param(f"site.timezone={tz}"))
+        taskList = TaskList(config, dirs, dict(), scan=False)  # type: ignore
         assets = list(taskList.handle_path(source))
 
         if not assets:
