@@ -6,6 +6,7 @@ import os
 import pathlib
 import threading
 import tkinter as tk
+import webbrowser
 from collections.abc import Callable
 from contextlib import redirect_stderr, redirect_stdout
 from tkinter import filedialog, scrolledtext, ttk
@@ -130,6 +131,12 @@ class MkmapdiaryUI:
         if directory:
             entry_widget.delete(0, tk.END)
             entry_widget.insert(0, directory)
+            # Update browser button state if this is the dist directory
+            if hasattr(self, "dist_dir") and entry_widget == self.dist_dir:
+                self.update_browser_button_state()
+            # Also update if source dir changes (affects default dist dir)
+            if hasattr(self, "source_dir") and entry_widget == self.source_dir:
+                self.update_browser_button_state()
 
     def browse_file(self, entry_widget: ttk.Entry) -> None:
         """Open file picker and update entry widget."""
@@ -163,6 +170,42 @@ class MkmapdiaryUI:
             self.expert_toggle_btn.config(text="▼ Hide Expert Options")
             self.expert_options_visible.set(True)
 
+    def get_dist_directory(self) -> pathlib.Path | None:
+        """Get the distribution directory path."""
+        dist_dir = self.dist_dir.get()
+        if dist_dir:
+            return pathlib.Path(dist_dir)
+
+        source_dir = self.source_dir.get()
+        if source_dir:
+            source_path = pathlib.Path(source_dir)
+            return source_path.with_name(source_path.name + "_dist")
+
+        return None
+
+    def update_browser_button_state(self) -> None:
+        """Update the browser button state based on whether index.html exists."""
+        if self.build_running:
+            self.browser_button.config(state="disabled")
+            return
+
+        dist_dir = self.get_dist_directory()
+        if dist_dir and dist_dir.exists():
+            index_path = dist_dir / "index.html"
+            if index_path.exists():
+                self.browser_button.config(state="normal")
+                return
+
+        self.browser_button.config(state="disabled")
+
+    def open_in_browser(self) -> None:
+        """Open the generated diary in the default web browser."""
+        dist_dir = self.get_dist_directory()
+        if dist_dir:
+            index_path = dist_dir / "index.html"
+            if index_path.exists():
+                webbrowser.open(index_path.as_uri())
+
     def create_build_tab(self) -> None:
         """Create the Build Diary tab."""
         build_frame = ttk.Frame(self.notebook, padding=20)
@@ -185,6 +228,11 @@ class MkmapdiaryUI:
 
         self.source_dir = ttk.Entry(src_entry_frame)
         self.source_dir.pack(side="left", fill="x", expand=True)
+        # Track changes to update browser button state (affects default dist dir)
+        self.source_dir.bind(
+            "<KeyRelease>", lambda e: self.update_browser_button_state()
+        )
+        self.source_dir.bind("<FocusOut>", lambda e: self.update_browser_button_state())
 
         ttk.Button(
             src_entry_frame,
@@ -209,6 +257,9 @@ class MkmapdiaryUI:
 
         self.dist_dir = ttk.Entry(dist_entry_frame)
         self.dist_dir.pack(side="left", fill="x", expand=True)
+        # Track changes to update browser button state
+        self.dist_dir.bind("<KeyRelease>", lambda e: self.update_browser_button_state())
+        self.dist_dir.bind("<FocusOut>", lambda e: self.update_browser_button_state())
 
         ttk.Button(
             dist_entry_frame,
@@ -302,6 +353,14 @@ class MkmapdiaryUI:
             self.build_button_frame, text="🚀 Build Diary", command=self.run_build
         )
         self.build_button.pack(side="left", padx=5)
+
+        self.browser_button = ttk.Button(
+            self.build_button_frame,
+            text="🌐 Show in Browser",
+            command=self.open_in_browser,
+            state="disabled",
+        )
+        self.browser_button.pack(side="left", padx=5)
 
         self.build_status_label = ttk.Label(
             self.build_button_frame,
@@ -475,6 +534,7 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
             # Start progress
             self.build_running = True
             self.build_button.config(state="disabled")
+            self.browser_button.config(state="disabled")
             self.build_progress.pack(side="left", padx=5)
             self.build_progress.start(10)
             self.build_status_label.config(
@@ -556,6 +616,8 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
                 self.build_progress.pack_forget()
                 self.build_button.config(state="normal")
                 self.build_running = False
+                # Update browser button state after build completes
+                self.update_browser_button_state()
 
         threading.Thread(target=build_thread, daemon=True).start()
 
