@@ -236,3 +236,209 @@ msgstr "An airport in {admin} (rank {rank})"
 
 msgid "A ferry_terminal in {admin} (rank {rank})"
 msgstr "A ferry terminal in {admin} (rank {rank})"
+
+# UI Translations
+msgid "ui.window_title"
+msgstr "mkmapdiary - Travel Journal Generator"
+
+msgid "ui.tab_build"
+msgstr "Build Diary"
+
+msgid "ui.tab_calibrate"
+msgstr "Calibrate"
+
+msgid "ui.tab_config"
+msgstr "Config"
+
+msgid "ui.tab_inspect"
+msgstr "Inspect"
+
+msgid "ui.tab_help"
+msgstr "Help & Info"
+
+msgid "ui.build_title"
+msgstr "Build a map diary from your travel data"
+
+msgid "ui.build_source_dir"
+msgstr "Source Directory *"
+
+msgid "ui.build_source_info"
+msgstr "Directory containing GPS tracks, photos, and notes"
+
+msgid "ui.build_dist_dir"
+msgstr "Distribution Directory (optional)"
+
+msgid "ui.build_dist_info"
+msgstr "Output directory (defaults to the Source Directory with '_dist' suffix)"
+
+msgid "ui.button_browse"
+msgstr "Browse..."
+
+msgid "ui.expert_show"
+msgstr "▶ Show Expert Options"
+
+msgid "ui.expert_hide"
+msgstr "▼ Hide Expert Options"
+
+msgid "ui.expert_options"
+msgstr "Expert Options"
+
+msgid "ui.expert_persistent_build"
+msgstr "Persistent Build Directory"
+
+msgid "ui.expert_always_execute"
+msgstr "Always Execute (rebuild everything)"
+
+msgid "ui.expert_debug_fast"
+msgstr "Debug Fast Mode"
+
+msgid "ui.expert_no_cache"
+msgstr "Disable Cache"
+
+msgid "ui.expert_build_dir"
+msgstr "Build Directory (optional):"
+
+msgid "ui.expert_processes"
+msgstr "Parallel Processes:"
+
+msgid "ui.expert_config_params"
+msgstr "Configuration Parameters (one per line):"
+
+msgid "ui.build_button"
+msgstr "🚀 Build Diary"
+
+msgid "ui.browser_button"
+msgstr "🌐 Show in Browser"
+
+msgid "ui.status_ready"
+msgstr "⚪ Ready"
+
+msgid "ui.output_label"
+msgstr "Output"
+
+msgid "ui.help_content"
+msgstr ""
+"🗺️ mkmapdiary - Travel Journal Generator\n"
+"\n"
+"About\n"
+"=====\n"
+"mkmapdiary is a travel journal generator that creates beautiful map-based websites\n"
+"from GPS tracks, photos, and notes.\n"
+"\n"
+"Quick Start\n"
+"===========\n"
+"1. Prepare your data: Create a directory with:\n"
+"   - GPS tracks (.gpx, .kml, or other formats)\n"
+"   - Photos with location data\n"
+"   - Text notes (.txt or .md files)\n"
+"\n"
+"2. Build the diary: Use the \"Build Diary\" tab to generate your website\n"
+"\n"
+"3. View the result: Open the generated website in your browser\n"
+"\n"
+"Source Directory Structure\n"
+"==========================\n"
+"Your source directory should contain:\n"
+"- GPS files: .gpx, .kml, .fit, .tcx\n"
+"- Photos: .jpg, .png, .heic, etc.\n"
+"- Notes: .txt, .md files\n"
+"- Optional: config.yaml for custom settings\n"
+"\n"
+"Configuration\n"
+"=============\n"
+"You can customize the build with configuration parameters in the format:\n"
+"  site.title=My Travel Journal\n"
+"  site.locale=en_US\n"
+"  features.transcription.enabled=False\n"
+"\n"
+"Documentation\n"
+"=============\n"
+"For more information, visit: https://bytehexe.github.io/mkmapdiary/\n"
+"\n"
+"License\n"
+"=======\n"
+"PolyForm Noncommercial License 1.0.0\n"
+"Copyright Janna Hopp\n"
+"\n"
+"Bon voyage! Have fun travelling and stay safe! 🌍✈️"
+
+msgid "ui.calibrate_title"
+msgstr "Calibrate camera timestamps"
+
+msgid "ui.calibrate_info"
+msgstr "Calibrate camera timestamps using a reference image and time."
+
+msgid "ui.calibrate_image_file"
+msgstr "Image File *"
+
+msgid "ui.calibrate_ref_time"
+msgstr "Reference Time *"
+
+msgid "ui.calibrate_ref_time_info"
+msgstr "Date and time when the reference photo was taken"
+
+msgid "ui.calibrate_date"
+msgstr "Date:"
+
+msgid "ui.calibrate_time"
+msgstr "Time:"
+
+msgid "ui.calibrate_options"
+msgstr "Options"
+
+msgid "ui.calibrate_camera_tz"
+msgstr "Camera Timezone:"
+
+msgid "ui.calibrate_reference_tz"
+msgstr "Reference Timezone:"
+
+msgid "ui.calibrate_output_file"
+msgstr "Output File (optional):"
+
+msgid "ui.calibrate_dry_run"
+msgstr "Dry Run"
+
+msgid "ui.calibrate_button"
+msgstr "📷 Calibrate"
+
+msgid "ui.config_title"
+msgstr "Write configuration to config.yaml"
+
+msgid "ui.config_info"
+msgstr "Apply configuration parameters and write them to a config.yaml file."
+
+msgid "ui.config_source_dir"
+msgstr "Source Directory"
+
+msgid "ui.config_write_user"
+msgstr "Write to user config (ignore source directory)"
+
+msgid "ui.config_params"
+msgstr "Configuration Parameters"
+
+msgid "ui.config_params_info"
+msgstr "Enter configuration parameters (one per line, key=value format)"
+
+msgid "ui.config_button"
+msgstr "⚙️ Write Config"
+
+msgid "ui.inspect_title"
+msgstr "Inspect assets from source"
+
+msgid "ui.inspect_info"
+msgstr "Inspect and display asset information from a source file or directory."
+
+msgid "ui.inspect_source"
+msgstr "Source File or Directory *"
+
+msgid "ui.inspect_browse_file"
+msgstr "Browse File..."
+
+msgid "ui.inspect_browse_dir"
+msgstr "Browse Dir..."
+
+msgid "ui.inspect_timezone"
+msgstr "Timezone"
+
+msgid "ui.inspect_button"
+msgstr "🔍 Inspect"

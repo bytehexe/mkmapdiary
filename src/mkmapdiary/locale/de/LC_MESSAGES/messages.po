@@ -236,3 +236,209 @@ msgstr "Ein Flughafen in {admin} (Rang {rank})"
 
 msgid "A ferry_terminal in {admin} (rank {rank})"
 msgstr "Ein Fährterminal in {admin} (Rang {rank})"
+
+# UI Übersetzungen
+msgid "ui.window_title"
+msgstr "mkmapdiary - Reisetagebuch Generator"
+
+msgid "ui.tab_build"
+msgstr "Tagebuch erstellen"
+
+msgid "ui.tab_calibrate"
+msgstr "Kalibrieren"
+
+msgid "ui.tab_config"
+msgstr "Konfiguration"
+
+msgid "ui.tab_inspect"
+msgstr "Inspizieren"
+
+msgid "ui.tab_help"
+msgstr "Hilfe & Info"
+
+msgid "ui.build_title"
+msgstr "Erstellen Sie ein Karten-Tagebuch aus Ihren Reisedaten"
+
+msgid "ui.build_source_dir"
+msgstr "Quellverzeichnis *"
+
+msgid "ui.build_source_info"
+msgstr "Verzeichnis mit GPS-Tracks, Fotos und Notizen"
+
+msgid "ui.build_dist_dir"
+msgstr "Ausgabeverzeichnis (optional)"
+
+msgid "ui.build_dist_info"
+msgstr "Ausgabeverzeichnis (Standard: Quellverzeichnis mit '_dist' Suffix)"
+
+msgid "ui.button_browse"
+msgstr "Durchsuchen..."
+
+msgid "ui.expert_show"
+msgstr "▶ Expertenoptionen anzeigen"
+
+msgid "ui.expert_hide"
+msgstr "▼ Expertenoptionen ausblenden"
+
+msgid "ui.expert_options"
+msgstr "Expertenoptionen"
+
+msgid "ui.expert_persistent_build"
+msgstr "Persistentes Build-Verzeichnis"
+
+msgid "ui.expert_always_execute"
+msgstr "Immer ausführen (alles neu erstellen)"
+
+msgid "ui.expert_debug_fast"
+msgstr "Debug-Schnellmodus"
+
+msgid "ui.expert_no_cache"
+msgstr "Cache deaktivieren"
+
+msgid "ui.expert_build_dir"
+msgstr "Build-Verzeichnis (optional):"
+
+msgid "ui.expert_processes"
+msgstr "Parallele Prozesse:"
+
+msgid "ui.expert_config_params"
+msgstr "Konfigurationsparameter (einer pro Zeile):"
+
+msgid "ui.build_button"
+msgstr "🚀 Tagebuch erstellen"
+
+msgid "ui.browser_button"
+msgstr "🌐 Im Browser anzeigen"
+
+msgid "ui.status_ready"
+msgstr "⚪ Bereit"
+
+msgid "ui.output_label"
+msgstr "Ausgabe"
+
+msgid "ui.help_content"
+msgstr ""
+"🗺️ mkmapdiary - Reisetagebuch Generator\n"
+"\n"
+"Über\n"
+"====\n"
+"mkmapdiary ist ein Reisetagebuch-Generator, der wunderschöne kartenbasierte Webseiten\n"
+"aus GPS-Tracks, Fotos und Notizen erstellt.\n"
+"\n"
+"Schnellstart\n"
+"============\n"
+"1. Bereiten Sie Ihre Daten vor: Erstellen Sie ein Verzeichnis mit:\n"
+"   - GPS-Tracks (.gpx, .kml oder andere Formate)\n"
+"   - Fotos mit Standortdaten\n"
+"   - Textnotizen (.txt oder .md Dateien)\n"
+"\n"
+"2. Erstellen Sie das Tagebuch: Verwenden Sie den Tab \"Tagebuch erstellen\"\n"
+"\n"
+"3. Sehen Sie sich das Ergebnis an: Öffnen Sie die generierte Webseite im Browser\n"
+"\n"
+"Quellverzeichnis-Struktur\n"
+"=========================\n"
+"Ihr Quellverzeichnis sollte enthalten:\n"
+"- GPS-Dateien: .gpx, .kml, .fit, .tcx\n"
+"- Fotos: .jpg, .png, .heic, etc.\n"
+"- Notizen: .txt, .md Dateien\n"
+"- Optional: config.yaml für benutzerdefinierte Einstellungen\n"
+"\n"
+"Konfiguration\n"
+"=============\n"
+"Sie können den Build mit Konfigurationsparametern anpassen:\n"
+"  site.title=Mein Reisetagebuch\n"
+"  site.locale=de_DE\n"
+"  features.transcription.enabled=False\n"
+"\n"
+"Dokumentation\n"
+"=============\n"
+"Weitere Informationen finden Sie unter: https://bytehexe.github.io/mkmapdiary/\n"
+"\n"
+"Lizenz\n"
+"======\n"
+"PolyForm Noncommercial License 1.0.0\n"
+"Copyright Janna Hopp\n"
+"\n"
+"Gute Reise! Viel Spaß beim Reisen und bleiben Sie sicher! 🌍✈️"
+
+msgid "ui.calibrate_title"
+msgstr "Kamera-Zeitstempel kalibrieren"
+
+msgid "ui.calibrate_info"
+msgstr "Kalibrieren Sie Kamera-Zeitstempel mit einem Referenzbild und einer Referenzzeit."
+
+msgid "ui.calibrate_image_file"
+msgstr "Bilddatei *"
+
+msgid "ui.calibrate_ref_time"
+msgstr "Referenzzeit *"
+
+msgid "ui.calibrate_ref_time_info"
+msgstr "Datum und Uhrzeit, zu der das Referenzfoto aufgenommen wurde"
+
+msgid "ui.calibrate_date"
+msgstr "Datum:"
+
+msgid "ui.calibrate_time"
+msgstr "Zeit:"
+
+msgid "ui.calibrate_options"
+msgstr "Optionen"
+
+msgid "ui.calibrate_camera_tz"
+msgstr "Kamera-Zeitzone:"
+
+msgid "ui.calibrate_reference_tz"
+msgstr "Referenz-Zeitzone:"
+
+msgid "ui.calibrate_output_file"
+msgstr "Ausgabedatei (optional):"
+
+msgid "ui.calibrate_dry_run"
+msgstr "Probelauf"
+
+msgid "ui.calibrate_button"
+msgstr "📷 Kalibrieren"
+
+msgid "ui.config_title"
+msgstr "Konfiguration in config.yaml schreiben"
+
+msgid "ui.config_info"
+msgstr "Konfigurationsparameter anwenden und in eine config.yaml-Datei schreiben."
+
+msgid "ui.config_source_dir"
+msgstr "Quellverzeichnis"
+
+msgid "ui.config_write_user"
+msgstr "In Benutzerkonfiguration schreiben (Quellverzeichnis ignorieren)"
+
+msgid "ui.config_params"
+msgstr "Konfigurationsparameter"
+
+msgid "ui.config_params_info"
+msgstr "Konfigurationsparameter eingeben (einer pro Zeile, Format: key=value)"
+
+msgid "ui.config_button"
+msgstr "⚙️ Konfiguration schreiben"
+
+msgid "ui.inspect_title"
+msgstr "Assets aus Quelle inspizieren"
+
+msgid "ui.inspect_info"
+msgstr "Asset-Informationen aus einer Quelldatei oder einem Verzeichnis inspizieren und anzeigen."
+
+msgid "ui.inspect_source"
+msgstr "Quelldatei oder -verzeichnis *"
+
+msgid "ui.inspect_browse_file"
+msgstr "Datei wählen..."
+
+msgid "ui.inspect_browse_dir"
+msgstr "Verzeichnis wählen..."
+
+msgid "ui.inspect_timezone"
+msgstr "Zeitzone"
+
+msgid "ui.inspect_button"
+msgstr "🔍 Inspizieren"

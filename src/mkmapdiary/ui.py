@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Tkinter UI for mkmapdiary - A travel journal generator."""
 
+import gettext
 import io
+import locale
 import logging
 import os
 import pathlib
@@ -23,8 +25,14 @@ from .commands.build import build as build_command
 from .commands.calibrate import file as calibrate_file_command
 from .commands.config import config as config_command
 from .commands.inspect import inspect as inspect_command
+from .lib.dirs import Dirs
 
-# Setup logging
+
+# Setup gettext for UI translations
+# All UI strings use "ui." prefix to identify them as belonging to the Tkinter GUI
+def _(x: str) -> str:
+    """Placeholder translation function until gettext is initialized."""
+    return x
 
 
 def capture_command_output(
@@ -99,8 +107,43 @@ class MkmapdiaryUI:
     """Tkinter UI for mkmapdiary."""
 
     def __init__(self, root: tk.Tk) -> None:
+        global _
+
+        # Initialize gettext for UI translations
+        # Use temporary directory to get resources path
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            tempdir_path = pathlib.Path(tempdir)
+            dirs = Dirs(tempdir_path, tempdir_path, tempdir_path, False)
+            localedir = dirs.locale_dir
+
+        # Try to get system locale, fall back to English
+        try:
+            system_locale = locale.getdefaultlocale()[0]
+            language = system_locale.split("_")[0] if system_locale else "en"
+        except Exception:
+            language = "en"
+
+        # Map C/POSIX locale to English
+        if language in ("C", "POSIX", None):
+            language = "en"
+
+        # Load translations with English as fallback
+        try:
+            lang = gettext.translation(
+                "messages",
+                localedir=str(localedir),
+                languages=[language, "en"],
+                fallback=True,
+            )
+            _ = lang.gettext  # type: ignore[assignment]
+        except Exception:
+            # If translation loading fails, use identity function
+            pass  # Use the default _ function defined above
+
         self.root = root
-        self.root.title("mkmapdiary - Travel Journal Generator")
+        self.root.title(_("ui.window_title"))
 
         # Theme-aware colors for better contrast
         self.colors = {
@@ -248,14 +291,14 @@ class MkmapdiaryUI:
         if self.expert_options_visible.get():
             # Hide expert options
             self.expert_options_container.pack_forget()
-            self.expert_toggle_btn.config(text="▶ Show Expert Options")
+            self.expert_toggle_btn.config(text=_("ui.expert_show"))
             self.expert_options_visible.set(False)
         else:
             # Show expert options
             self.expert_options_container.pack(
                 fill="x", pady=5, before=self.build_button_frame
             )
-            self.expert_toggle_btn.config(text="▼ Hide Expert Options")
+            self.expert_toggle_btn.config(text=_("ui.expert_hide"))
             self.expert_options_visible.set(True)
 
     def get_dist_directory(self) -> pathlib.Path | None:
@@ -297,18 +340,20 @@ class MkmapdiaryUI:
     def create_build_tab(self) -> None:
         """Create the Build Diary tab."""
         build_frame = ttk.Frame(self.notebook, padding=20)
-        self.notebook.add(build_frame, text="Build Diary")
+        self.notebook.add(build_frame, text=_("ui.tab_build"))
 
         # Title
         title = ttk.Label(
             build_frame,
-            text="Build a map diary from your travel data",
+            text=_("ui.build_title"),
             font=("Helvetica", 12, "bold"),
         )
         title.pack(pady=10)
 
         # Source Directory
-        src_frame = ttk.LabelFrame(build_frame, text="Source Directory *", padding=10)
+        src_frame = ttk.LabelFrame(
+            build_frame, text=_("ui.build_source_dir"), padding=10
+        )
         src_frame.pack(fill="x", pady=5)
 
         src_entry_frame = ttk.Frame(src_frame)
@@ -324,19 +369,19 @@ class MkmapdiaryUI:
 
         ttk.Button(
             src_entry_frame,
-            text="Browse...",
+            text=_("ui.button_browse"),
             command=lambda: self.browse_directory(self.source_dir),
         ).pack(side="left", padx=(5, 0))
 
         ttk.Label(
             src_frame,
-            text="Directory containing GPS tracks, photos, and notes",
+            text=_("ui.build_source_info"),
             foreground=self.colors["info"],
         ).pack(anchor="w")
 
         # Distribution Directory
         dist_frame = ttk.LabelFrame(
-            build_frame, text="Distribution Directory (optional)", padding=10
+            build_frame, text=_("ui.build_dist_dir"), padding=10
         )
         dist_frame.pack(fill="x", pady=5)
 
@@ -351,13 +396,13 @@ class MkmapdiaryUI:
 
         ttk.Button(
             dist_entry_frame,
-            text="Browse...",
+            text=_("ui.button_browse"),
             command=lambda: self.browse_directory(self.dist_dir),
         ).pack(side="left", padx=(5, 0))
 
         ttk.Label(
             dist_frame,
-            text="Output directory (defaults to the Source Directory with '_dist' suffix)",
+            text=_("ui.build_dist_info"),
             foreground=self.colors["info"],
         ).pack(anchor="w")
 
@@ -368,7 +413,7 @@ class MkmapdiaryUI:
         self.expert_options_visible = tk.BooleanVar(value=False)
         self.expert_toggle_btn = ttk.Button(
             expert_toggle_frame,
-            text="▶ Show Expert Options",
+            text=_("ui.expert_show"),
             command=self.toggle_expert_options,
         )
         self.expert_toggle_btn.pack(anchor="w")
@@ -378,36 +423,36 @@ class MkmapdiaryUI:
         # Don't pack initially - will be shown when toggled
 
         options_frame = ttk.LabelFrame(
-            self.expert_options_container, text="Expert Options", padding=10
+            self.expert_options_container, text=_("ui.expert_options"), padding=10
         )
         options_frame.pack(fill="x", pady=5)
 
         self.persistent_build = tk.BooleanVar()
         ttk.Checkbutton(
             options_frame,
-            text="Persistent Build Directory",
+            text=_("ui.expert_persistent_build"),
             variable=self.persistent_build,
         ).pack(anchor="w")
 
         self.always_execute = tk.BooleanVar()
         ttk.Checkbutton(
             options_frame,
-            text="Always Execute (rebuild everything)",
+            text=_("ui.expert_always_execute"),
             variable=self.always_execute,
         ).pack(anchor="w")
 
         self.debug_fast = tk.BooleanVar()
         ttk.Checkbutton(
-            options_frame, text="Debug Fast Mode", variable=self.debug_fast
+            options_frame, text=_("ui.expert_debug_fast"), variable=self.debug_fast
         ).pack(anchor="w")
 
         self.no_cache = tk.BooleanVar()
         ttk.Checkbutton(
-            options_frame, text="Disable Cache", variable=self.no_cache
+            options_frame, text=_("ui.expert_no_cache"), variable=self.no_cache
         ).pack(anchor="w")
 
         # Build Directory
-        ttk.Label(options_frame, text="Build Directory (optional):").pack(
+        ttk.Label(options_frame, text=_("ui.expert_build_dir")).pack(
             anchor="w", pady=(5, 0)
         )
         self.build_dir = ttk.Entry(options_frame)
@@ -416,7 +461,7 @@ class MkmapdiaryUI:
         # Number of processes
         proc_frame = ttk.Frame(options_frame)
         proc_frame.pack(fill="x", pady=5)
-        ttk.Label(proc_frame, text="Parallel Processes:").pack(side="left")
+        ttk.Label(proc_frame, text=_("ui.expert_processes")).pack(side="left")
         self.num_processes = tk.IntVar(value=os.cpu_count() or 4)
         ttk.Spinbox(
             proc_frame,
@@ -427,7 +472,7 @@ class MkmapdiaryUI:
         ).pack(side="left", padx=5)
 
         # Config params
-        ttk.Label(options_frame, text="Configuration Parameters (one per line):").pack(
+        ttk.Label(options_frame, text=_("ui.expert_config_params")).pack(
             anchor="w", pady=(5, 0)
         )
         self.config_params = scrolledtext.ScrolledText(options_frame, height=4)
@@ -438,13 +483,13 @@ class MkmapdiaryUI:
         self.build_button_frame.pack(pady=10)
 
         self.build_button = ttk.Button(
-            self.build_button_frame, text="🚀 Build Diary", command=self.run_build
+            self.build_button_frame, text=_("ui.build_button"), command=self.run_build
         )
         self.build_button.pack(side="left", padx=5)
 
         self.browser_button = ttk.Button(
             self.build_button_frame,
-            text="🌐 Show in Browser",
+            text=_("ui.browser_button"),
             command=self.open_in_browser,
             state="disabled",
         )
@@ -452,7 +497,7 @@ class MkmapdiaryUI:
 
         self.build_status_label = ttk.Label(
             self.build_button_frame,
-            text="⚪ Ready",
+            text=_("ui.status_ready"),
             font=("", 10, "bold"),
             foreground=self.colors["ready"],
         )
@@ -464,7 +509,9 @@ class MkmapdiaryUI:
         # Don't pack initially - will be shown when building starts
 
         # Output
-        output_frame = ttk.LabelFrame(build_frame, text="Output", padding=10)
+        output_frame = ttk.LabelFrame(
+            build_frame, text=_("ui.output_label"), padding=10
+        )
         output_frame.pack(fill="both", expand=True, pady=5)
 
         self.build_output = scrolledtext.ScrolledText(
@@ -475,56 +522,12 @@ class MkmapdiaryUI:
     def create_help_tab(self) -> None:
         """Create the Help tab."""
         help_frame = ttk.Frame(self.notebook, padding=20)
-        self.notebook.add(help_frame, text="Help & Info")
+        self.notebook.add(help_frame, text=_("ui.tab_help"))
 
         help_text = scrolledtext.ScrolledText(help_frame, wrap=tk.WORD, height=30)
         help_text.pack(fill="both", expand=True)
 
-        help_content = """
-🗺️ mkmapdiary - Travel Journal Generator
-
-About
-=====
-mkmapdiary is a travel journal generator that creates beautiful map-based websites
-from GPS tracks, photos, and notes.
-
-Quick Start
-===========
-1. Prepare your data: Create a directory with:
-   - GPS tracks (.gpx, .kml, or other formats)
-   - Photos with location data
-   - Text notes (.txt or .md files)
-
-2. Build the diary: Use the "Build Diary" tab to generate your website
-
-3. View the result: Open the generated website in your browser
-
-Source Directory Structure
-==========================
-Your source directory should contain:
-- GPS files: .gpx, .kml, .fit, .tcx
-- Photos: .jpg, .png, .heic, etc.
-- Notes: .txt, .md files
-- Optional: config.yaml for custom settings
-
-Configuration
-=============
-You can customize the build with configuration parameters in the format:
-  site.title=My Travel Journal
-  site.locale=en_US
-  features.transcription.enabled=False
-
-Documentation
-=============
-For more information, visit: https://bytehexe.github.io/mkmapdiary/
-
-License
-=======
-PolyForm Noncommercial License 1.0.0
-Copyright Janna Hopp
-
-Bon voyage! Have fun travelling and stay safe! 🌍✈️
-        """
+        help_content = _("ui.help_content")
 
         help_text.insert("1.0", help_content)
         help_text.config(state="disabled")
@@ -914,24 +917,26 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
     def create_calibrate_tab(self) -> None:
         """Create the Calibrate tab."""
         calibrate_frame = ttk.Frame(self.notebook, padding=20)
-        self.notebook.add(calibrate_frame, text="Calibrate")
+        self.notebook.add(calibrate_frame, text=_("ui.tab_calibrate"))
 
         title = ttk.Label(
             calibrate_frame,
-            text="Calibrate camera timestamps",
+            text=_("ui.calibrate_title"),
             font=("Helvetica", 12, "bold"),
         )
         title.pack(pady=10)
 
         info = ttk.Label(
             calibrate_frame,
-            text="Calibrate camera timestamps using a reference image and time.",
+            text=_("ui.calibrate_info"),
             wraplength=800,
         )
         info.pack(pady=5)
 
         # Image File
-        image_frame = ttk.LabelFrame(calibrate_frame, text="Image File *", padding=10)
+        image_frame = ttk.LabelFrame(
+            calibrate_frame, text=_("ui.calibrate_image_file"), padding=10
+        )
         image_frame.pack(fill="x", pady=5)
 
         image_entry_frame = ttk.Frame(image_frame)
@@ -942,19 +947,19 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
 
         ttk.Button(
             image_entry_frame,
-            text="Browse...",
+            text=_("ui.button_browse"),
             command=lambda: self.browse_file(self.calibrate_image),
         ).pack(side="left", padx=(5, 0))
 
         # Reference Time
         time_frame = ttk.LabelFrame(
-            calibrate_frame, text="Reference Time *", padding=10
+            calibrate_frame, text=_("ui.calibrate_ref_time"), padding=10
         )
         time_frame.pack(fill="x", pady=5)
 
         ttk.Label(
             time_frame,
-            text="Date and time when the reference photo was taken",
+            text=_("ui.calibrate_ref_time_info"),
             foreground=self.colors["info"],
         ).pack(anchor="w")
 
@@ -963,7 +968,9 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
         datetime_frame.pack(fill="x", pady=(5, 0))
 
         # Date picker
-        ttk.Label(datetime_frame, text="Date:").pack(side="left", padx=(0, 5))
+        ttk.Label(datetime_frame, text=_("ui.calibrate_date")).pack(
+            side="left", padx=(0, 5)
+        )
         self.calibrate_ref_date = DateEntry(
             datetime_frame,
             width=12,
@@ -975,7 +982,9 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
         self.calibrate_ref_date.pack(side="left", padx=(0, 15))
 
         # Time spinboxes
-        ttk.Label(datetime_frame, text="Time:").pack(side="left", padx=(0, 5))
+        ttk.Label(datetime_frame, text=_("ui.calibrate_time")).pack(
+            side="left", padx=(0, 5)
+        )
 
         self.calibrate_ref_hour = ttk.Spinbox(
             datetime_frame, from_=0, to=23, width=3, format="%02.0f"
@@ -1000,24 +1009,26 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
         self.calibrate_ref_second.pack(side="left")
 
         # Options
-        options_frame = ttk.LabelFrame(calibrate_frame, text="Options", padding=10)
+        options_frame = ttk.LabelFrame(
+            calibrate_frame, text=_("ui.calibrate_options"), padding=10
+        )
         options_frame.pack(fill="x", pady=5)
 
-        ttk.Label(options_frame, text="Camera Timezone:").pack(anchor="w")
+        ttk.Label(options_frame, text=_("ui.calibrate_camera_tz")).pack(anchor="w")
         self.calibrate_camera_tz = ttk.Combobox(
             options_frame, values=self.common_timezones, state="normal"
         )
         self.calibrate_camera_tz.set("localtime")
         self.calibrate_camera_tz.pack(fill="x", pady=(0, 5))
 
-        ttk.Label(options_frame, text="Reference Timezone:").pack(anchor="w")
+        ttk.Label(options_frame, text=_("ui.calibrate_reference_tz")).pack(anchor="w")
         self.calibrate_ref_tz = ttk.Combobox(
             options_frame, values=self.common_timezones, state="normal"
         )
         self.calibrate_ref_tz.set("localtime")
         self.calibrate_ref_tz.pack(fill="x", pady=(0, 5))
 
-        ttk.Label(options_frame, text="Output File (optional):").pack(anchor="w")
+        ttk.Label(options_frame, text=_("ui.calibrate_output_file")).pack(anchor="w")
         output_entry_frame = ttk.Frame(options_frame)
         output_entry_frame.pack(fill="x")
 
@@ -1026,13 +1037,15 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
 
         ttk.Button(
             output_entry_frame,
-            text="Browse...",
+            text=_("ui.button_browse"),
             command=lambda: self.browse_save_file(self.calibrate_output),
         ).pack(side="left", padx=(5, 0))
 
         self.calibrate_dry_run = tk.BooleanVar()
         ttk.Checkbutton(
-            options_frame, text="Dry Run", variable=self.calibrate_dry_run
+            options_frame,
+            text=_("ui.calibrate_dry_run"),
+            variable=self.calibrate_dry_run,
         ).pack(anchor="w", pady=(5, 0))
 
         # Status and Run button
@@ -1040,13 +1053,13 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
         button_frame.pack(pady=10)
 
         self.calibrate_button = ttk.Button(
-            button_frame, text="📷 Calibrate", command=self.run_calibrate
+            button_frame, text=_("ui.calibrate_button"), command=self.run_calibrate
         )
         self.calibrate_button.pack(side="left", padx=5)
 
         self.calibrate_status_label = ttk.Label(
             button_frame,
-            text="⚪ Ready",
+            text=_("ui.status_ready"),
             font=("", 10, "bold"),
             foreground=self.colors["ready"],
         )
@@ -1058,7 +1071,9 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
         # Don't pack initially - will be shown when running starts
 
         # Output
-        output_frame = ttk.LabelFrame(calibrate_frame, text="Output", padding=10)
+        output_frame = ttk.LabelFrame(
+            calibrate_frame, text=_("ui.output_label"), padding=10
+        )
         output_frame.pack(fill="both", expand=True, pady=5)
 
         self.calibrate_output_text = scrolledtext.ScrolledText(
@@ -1069,24 +1084,26 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
     def create_config_tab(self) -> None:
         """Create the Config tab."""
         config_frame = ttk.Frame(self.notebook, padding=20)
-        self.notebook.add(config_frame, text="Config")
+        self.notebook.add(config_frame, text=_("ui.tab_config"))
 
         title = ttk.Label(
             config_frame,
-            text="Write configuration to config.yaml",
+            text=_("ui.config_title"),
             font=("Helvetica", 12, "bold"),
         )
         title.pack(pady=10)
 
         info = ttk.Label(
             config_frame,
-            text="Apply configuration parameters and write them to a config.yaml file.",
+            text=_("ui.config_info"),
             wraplength=800,
         )
         info.pack(pady=5)
 
         # Source Directory
-        dir_frame = ttk.LabelFrame(config_frame, text="Source Directory", padding=10)
+        dir_frame = ttk.LabelFrame(
+            config_frame, text=_("ui.config_source_dir"), padding=10
+        )
         dir_frame.pack(fill="x", pady=5)
 
         dir_entry_frame = ttk.Frame(dir_frame)
@@ -1097,26 +1114,26 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
 
         ttk.Button(
             dir_entry_frame,
-            text="Browse...",
+            text=_("ui.button_browse"),
             command=lambda: self.browse_directory(self.config_source_dir),
         ).pack(side="left", padx=(5, 0))
 
         self.config_user = tk.BooleanVar()
         ttk.Checkbutton(
             dir_frame,
-            text="Write to user config (ignore source directory)",
+            text=_("ui.config_write_user"),
             variable=self.config_user,
         ).pack(anchor="w", pady=(5, 0))
 
         # Config params
         params_frame = ttk.LabelFrame(
-            config_frame, text="Configuration Parameters", padding=10
+            config_frame, text=_("ui.config_params"), padding=10
         )
         params_frame.pack(fill="x", pady=5)
 
         ttk.Label(
             params_frame,
-            text="One parameter per line (format: key=value)",
+            text=_("ui.config_params_info"),
             foreground=self.colors["info"],
         ).pack(anchor="w")
 
@@ -1128,13 +1145,13 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
         button_frame.pack(pady=10)
 
         self.config_button = ttk.Button(
-            button_frame, text="⚙️ Apply Config", command=self.run_config
+            button_frame, text=_("ui.config_button"), command=self.run_config
         )
         self.config_button.pack(side="left", padx=5)
 
         self.config_status_label = ttk.Label(
             button_frame,
-            text="⚪ Ready",
+            text=_("ui.status_ready"),
             font=("", 10, "bold"),
             foreground=self.colors["ready"],
         )
@@ -1146,7 +1163,9 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
         # Don't pack initially - will be shown when running starts
 
         # Output
-        output_frame = ttk.LabelFrame(config_frame, text="Output", padding=10)
+        output_frame = ttk.LabelFrame(
+            config_frame, text=_("ui.output_label"), padding=10
+        )
         output_frame.pack(fill="both", expand=True, pady=5)
 
         self.config_output = scrolledtext.ScrolledText(
@@ -1157,25 +1176,25 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
     def create_inspect_tab(self) -> None:
         """Create the Inspect tab."""
         inspect_frame = ttk.Frame(self.notebook, padding=20)
-        self.notebook.add(inspect_frame, text="Inspect")
+        self.notebook.add(inspect_frame, text=_("ui.tab_inspect"))
 
         title = ttk.Label(
             inspect_frame,
-            text="Inspect assets from source",
+            text=_("ui.inspect_title"),
             font=("Helvetica", 12, "bold"),
         )
         title.pack(pady=10)
 
         info = ttk.Label(
             inspect_frame,
-            text="Inspect and display asset information from a source file or directory.",
+            text=_("ui.inspect_info"),
             wraplength=800,
         )
         info.pack(pady=5)
 
         # Source
         source_frame = ttk.LabelFrame(
-            inspect_frame, text="Source File or Directory *", padding=10
+            inspect_frame, text=_("ui.inspect_source"), padding=10
         )
         source_frame.pack(fill="x", pady=5)
 
@@ -1187,17 +1206,19 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
 
         ttk.Button(
             source_entry_frame,
-            text="Browse File...",
+            text=_("ui.inspect_browse_file"),
             command=lambda: self.browse_file(self.inspect_source),
         ).pack(side="left", padx=(5, 0))
         ttk.Button(
             source_entry_frame,
-            text="Browse Dir...",
+            text=_("ui.inspect_browse_dir"),
             command=lambda: self.browse_directory(self.inspect_source),
         ).pack(side="left", padx=(5, 0))
 
         # Timezone
-        tz_frame = ttk.LabelFrame(inspect_frame, text="Timezone", padding=10)
+        tz_frame = ttk.LabelFrame(
+            inspect_frame, text=_("ui.inspect_timezone"), padding=10
+        )
         tz_frame.pack(fill="x", pady=5)
 
         self.inspect_tz = ttk.Combobox(
@@ -1211,13 +1232,13 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
         button_frame.pack(pady=10)
 
         self.inspect_button = ttk.Button(
-            button_frame, text="🔍 Inspect", command=self.run_inspect
+            button_frame, text=_("ui.inspect_button"), command=self.run_inspect
         )
         self.inspect_button.pack(side="left", padx=5)
 
         self.inspect_status_label = ttk.Label(
             button_frame,
-            text="⚪ Ready",
+            text=_("ui.status_ready"),
             font=("", 10, "bold"),
             foreground=self.colors["ready"],
         )
@@ -1229,7 +1250,9 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
         # Don't pack initially - will be shown when running starts
 
         # Output
-        output_frame = ttk.LabelFrame(inspect_frame, text="Output", padding=10)
+        output_frame = ttk.LabelFrame(
+            inspect_frame, text=_("ui.output_label"), padding=10
+        )
         output_frame.pack(fill="both", expand=True, pady=5)
 
         self.inspect_output = scrolledtext.ScrolledText(
