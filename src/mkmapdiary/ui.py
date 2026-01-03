@@ -183,6 +183,26 @@ class MkmapdiaryUI:
             entry_widget.delete(0, tk.END)
             entry_widget.insert(0, filename)
 
+    def browse_save_file(self, entry_widget: ttk.Entry) -> None:
+        """Open save file picker and update entry widget."""
+        current = entry_widget.get()
+        initial_dir = (
+            str(pathlib.Path(current).parent)
+            if current and pathlib.Path(current).parent.exists()
+            else str(pathlib.Path.cwd())
+        )
+        initial_file = pathlib.Path(current).name if current else ""
+
+        filename = filedialog.asksaveasfilename(
+            title="Save File As",
+            initialdir=initial_dir,
+            initialfile=initial_file,
+        )
+
+        if filename:
+            entry_widget.delete(0, tk.END)
+            entry_widget.insert(0, filename)
+
     def write_to_output(
         self, widget: scrolledtext.ScrolledText, text: str, mode: str = "insert"
     ) -> None:
@@ -926,8 +946,17 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
         self.calibrate_ref_tz.pack(fill="x", pady=(0, 5))
 
         ttk.Label(options_frame, text="Output File (optional):").pack(anchor="w")
-        self.calibrate_output = ttk.Entry(options_frame)
-        self.calibrate_output.pack(fill="x")
+        output_entry_frame = ttk.Frame(options_frame)
+        output_entry_frame.pack(fill="x")
+
+        self.calibrate_output = ttk.Entry(output_entry_frame)
+        self.calibrate_output.pack(side="left", fill="x", expand=True)
+
+        ttk.Button(
+            output_entry_frame,
+            text="Browse...",
+            command=lambda: self.browse_save_file(self.calibrate_output),
+        ).pack(side="left", padx=(5, 0))
 
         self.calibrate_dry_run = tk.BooleanVar()
         ttk.Checkbutton(
