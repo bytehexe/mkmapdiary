@@ -12,6 +12,7 @@ from collections.abc import Callable
 from contextlib import redirect_stderr, redirect_stdout
 from tkinter import filedialog, scrolledtext, ttk
 from typing import Any
+from zoneinfo import available_timezones
 
 import click
 import darkdetect
@@ -109,6 +110,13 @@ class MkmapdiaryUI:
             "progress": "#FF8800",  # Bright orange - visible in both modes
             "info": "#6B6B6B",  # Dark gray for info text
         }
+
+        # Get available timezones from system
+        system_timezones = sorted(available_timezones())
+        # Put localtime and UTC at the top for convenience
+        self.common_timezones = ["localtime", "UTC"] + [
+            tz for tz in system_timezones if tz not in ["localtime", "UTC"]
+        ]
 
         # Set window size: appropriate width with full height
         screen_height = root.winfo_screenheight()
@@ -996,13 +1004,17 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
         options_frame.pack(fill="x", pady=5)
 
         ttk.Label(options_frame, text="Camera Timezone:").pack(anchor="w")
-        self.calibrate_camera_tz = ttk.Entry(options_frame)
-        self.calibrate_camera_tz.insert(0, "localtime")
+        self.calibrate_camera_tz = ttk.Combobox(
+            options_frame, values=self.common_timezones, state="normal"
+        )
+        self.calibrate_camera_tz.set("localtime")
         self.calibrate_camera_tz.pack(fill="x", pady=(0, 5))
 
         ttk.Label(options_frame, text="Reference Timezone:").pack(anchor="w")
-        self.calibrate_ref_tz = ttk.Entry(options_frame)
-        self.calibrate_ref_tz.insert(0, "localtime")
+        self.calibrate_ref_tz = ttk.Combobox(
+            options_frame, values=self.common_timezones, state="normal"
+        )
+        self.calibrate_ref_tz.set("localtime")
         self.calibrate_ref_tz.pack(fill="x", pady=(0, 5))
 
         ttk.Label(options_frame, text="Output File (optional):").pack(anchor="w")
@@ -1188,8 +1200,10 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
         tz_frame = ttk.LabelFrame(inspect_frame, text="Timezone", padding=10)
         tz_frame.pack(fill="x", pady=5)
 
-        self.inspect_tz = ttk.Entry(tz_frame)
-        self.inspect_tz.insert(0, "localtime")
+        self.inspect_tz = ttk.Combobox(
+            tz_frame, values=self.common_timezones, state="normal"
+        )
+        self.inspect_tz.set("localtime")
         self.inspect_tz.pack(fill="x")
 
         # Status and Run button
