@@ -19,7 +19,6 @@ import sv_ttk
 from .commands.build import build as build_command
 from .commands.calibrate import file as calibrate_file_command
 from .commands.config import config as config_command
-from .commands.generate_demo import generate_demo as generate_demo_command
 from .commands.inspect import inspect as inspect_command
 
 # Setup logging
@@ -98,7 +97,6 @@ class MkmapdiaryUI:
 
         # Track operation states
         self.build_running = False
-        self.demo_running = False
         self.calibrate_running = False
         self.config_running = False
         self.inspect_running = False
@@ -109,7 +107,6 @@ class MkmapdiaryUI:
 
         # Create tabs
         self.create_build_tab()
-        self.create_demo_tab()
         self.create_calibrate_tab()
         self.create_config_tab()
         self.create_inspect_tab()
@@ -384,73 +381,6 @@ class MkmapdiaryUI:
         )
         self.build_output.pack(fill="both", expand=True)
 
-    def create_demo_tab(self) -> None:
-        """Create the Generate Demo tab."""
-        demo_frame = ttk.Frame(self.notebook, padding=20)
-        self.notebook.add(demo_frame, text="Generate Demo")
-
-        title = ttk.Label(
-            demo_frame,
-            text="Generate demo data for testing",
-            font=("Helvetica", 12, "bold"),
-        )
-        title.pack(pady=10)
-
-        info = ttk.Label(
-            demo_frame,
-            text="This creates a sample project with placeholder GPS data, photos, and notes.",
-            wraplength=800,
-        )
-        info.pack(pady=5)
-
-        # Output Directory
-        dir_frame = ttk.LabelFrame(demo_frame, text="Output Directory", padding=10)
-        dir_frame.pack(fill="x", pady=10)
-
-        entry_frame = ttk.Frame(dir_frame)
-        entry_frame.pack(fill="x")
-
-        self.demo_dir = ttk.Entry(entry_frame)
-        self.demo_dir.insert(0, "demo")
-        self.demo_dir.pack(side="left", fill="x", expand=True)
-
-        ttk.Button(
-            entry_frame,
-            text="Browse...",
-            command=lambda: self.browse_directory(self.demo_dir),
-        ).pack(side="left", padx=(5, 0))
-
-        # Status and Generate button
-        button_frame = ttk.Frame(demo_frame)
-        button_frame.pack(pady=10)
-
-        self.demo_button = ttk.Button(
-            button_frame, text="🎨 Generate Demo Data", command=self.run_demo
-        )
-        self.demo_button.pack(side="left", padx=5)
-
-        self.demo_status_label = ttk.Label(
-            button_frame,
-            text="⚪ Ready",
-            font=("", 10, "bold"),
-            foreground=self.colors["ready"],
-        )
-        self.demo_status_label.pack(side="left", padx=10)
-
-        self.demo_progress = ttk.Progressbar(
-            button_frame, mode="indeterminate", length=200
-        )
-        # Don't pack initially - will be shown when building starts
-
-        # Output
-        output_frame = ttk.LabelFrame(demo_frame, text="Output", padding=10)
-        output_frame.pack(fill="both", expand=True, pady=5)
-
-        self.demo_output = scrolledtext.ScrolledText(
-            output_frame, height=25, wrap=tk.WORD
-        )
-        self.demo_output.pack(fill="both", expand=True)
-
     def create_help_tab(self) -> None:
         """Create the Help tab."""
         help_frame = ttk.Frame(self.notebook, padding=20)
@@ -477,11 +407,6 @@ Quick Start
 2. Build the diary: Use the "Build Diary" tab to generate your website
 
 3. View the result: Open the generated website in your browser
-
-Try the Demo
-============
-Not sure where to start? Use the "Generate Demo" tab to create sample data,
-then build it to see what mkmapdiary can do!
 
 Source Directory Structure
 ==========================
@@ -620,84 +545,6 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
                 self.update_browser_button_state()
 
         threading.Thread(target=build_thread, daemon=True).start()
-
-    def run_demo(self) -> None:
-        """Run the demo generation command."""
-        if self.demo_running:
-            return
-
-        output_dir = self.demo_dir.get()
-
-        if not output_dir:
-            self.demo_output.delete("1.0", tk.END)
-            self.demo_output.insert(
-                "1.0", "❌ Error: Please specify an output directory"
-            )
-            self.demo_status_label.config(
-                text="❌ Error", foreground=self.colors["error"]
-            )
-            return
-
-        def demo_thread() -> None:
-            # Start progress
-            self.demo_running = True
-            self.demo_button.config(state="disabled")
-            self.demo_progress.pack(side="left", padx=5)
-            self.demo_progress.start(10)
-            self.demo_status_label.config(
-                text="⏳ Generating...", foreground=self.colors["progress"]
-            )
-
-            self.demo_output.delete("1.0", tk.END)
-            self.demo_output.insert("1.0", "Generating demo data...\n")
-            self.demo_output.see(tk.END)
-
-            output_path = pathlib.Path(output_dir)
-
-            ctx = click.Context(generate_demo_command)
-            ctx.obj = {"verbose": 0, "quiet": 0}
-
-            try:
-                output, returncode = capture_command_output(
-                    ctx.invoke,
-                    generate_demo_command,
-                    output_dir=output_path,
-                )
-
-                self.demo_output.delete("1.0", tk.END)
-                if returncode == 0:
-                    self.demo_output.insert(
-                        "1.0",
-                        f"✅ Demo data generated successfully in {output_path}\n\n{output}",
-                    )
-                    self.demo_output.see(tk.END)
-                    self.demo_status_label.config(
-                        text="✅ Success", foreground=self.colors["success"]
-                    )
-                else:
-                    self.demo_output.insert(
-                        "1.0",
-                        f"❌ Error generating demo data (exit code {returncode})\n\n{output}",
-                    )
-                    self.demo_output.see(tk.END)
-                    self.demo_status_label.config(
-                        text="❌ Failed", foreground=self.colors["error"]
-                    )
-            except Exception as e:
-                self.demo_output.delete("1.0", tk.END)
-                self.demo_output.insert("1.0", f"❌ Error: {str(e)}")
-                self.demo_output.see(tk.END)
-                self.demo_status_label.config(
-                    text="❌ Error", foreground=self.colors["error"]
-                )
-            finally:
-                # Stop progress
-                self.demo_progress.stop()
-                self.demo_progress.pack_forget()
-                self.demo_button.config(state="normal")
-                self.demo_running = False
-
-        threading.Thread(target=demo_thread, daemon=True).start()
 
     def run_calibrate(self) -> None:
         """Run the calibrate command."""
