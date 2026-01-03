@@ -16,6 +16,7 @@ from typing import Any
 import click
 import darkdetect
 import sv_ttk
+from tkcalendar import DateEntry
 
 from .commands.build import build as build_command
 from .commands.calibrate import file as calibrate_file_command
@@ -202,6 +203,20 @@ class MkmapdiaryUI:
         if filename:
             entry_widget.delete(0, tk.END)
             entry_widget.insert(0, filename)
+
+    def _clear_placeholder(self, event: tk.Event, placeholder: str) -> None:
+        """Clear placeholder text on focus."""
+        widget: ttk.Entry = event.widget  # type: ignore[assignment]
+        if widget.get() == placeholder:
+            widget.delete(0, tk.END)
+            widget.config(foreground="")
+
+    def _restore_placeholder(self, event: tk.Event, placeholder: str) -> None:
+        """Restore placeholder text if empty."""
+        widget: ttk.Entry = event.widget  # type: ignore[assignment]
+        if not widget.get():
+            widget.insert(0, placeholder)
+            widget.config(foreground=self.colors["info"])
 
     def write_to_output(
         self, widget: scrolledtext.ScrolledText, text: str, mode: str = "insert"
@@ -619,18 +634,25 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
             return
 
         image = self.calibrate_image.get()
-        ref_time = self.calibrate_ref_time.get()
 
-        if not image or not ref_time:
+        # Validate inputs
+        if not image:
             self.write_to_output(
                 self.calibrate_output_text,
-                "❌ Error: Please specify both image file and reference time",
+                "❌ Error: Please specify an image file",
                 mode="replace",
             )
             self.calibrate_status_label.config(
                 text="❌ Error", foreground=self.colors["error"]
             )
             return
+
+        # Get date and time from picker widgets
+        ref_date = self.calibrate_ref_date.get_date().strftime("%Y-%m-%d")
+        hour = int(self.calibrate_ref_hour.get())
+        minute = int(self.calibrate_ref_minute.get())
+        second = int(self.calibrate_ref_second.get())
+        ref_time = f"{ref_date} {hour:02d}:{minute:02d}:{second:02d}"
 
         def calibrate_thread() -> None:
             # Start progress
@@ -924,12 +946,50 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
 
         ttk.Label(
             time_frame,
-            text="Format: YYYY-MM-DD HH:MM:SS",
+            text="Date and time when the reference photo was taken",
             foreground=self.colors["info"],
         ).pack(anchor="w")
 
-        self.calibrate_ref_time = ttk.Entry(time_frame)
-        self.calibrate_ref_time.pack(fill="x")
+        # Date/Time picker layout
+        datetime_frame = ttk.Frame(time_frame)
+        datetime_frame.pack(fill="x", pady=(5, 0))
+
+        # Date picker
+        ttk.Label(datetime_frame, text="Date:").pack(side="left", padx=(0, 5))
+        self.calibrate_ref_date = DateEntry(
+            datetime_frame,
+            width=12,
+            background="darkblue",
+            foreground="white",
+            borderwidth=2,
+            date_pattern="yyyy-mm-dd",
+        )
+        self.calibrate_ref_date.pack(side="left", padx=(0, 15))
+
+        # Time spinboxes
+        ttk.Label(datetime_frame, text="Time:").pack(side="left", padx=(0, 5))
+
+        self.calibrate_ref_hour = ttk.Spinbox(
+            datetime_frame, from_=0, to=23, width=3, format="%02.0f"
+        )
+        self.calibrate_ref_hour.set("12")
+        self.calibrate_ref_hour.pack(side="left")
+
+        ttk.Label(datetime_frame, text=":").pack(side="left")
+
+        self.calibrate_ref_minute = ttk.Spinbox(
+            datetime_frame, from_=0, to=59, width=3, format="%02.0f"
+        )
+        self.calibrate_ref_minute.set("00")
+        self.calibrate_ref_minute.pack(side="left")
+
+        ttk.Label(datetime_frame, text=":").pack(side="left")
+
+        self.calibrate_ref_second = ttk.Spinbox(
+            datetime_frame, from_=0, to=59, width=3, format="%02.0f"
+        )
+        self.calibrate_ref_second.set("00")
+        self.calibrate_ref_second.pack(side="left")
 
         # Options
         options_frame = ttk.LabelFrame(calibrate_frame, text="Options", padding=10)
