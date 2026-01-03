@@ -152,6 +152,23 @@ class MkmapdiaryUI:
             entry_widget.delete(0, tk.END)
             entry_widget.insert(0, filename)
 
+    def write_to_output(
+        self, widget: scrolledtext.ScrolledText, text: str, mode: str = "insert"
+    ) -> None:
+        """Write to a read-only text widget.
+
+        Args:
+            widget: The ScrolledText widget to write to
+            text: The text to write
+            mode: Either 'insert' to insert text or 'replace' to replace all content
+        """
+        widget.config(state="normal")
+        if mode == "replace":
+            widget.delete("1.0", tk.END)
+        widget.insert(tk.END if mode == "insert" else "1.0", text)
+        widget.see(tk.END)
+        widget.config(state="disabled")
+
     def toggle_expert_options(self) -> None:
         """Toggle the visibility of expert options in the Build tab."""
         if self.expert_options_visible.get():
@@ -377,7 +394,7 @@ class MkmapdiaryUI:
         output_frame.pack(fill="both", expand=True, pady=5)
 
         self.build_output = scrolledtext.ScrolledText(
-            output_frame, height=20, wrap=tk.WORD
+            output_frame, height=20, wrap=tk.WORD, state="disabled"
         )
         self.build_output.pack(fill="both", expand=True)
 
@@ -446,9 +463,10 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
         source_dir = self.source_dir.get()
 
         if not source_dir:
-            self.build_output.delete("1.0", tk.END)
-            self.build_output.insert(
-                "1.0", "❌ Error: Please specify a source directory"
+            self.write_to_output(
+                self.build_output,
+                "❌ Error: Please specify a source directory",
+                mode="replace",
             )
             self.build_status_label.config(
                 text="❌ Error", foreground=self.colors["error"]
@@ -466,9 +484,7 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
                 text="⏳ Building...", foreground=self.colors["progress"]
             )
 
-            self.build_output.delete("1.0", tk.END)
-            self.build_output.insert("1.0", "Building...\n")
-            self.build_output.see(tk.END)
+            self.write_to_output(self.build_output, "Building...\n", mode="replace")
 
             source_path = pathlib.Path(source_dir)
             dist_path = (
@@ -510,28 +526,28 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
                     debug_fast=self.debug_fast.get(),
                 )
 
-                self.build_output.delete("1.0", tk.END)
                 if returncode == 0:
-                    self.build_output.insert(
-                        "1.0",
+                    self.write_to_output(
+                        self.build_output,
                         f"✅ Build completed successfully!\n\nOutput directory: {dist_path}\n\n{output}",
+                        mode="replace",
                     )
-                    self.build_output.see(tk.END)
                     self.build_status_label.config(
                         text="✅ Success", foreground=self.colors["success"]
                     )
                 else:
-                    self.build_output.insert(
-                        "1.0", f"❌ Build failed (exit code {returncode})\n\n{output}"
+                    self.write_to_output(
+                        self.build_output,
+                        f"❌ Build failed (exit code {returncode})\n\n{output}",
+                        mode="replace",
                     )
-                    self.build_output.see(tk.END)
                     self.build_status_label.config(
                         text="❌ Failed", foreground=self.colors["error"]
                     )
             except Exception as e:
-                self.build_output.delete("1.0", tk.END)
-                self.build_output.insert("1.0", f"❌ Error: {str(e)}")
-                self.build_output.see(tk.END)
+                self.write_to_output(
+                    self.build_output, f"❌ Error: {str(e)}", mode="replace"
+                )
                 self.build_status_label.config(
                     text="❌ Error", foreground=self.colors["error"]
                 )
@@ -555,9 +571,10 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
         ref_time = self.calibrate_ref_time.get()
 
         if not image or not ref_time:
-            self.calibrate_output_text.delete("1.0", tk.END)
-            self.calibrate_output_text.insert(
-                "1.0", "❌ Error: Please specify both image file and reference time"
+            self.write_to_output(
+                self.calibrate_output_text,
+                "❌ Error: Please specify both image file and reference time",
+                mode="replace",
             )
             self.calibrate_status_label.config(
                 text="❌ Error", foreground=self.colors["error"]
@@ -574,9 +591,9 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
                 text="⏳ Calibrating...", foreground=self.colors["progress"]
             )
 
-            self.calibrate_output_text.delete("1.0", tk.END)
-            self.calibrate_output_text.insert("1.0", "Calibrating...\n")
-            self.calibrate_output_text.see(tk.END)
+            self.write_to_output(
+                self.calibrate_output_text, "Calibrating...\n", mode="replace"
+            )
 
             image_path = pathlib.Path(image)
             output_path = (
@@ -600,28 +617,28 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
                     dry_run=self.calibrate_dry_run.get(),
                 )
 
-                self.calibrate_output_text.delete("1.0", tk.END)
                 if returncode == 0:
-                    self.calibrate_output_text.insert(
-                        "1.0", f"✅ Calibration completed successfully!\n\n{output}"
+                    self.write_to_output(
+                        self.calibrate_output_text,
+                        f"✅ Calibration completed successfully!\n\n{output}",
+                        mode="replace",
                     )
-                    self.calibrate_output_text.see(tk.END)
                     self.calibrate_status_label.config(
                         text="✅ Success", foreground=self.colors["success"]
                     )
                 else:
-                    self.calibrate_output_text.insert(
-                        "1.0",
+                    self.write_to_output(
+                        self.calibrate_output_text,
                         f"❌ Calibration failed (exit code {returncode})\n\n{output}",
+                        mode="replace",
                     )
-                    self.calibrate_output_text.see(tk.END)
                     self.calibrate_status_label.config(
                         text="❌ Failed", foreground=self.colors["error"]
                     )
             except Exception as e:
-                self.calibrate_output_text.delete("1.0", tk.END)
-                self.calibrate_output_text.insert("1.0", f"❌ Error: {str(e)}")
-                self.calibrate_output_text.see(tk.END)
+                self.write_to_output(
+                    self.calibrate_output_text, f"❌ Error: {str(e)}", mode="replace"
+                )
                 self.calibrate_status_label.config(
                     text="❌ Error", foreground=self.colors["error"]
                 )
@@ -642,9 +659,10 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
         params_text = self.config_params_text.get("1.0", tk.END).strip()
 
         if not params_text:
-            self.config_output.delete("1.0", tk.END)
-            self.config_output.insert(
-                "1.0", "❌ Error: Please specify at least one configuration parameter"
+            self.write_to_output(
+                self.config_output,
+                "❌ Error: Please specify at least one configuration parameter",
+                mode="replace",
             )
             self.config_status_label.config(
                 text="❌ Error", foreground=self.colors["error"]
@@ -655,10 +673,10 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
         source_dir = self.config_source_dir.get()
 
         if not is_user and not source_dir:
-            self.config_output.delete("1.0", tk.END)
-            self.config_output.insert(
-                "1.0",
+            self.write_to_output(
+                self.config_output,
                 "❌ Error: Please specify a source directory or check 'Write to user config'",
+                mode="replace",
             )
             self.config_status_label.config(
                 text="❌ Error", foreground=self.colors["error"]
@@ -675,9 +693,9 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
                 text="⏳ Applying config...", foreground=self.colors["progress"]
             )
 
-            self.config_output.delete("1.0", tk.END)
-            self.config_output.insert("1.0", "Applying configuration...\n")
-            self.config_output.see(tk.END)
+            self.write_to_output(
+                self.config_output, "Applying configuration...\n", mode="replace"
+            )
 
             # Parse params
             params = []
@@ -701,28 +719,28 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
                     source_dir=source_path,
                 )
 
-                self.config_output.delete("1.0", tk.END)
                 if returncode == 0:
-                    self.config_output.insert(
-                        "1.0", f"✅ Configuration applied successfully!\n\n{output}"
+                    self.write_to_output(
+                        self.config_output,
+                        f"✅ Configuration applied successfully!\n\n{output}",
+                        mode="replace",
                     )
-                    self.config_output.see(tk.END)
                     self.config_status_label.config(
                         text="✅ Success", foreground=self.colors["success"]
                     )
                 else:
-                    self.config_output.insert(
-                        "1.0",
+                    self.write_to_output(
+                        self.config_output,
                         f"❌ Configuration failed (exit code {returncode})\n\n{output}",
+                        mode="replace",
                     )
-                    self.config_output.see(tk.END)
                     self.config_status_label.config(
                         text="❌ Failed", foreground=self.colors["error"]
                     )
             except Exception as e:
-                self.config_output.delete("1.0", tk.END)
-                self.config_output.insert("1.0", f"❌ Error: {str(e)}")
-                self.config_output.see(tk.END)
+                self.write_to_output(
+                    self.config_output, f"❌ Error: {str(e)}", mode="replace"
+                )
                 self.config_status_label.config(
                     text="❌ Error", foreground=self.colors["error"]
                 )
@@ -743,9 +761,10 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
         source = self.inspect_source.get()
 
         if not source:
-            self.inspect_output.delete("1.0", tk.END)
-            self.inspect_output.insert(
-                "1.0", "❌ Error: Please specify a source file or directory"
+            self.write_to_output(
+                self.inspect_output,
+                "❌ Error: Please specify a source file or directory",
+                mode="replace",
             )
             self.inspect_status_label.config(
                 text="❌ Error", foreground=self.colors["error"]
@@ -762,9 +781,7 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
                 text="⏳ Inspecting...", foreground=self.colors["progress"]
             )
 
-            self.inspect_output.delete("1.0", tk.END)
-            self.inspect_output.insert("1.0", "Inspecting...\n")
-            self.inspect_output.see(tk.END)
+            self.write_to_output(self.inspect_output, "Inspecting...\n", mode="replace")
 
             source_path = pathlib.Path(source)
 
@@ -779,28 +796,28 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
                     tz=self.inspect_tz.get(),
                 )
 
-                self.inspect_output.delete("1.0", tk.END)
                 if returncode == 0:
-                    self.inspect_output.insert(
-                        "1.0", f"✅ Inspection completed successfully!\n\n{output}"
+                    self.write_to_output(
+                        self.inspect_output,
+                        f"✅ Inspection completed successfully!\n\n{output}",
+                        mode="replace",
                     )
-                    self.inspect_output.see(tk.END)
                     self.inspect_status_label.config(
                         text="✅ Success", foreground=self.colors["success"]
                     )
                 else:
-                    self.inspect_output.insert(
-                        "1.0",
+                    self.write_to_output(
+                        self.inspect_output,
                         f"❌ Inspection failed (exit code {returncode})\n\n{output}",
+                        mode="replace",
                     )
-                    self.inspect_output.see(tk.END)
                     self.inspect_status_label.config(
                         text="❌ Failed", foreground=self.colors["error"]
                     )
             except Exception as e:
-                self.inspect_output.delete("1.0", tk.END)
-                self.inspect_output.insert("1.0", f"❌ Error: {str(e)}")
-                self.inspect_output.see(tk.END)
+                self.write_to_output(
+                    self.inspect_output, f"❌ Error: {str(e)}", mode="replace"
+                )
                 self.inspect_status_label.config(
                     text="❌ Error", foreground=self.colors["error"]
                 )
@@ -913,7 +930,7 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
         output_frame.pack(fill="both", expand=True, pady=5)
 
         self.calibrate_output_text = scrolledtext.ScrolledText(
-            output_frame, height=15, wrap=tk.WORD
+            output_frame, height=15, wrap=tk.WORD, state="disabled"
         )
         self.calibrate_output_text.pack(fill="both", expand=True)
 
@@ -1001,7 +1018,7 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
         output_frame.pack(fill="both", expand=True, pady=5)
 
         self.config_output = scrolledtext.ScrolledText(
-            output_frame, height=15, wrap=tk.WORD
+            output_frame, height=15, wrap=tk.WORD, state="disabled"
         )
         self.config_output.pack(fill="both", expand=True)
 
@@ -1082,7 +1099,7 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
         output_frame.pack(fill="both", expand=True, pady=5)
 
         self.inspect_output = scrolledtext.ScrolledText(
-            output_frame, height=15, wrap=tk.WORD
+            output_frame, height=15, wrap=tk.WORD, state="disabled"
         )
         self.inspect_output.pack(fill="both", expand=True)
 
