@@ -82,6 +82,12 @@ profile = [
     "yappi",
 ]
 
+ui = [
+    "click",
+    "sv-ttk",
+    "darkdetect",
+]
+
 all = [
     "huggingface_hub",
     "onnxruntime",
@@ -90,6 +96,9 @@ all = [
     "torchvision",
     "piq",
     "yappi",
+    "click",
+    "sv-ttk",
+    "darkdetect",
 ]
 
 [project.scripts]
@@ -151,7 +160,7 @@ extra-dependencies = [
 extra-dependencies = [
   "mypy>=1.0.0",
 ]
-features = []
+features = ["ui"]
 
 [tool.hatch.envs.types.scripts]
 check = "mypy --install-types --non-interactive {args:src/mkmapdiary tests}"
@@ -175,73 +184,8 @@ extra-dependencies = [
 
 serve = "PYTHONPATH=docs/ mkdocs serve --livereload"
 
-[[tool.mypy.overrides]]
-module="exiftool.*"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module="doit.*"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module="hdbscan.*"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module="whisper.*"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module="rawpy.*"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module="wcwidth.*"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module="pydub.*"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module="pytest.*"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module="sklearn.*"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module="msgpack.*"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module="torch.*"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module="torchvision.*"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module="piq.*"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module="onnxruntime.*"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module="huggingface_hub.*"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module="humanfriendly.*"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module="yappi.*"
-ignore_missing_imports = true
+[tool.mypy]
+disable_error_code = ["import-not-found", "import-untyped"]
 
 [tool.coverage.run]
 source_pkgs = ["mkmapdiary", "tests"]

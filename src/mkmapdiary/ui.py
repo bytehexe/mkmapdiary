@@ -12,6 +12,8 @@ from tkinter import filedialog, scrolledtext, ttk
 from typing import Any
 
 import click
+import darkdetect
+import sv_ttk
 
 from .commands.build import build as build_command
 from .commands.calibrate import file as calibrate_file_command
@@ -66,6 +68,15 @@ class MkmapdiaryUI:
     def __init__(self, root: tk.Tk) -> None:
         self.root = root
         self.root.title("mkmapdiary - Travel Journal Generator")
+
+        # Theme-aware colors for better contrast
+        self.colors = {
+            "ready": "#808080",  # Medium gray - visible in both modes
+            "success": "#00AA00",  # Brighter green - visible in both modes
+            "error": "#FF0000",  # Bright red - visible in both modes
+            "progress": "#FF8800",  # Bright orange - visible in both modes
+            "info": "#6B6B6B",  # Dark gray for info text
+        }
 
         # Set window size: appropriate width with full height
         screen_height = root.winfo_screenheight()
@@ -137,6 +148,21 @@ class MkmapdiaryUI:
             entry_widget.delete(0, tk.END)
             entry_widget.insert(0, filename)
 
+    def toggle_expert_options(self) -> None:
+        """Toggle the visibility of expert options in the Build tab."""
+        if self.expert_options_visible.get():
+            # Hide expert options
+            self.expert_options_container.pack_forget()
+            self.expert_toggle_btn.config(text="▶ Show Expert Options")
+            self.expert_options_visible.set(False)
+        else:
+            # Show expert options
+            self.expert_options_container.pack(
+                fill="x", pady=5, before=self.build_button_frame
+            )
+            self.expert_toggle_btn.config(text="▼ Hide Expert Options")
+            self.expert_options_visible.set(True)
+
     def create_build_tab(self) -> None:
         """Create the Build Diary tab."""
         build_frame = ttk.Frame(self.notebook, padding=20)
@@ -169,7 +195,7 @@ class MkmapdiaryUI:
         ttk.Label(
             src_frame,
             text="Directory containing GPS tracks, photos, and notes",
-            foreground="gray",
+            foreground=self.colors["info"],
         ).pack(anchor="w")
 
         # Distribution Directory
@@ -192,12 +218,29 @@ class MkmapdiaryUI:
 
         ttk.Label(
             dist_frame,
-            text="Output directory (defaults to SOURCE_DIR_dist)",
-            foreground="gray",
+            text="Output directory (defaults to the Source Directory with '_dist' suffix)",
+            foreground=self.colors["info"],
         ).pack(anchor="w")
 
-        # Build Options
-        options_frame = ttk.LabelFrame(build_frame, text="Build Options", padding=10)
+        # Expert Options (collapsible)
+        expert_toggle_frame = ttk.Frame(build_frame)
+        expert_toggle_frame.pack(fill="x", pady=5)
+
+        self.expert_options_visible = tk.BooleanVar(value=False)
+        self.expert_toggle_btn = ttk.Button(
+            expert_toggle_frame,
+            text="▶ Show Expert Options",
+            command=self.toggle_expert_options,
+        )
+        self.expert_toggle_btn.pack(anchor="w")
+
+        # Expert Options Container (hidden by default)
+        self.expert_options_container = ttk.Frame(build_frame)
+        # Don't pack initially - will be shown when toggled
+
+        options_frame = ttk.LabelFrame(
+            self.expert_options_container, text="Expert Options", padding=10
+        )
         options_frame.pack(fill="x", pady=5)
 
         self.persistent_build = tk.BooleanVar()
@@ -252,21 +295,24 @@ class MkmapdiaryUI:
         self.config_params.pack(fill="x")
 
         # Status and Build button
-        button_frame = ttk.Frame(build_frame)
-        button_frame.pack(pady=10)
+        self.build_button_frame = ttk.Frame(build_frame)
+        self.build_button_frame.pack(pady=10)
 
         self.build_button = ttk.Button(
-            button_frame, text="🚀 Build Diary", command=self.run_build
+            self.build_button_frame, text="🚀 Build Diary", command=self.run_build
         )
         self.build_button.pack(side="left", padx=5)
 
         self.build_status_label = ttk.Label(
-            button_frame, text="⚪ Ready", font=("", 10, "bold"), foreground="gray"
+            self.build_button_frame,
+            text="⚪ Ready",
+            font=("", 10, "bold"),
+            foreground=self.colors["ready"],
         )
         self.build_status_label.pack(side="left", padx=10)
 
         self.build_progress = ttk.Progressbar(
-            button_frame, mode="indeterminate", length=200
+            self.build_button_frame, mode="indeterminate", length=200
         )
         # Don't pack initially - will be shown when building starts
 
@@ -325,7 +371,10 @@ class MkmapdiaryUI:
         self.demo_button.pack(side="left", padx=5)
 
         self.demo_status_label = ttk.Label(
-            button_frame, text="⚪ Ready", font=("", 10, "bold"), foreground="gray"
+            button_frame,
+            text="⚪ Ready",
+            font=("", 10, "bold"),
+            foreground=self.colors["ready"],
         )
         self.demo_status_label.pack(side="left", padx=10)
 
@@ -417,7 +466,9 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
             self.build_output.insert(
                 "1.0", "❌ Error: Please specify a source directory"
             )
-            self.build_status_label.config(text="❌ Error", foreground="red")
+            self.build_status_label.config(
+                text="❌ Error", foreground=self.colors["error"]
+            )
             return
 
         def build_thread() -> None:
@@ -426,7 +477,9 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
             self.build_button.config(state="disabled")
             self.build_progress.pack(side="left", padx=5)
             self.build_progress.start(10)
-            self.build_status_label.config(text="⏳ Building...", foreground="#CC6600")
+            self.build_status_label.config(
+                text="⏳ Building...", foreground=self.colors["progress"]
+            )
 
             self.build_output.delete("1.0", tk.END)
             self.build_output.insert("1.0", "Building...\n")
@@ -480,19 +533,23 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
                     )
                     self.build_output.see(tk.END)
                     self.build_status_label.config(
-                        text="✅ Success", foreground="green"
+                        text="✅ Success", foreground=self.colors["success"]
                     )
                 else:
                     self.build_output.insert(
                         "1.0", f"❌ Build failed (exit code {returncode})\n\n{output}"
                     )
                     self.build_output.see(tk.END)
-                    self.build_status_label.config(text="❌ Failed", foreground="red")
+                    self.build_status_label.config(
+                        text="❌ Failed", foreground=self.colors["error"]
+                    )
             except Exception as e:
                 self.build_output.delete("1.0", tk.END)
                 self.build_output.insert("1.0", f"❌ Error: {str(e)}")
                 self.build_output.see(tk.END)
-                self.build_status_label.config(text="❌ Error", foreground="red")
+                self.build_status_label.config(
+                    text="❌ Error", foreground=self.colors["error"]
+                )
             finally:
                 # Stop progress
                 self.build_progress.stop()
@@ -514,7 +571,9 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
             self.demo_output.insert(
                 "1.0", "❌ Error: Please specify an output directory"
             )
-            self.demo_status_label.config(text="❌ Error", foreground="red")
+            self.demo_status_label.config(
+                text="❌ Error", foreground=self.colors["error"]
+            )
             return
 
         def demo_thread() -> None:
@@ -523,7 +582,9 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
             self.demo_button.config(state="disabled")
             self.demo_progress.pack(side="left", padx=5)
             self.demo_progress.start(10)
-            self.demo_status_label.config(text="⏳ Generating...", foreground="#CC6600")
+            self.demo_status_label.config(
+                text="⏳ Generating...", foreground=self.colors["progress"]
+            )
 
             self.demo_output.delete("1.0", tk.END)
             self.demo_output.insert("1.0", "Generating demo data...\n")
@@ -548,19 +609,25 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
                         f"✅ Demo data generated successfully in {output_path}\n\n{output}",
                     )
                     self.demo_output.see(tk.END)
-                    self.demo_status_label.config(text="✅ Success", foreground="green")
+                    self.demo_status_label.config(
+                        text="✅ Success", foreground=self.colors["success"]
+                    )
                 else:
                     self.demo_output.insert(
                         "1.0",
                         f"❌ Error generating demo data (exit code {returncode})\n\n{output}",
                     )
                     self.demo_output.see(tk.END)
-                    self.demo_status_label.config(text="❌ Failed", foreground="red")
+                    self.demo_status_label.config(
+                        text="❌ Failed", foreground=self.colors["error"]
+                    )
             except Exception as e:
                 self.demo_output.delete("1.0", tk.END)
                 self.demo_output.insert("1.0", f"❌ Error: {str(e)}")
                 self.demo_output.see(tk.END)
-                self.demo_status_label.config(text="❌ Error", foreground="red")
+                self.demo_status_label.config(
+                    text="❌ Error", foreground=self.colors["error"]
+                )
             finally:
                 # Stop progress
                 self.demo_progress.stop()
@@ -583,7 +650,9 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
             self.calibrate_output_text.insert(
                 "1.0", "❌ Error: Please specify both image file and reference time"
             )
-            self.calibrate_status_label.config(text="❌ Error", foreground="red")
+            self.calibrate_status_label.config(
+                text="❌ Error", foreground=self.colors["error"]
+            )
             return
 
         def calibrate_thread() -> None:
@@ -593,7 +662,7 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
             self.calibrate_progress.pack(side="left", padx=5)
             self.calibrate_progress.start(10)
             self.calibrate_status_label.config(
-                text="⏳ Calibrating...", foreground="#CC6600"
+                text="⏳ Calibrating...", foreground=self.colors["progress"]
             )
 
             self.calibrate_output_text.delete("1.0", tk.END)
@@ -629,7 +698,7 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
                     )
                     self.calibrate_output_text.see(tk.END)
                     self.calibrate_status_label.config(
-                        text="✅ Success", foreground="green"
+                        text="✅ Success", foreground=self.colors["success"]
                     )
                 else:
                     self.calibrate_output_text.insert(
@@ -638,13 +707,15 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
                     )
                     self.calibrate_output_text.see(tk.END)
                     self.calibrate_status_label.config(
-                        text="❌ Failed", foreground="red"
+                        text="❌ Failed", foreground=self.colors["error"]
                     )
             except Exception as e:
                 self.calibrate_output_text.delete("1.0", tk.END)
                 self.calibrate_output_text.insert("1.0", f"❌ Error: {str(e)}")
                 self.calibrate_output_text.see(tk.END)
-                self.calibrate_status_label.config(text="❌ Error", foreground="red")
+                self.calibrate_status_label.config(
+                    text="❌ Error", foreground=self.colors["error"]
+                )
             finally:
                 # Stop progress
                 self.calibrate_progress.stop()
@@ -666,7 +737,9 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
             self.config_output.insert(
                 "1.0", "❌ Error: Please specify at least one configuration parameter"
             )
-            self.config_status_label.config(text="❌ Error", foreground="red")
+            self.config_status_label.config(
+                text="❌ Error", foreground=self.colors["error"]
+            )
             return
 
         is_user = self.config_user.get()
@@ -678,7 +751,9 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
                 "1.0",
                 "❌ Error: Please specify a source directory or check 'Write to user config'",
             )
-            self.config_status_label.config(text="❌ Error", foreground="red")
+            self.config_status_label.config(
+                text="❌ Error", foreground=self.colors["error"]
+            )
             return
 
         def config_thread() -> None:
@@ -688,7 +763,7 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
             self.config_progress.pack(side="left", padx=5)
             self.config_progress.start(10)
             self.config_status_label.config(
-                text="⏳ Applying config...", foreground="#CC6600"
+                text="⏳ Applying config...", foreground=self.colors["progress"]
             )
 
             self.config_output.delete("1.0", tk.END)
@@ -724,7 +799,7 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
                     )
                     self.config_output.see(tk.END)
                     self.config_status_label.config(
-                        text="✅ Success", foreground="green"
+                        text="✅ Success", foreground=self.colors["success"]
                     )
                 else:
                     self.config_output.insert(
@@ -732,12 +807,16 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
                         f"❌ Configuration failed (exit code {returncode})\n\n{output}",
                     )
                     self.config_output.see(tk.END)
-                    self.config_status_label.config(text="❌ Failed", foreground="red")
+                    self.config_status_label.config(
+                        text="❌ Failed", foreground=self.colors["error"]
+                    )
             except Exception as e:
                 self.config_output.delete("1.0", tk.END)
                 self.config_output.insert("1.0", f"❌ Error: {str(e)}")
                 self.config_output.see(tk.END)
-                self.config_status_label.config(text="❌ Error", foreground="red")
+                self.config_status_label.config(
+                    text="❌ Error", foreground=self.colors["error"]
+                )
             finally:
                 # Stop progress
                 self.config_progress.stop()
@@ -759,7 +838,9 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
             self.inspect_output.insert(
                 "1.0", "❌ Error: Please specify a source file or directory"
             )
-            self.inspect_status_label.config(text="❌ Error", foreground="red")
+            self.inspect_status_label.config(
+                text="❌ Error", foreground=self.colors["error"]
+            )
             return
 
         def inspect_thread() -> None:
@@ -769,7 +850,7 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
             self.inspect_progress.pack(side="left", padx=5)
             self.inspect_progress.start(10)
             self.inspect_status_label.config(
-                text="⏳ Inspecting...", foreground="#CC6600"
+                text="⏳ Inspecting...", foreground=self.colors["progress"]
             )
 
             self.inspect_output.delete("1.0", tk.END)
@@ -796,7 +877,7 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
                     )
                     self.inspect_output.see(tk.END)
                     self.inspect_status_label.config(
-                        text="✅ Success", foreground="green"
+                        text="✅ Success", foreground=self.colors["success"]
                     )
                 else:
                     self.inspect_output.insert(
@@ -804,12 +885,16 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
                         f"❌ Inspection failed (exit code {returncode})\n\n{output}",
                     )
                     self.inspect_output.see(tk.END)
-                    self.inspect_status_label.config(text="❌ Failed", foreground="red")
+                    self.inspect_status_label.config(
+                        text="❌ Failed", foreground=self.colors["error"]
+                    )
             except Exception as e:
                 self.inspect_output.delete("1.0", tk.END)
                 self.inspect_output.insert("1.0", f"❌ Error: {str(e)}")
                 self.inspect_output.see(tk.END)
-                self.inspect_status_label.config(text="❌ Error", foreground="red")
+                self.inspect_status_label.config(
+                    text="❌ Error", foreground=self.colors["error"]
+                )
             finally:
                 # Stop progress
                 self.inspect_progress.stop()
@@ -861,7 +946,9 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
         time_frame.pack(fill="x", pady=5)
 
         ttk.Label(
-            time_frame, text="Format: YYYY-MM-DD HH:MM:SS", foreground="gray"
+            time_frame,
+            text="Format: YYYY-MM-DD HH:MM:SS",
+            foreground=self.colors["info"],
         ).pack(anchor="w")
 
         self.calibrate_ref_time = ttk.Entry(time_frame)
@@ -900,7 +987,10 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
         self.calibrate_button.pack(side="left", padx=5)
 
         self.calibrate_status_label = ttk.Label(
-            button_frame, text="⚪ Ready", font=("", 10, "bold"), foreground="gray"
+            button_frame,
+            text="⚪ Ready",
+            font=("", 10, "bold"),
+            foreground=self.colors["ready"],
         )
         self.calibrate_status_label.pack(side="left", padx=10)
 
@@ -969,7 +1059,7 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
         ttk.Label(
             params_frame,
             text="One parameter per line (format: key=value)",
-            foreground="gray",
+            foreground=self.colors["info"],
         ).pack(anchor="w")
 
         self.config_params_text = scrolledtext.ScrolledText(params_frame, height=6)
@@ -985,7 +1075,10 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
         self.config_button.pack(side="left", padx=5)
 
         self.config_status_label = ttk.Label(
-            button_frame, text="⚪ Ready", font=("", 10, "bold"), foreground="gray"
+            button_frame,
+            text="⚪ Ready",
+            font=("", 10, "bold"),
+            foreground=self.colors["ready"],
         )
         self.config_status_label.pack(side="left", padx=10)
 
@@ -1063,7 +1156,10 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
         self.inspect_button.pack(side="left", padx=5)
 
         self.inspect_status_label = ttk.Label(
-            button_frame, text="⚪ Ready", font=("", 10, "bold"), foreground="gray"
+            button_frame,
+            text="⚪ Ready",
+            font=("", 10, "bold"),
+            foreground=self.colors["ready"],
         )
         self.inspect_status_label.pack(side="left", padx=10)
 
@@ -1082,10 +1178,21 @@ Bon voyage! Have fun travelling and stay safe! 🌍✈️
         self.inspect_output.pack(fill="both", expand=True)
 
 
-def main() -> None:
+@click.command()
+@click.option(
+    "--theme", type=click.Choice(["light", "dark", "system"]), default="system"
+)
+def main(theme: str) -> None:
     """Main entry point for the UI."""
     root = tk.Tk()
     MkmapdiaryUI(root)
+
+    # Set theme
+    if theme == "system":
+        theme = darkdetect.theme()
+
+    sv_ttk.set_theme(theme)
+
     root.mainloop()
 
 
