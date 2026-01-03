@@ -94,6 +94,7 @@ all = [
 
 [project.scripts]
 mkmapdiary = "mkmapdiary.__main__:cli"
+mkmapdiary-ui = "mkmapdiary.ui:main"
 
 [project.urls]
 Documentation = "https://bytehexe.github.io/mkmapdiary/"

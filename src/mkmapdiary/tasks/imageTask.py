@@ -54,11 +54,11 @@ class ImageTask(BaseTask, ExifReader):
             with Image.open(src) as img:
                 # apply image orientation if needed
                 if orientation == 3:
-                    img = img.rotate(180, expand=True)
+                    img = img.rotate(180, expand=True)  # type: ignore
                 elif orientation == 6:
-                    img = img.rotate(270, expand=True)
+                    img = img.rotate(270, expand=True)  # type: ignore
                 elif orientation == 8:
-                    img = img.rotate(90, expand=True)
+                    img = img.rotate(90, expand=True)  # type: ignore
 
                 img.convert("RGB").save(dst, **self.config["site"]["image_options"])
 
