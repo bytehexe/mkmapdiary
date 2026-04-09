@@ -18,6 +18,7 @@ from mkmapdiary.postprocessors.duplicateDetector import DuplicateDetector
 from mkmapdiary.postprocessors.entropyCalculator import EntropyCalculator
 from mkmapdiary.postprocessors.imageHasher import ImageHasher
 from mkmapdiary.postprocessors.imageQualityAssessment import ImageQualityAssessment
+from mkmapdiary.postprocessors.journalSummarizer import JournalSummarizer
 from mkmapdiary.tasks.base.baseTask import BaseTask
 from mkmapdiary.util.log import ThisMayTakeAWhile
 
@@ -73,7 +74,7 @@ class PostprocessingTask(BaseTask):
                 ImageQualityAssessment,
                 DuplicateDetector,
                 AutoRotator,
-                # JournalSummarizer,
+                JournalSummarizer,
                 # ImageSummarizer,
                 # ImageEmbedder,
             ]

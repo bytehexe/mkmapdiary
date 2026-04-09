@@ -17,7 +17,6 @@ class JournalSummarizer(MultiAssetPostprocessor):
         return "Summarizing journal entries using AI."
 
     def processAllAssets(self, assets: list[AssetRecord]) -> None:
-        return  # --- IGNORE ---
         for asset in assets:
             if asset.type not in ("markdown", "text", "audio"):
                 continue
@@ -36,7 +35,7 @@ class JournalSummarizer(MultiAssetPostprocessor):
                 result = self.ai(
                     "summarize_journal_entry",
                     {"text": content},
-                    format=schema,
+                    response_format=schema,
                 )
 
                 try:
