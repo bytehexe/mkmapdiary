@@ -1,7 +1,4 @@
-import json
 import logging
-
-from pydantic import TypeAdapter
 
 from mkmapdiary.lib.asset import AssetMetadata, AssetRecord
 from mkmapdiary.postprocessors.base.multiAssetPostprocessor import (
@@ -29,23 +26,10 @@ class JournalSummarizer(MultiAssetPostprocessor):
             with path.open("r", encoding="utf-8") as f:
                 content = f.read()
 
-            adapter = TypeAdapter(AssetMetadata)
-            schema = adapter.json_schema()
-            for _ in range(3):  # Retry up to 3 times
-                result = self.ai(
-                    "summarize_journal_entry",
-                    {"text": content},
-                    response_format=schema,
-                )
-
-                try:
-                    metadata_dict = json.loads(result)
-                    metadata = adapter.validate_python(metadata_dict)
-                except Exception as e:
-                    logger.debug(f"Failed to parse AI response, retrying... ({e})")
-                    continue
-                else:
-                    asset.metadata = metadata
-                    break
+            asset.metadata = self.ai(
+                "summarize_journal_entry",
+                {"text": content},
+                schema=AssetMetadata,
+            )
 
             logger.debug(f"Updated metadata for {asset.path}: {asset.metadata}")

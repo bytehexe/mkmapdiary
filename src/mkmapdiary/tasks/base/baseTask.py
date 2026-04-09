@@ -1,14 +1,16 @@
 import datetime
+import json
 import threading
 from abc import ABC, ABCMeta, abstractmethod
 from collections.abc import Callable, Mapping
 from pathlib import PosixPath
-from typing import Any
+from typing import Any, TypeVar
 
 import dateutil.parser
 import ollama
 import whenever
 from jinja2 import Environment, PackageLoader, StrictUndefined, select_autoescape
+from pydantic import TypeAdapter
 
 from mkmapdiary.lib.assetRegistry import AssetRegistry
 from mkmapdiary.lib.calibration import Calibration
@@ -17,6 +19,8 @@ from mkmapdiary.util.cache import with_cache
 from mkmapdiary.util.units import format_distance, format_time, format_time_hours
 
 ai_lock = threading.Lock()
+
+_T = TypeVar("_T")
 
 
 def debug(func: Callable[..., Any]) -> Callable[..., Any]:
@@ -163,16 +167,24 @@ class BaseTask(ABC, metaclass=ABCMeta):
         key: str,
         format_args: dict[str, Any],
         message_params: dict[str, Any] | None = None,
-        response_format: dict[str, Any] | str | None = None,
-    ) -> str:
+        schema: type[_T] | None = None,
+    ) -> str | _T:
         translation_key = self.config["llm_prompts"][key]["translation_key"]
-        return self.__ai(
+        format_schema = (
+            TypeAdapter(schema).json_schema() if schema is not None else None
+        )
+        response = self.__ai(
             self.config["strings"][translation_key].format(**format_args),
             model=self.config["llm_prompts"][key]["model"],
             options=self.config["llm_prompts"][key]["options"],
             message_params=message_params,
-            format=response_format,
+            format=format_schema,
         )
+
+        if schema is None:
+            return response
+
+        return TypeAdapter(schema).validate_python(json.loads(response))
 
     def __ai(
         self, prompt: str, model: str, message_params: dict | None = None, **params: Any
