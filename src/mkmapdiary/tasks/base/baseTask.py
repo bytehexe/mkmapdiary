@@ -163,6 +163,7 @@ class BaseTask(ABC, metaclass=ABCMeta):
         key: str,
         format_args: dict[str, Any],
         message_params: dict[str, Any] | None = None,
+        response_format: dict[str, Any] | str | None = None,
     ) -> str:
         translation_key = self.config["llm_prompts"][key]["translation_key"]
         return self.__ai(
@@ -170,6 +171,7 @@ class BaseTask(ABC, metaclass=ABCMeta):
             model=self.config["llm_prompts"][key]["model"],
             options=self.config["llm_prompts"][key]["options"],
             message_params=message_params,
+            format=response_format,
         )
 
     def __ai(

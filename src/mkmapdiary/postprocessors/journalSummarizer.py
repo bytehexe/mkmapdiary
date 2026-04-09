@@ -1,6 +1,7 @@
+import json
 import logging
 
-import llm_dataclass
+from pydantic import TypeAdapter
 
 from mkmapdiary.lib.asset import AssetMetadata, AssetRecord
 from mkmapdiary.postprocessors.base.multiAssetPostprocessor import (
@@ -29,18 +30,18 @@ class JournalSummarizer(MultiAssetPostprocessor):
             with path.open("r", encoding="utf-8") as f:
                 content = f.read()
 
-            lang = self.config["site"]["locale"].split("_")[0]
-            schema = llm_dataclass.Schema(
-                AssetMetadata, root_attributes={"xml:lang": lang}
-            )
+            adapter = TypeAdapter(AssetMetadata)
+            schema = adapter.json_schema()
             for _ in range(3):  # Retry up to 3 times
                 result = self.ai(
                     "summarize_journal_entry",
-                    {"text": content, "example": schema.dumps()},
+                    {"text": content},
+                    format=schema,
                 )
 
                 try:
-                    metadata = schema.loads(result)
+                    metadata_dict = json.loads(result)
+                    metadata = adapter.validate_python(metadata_dict)
                 except Exception as e:
                     logger.debug(f"Failed to parse AI response, retrying... ({e})")
                     continue

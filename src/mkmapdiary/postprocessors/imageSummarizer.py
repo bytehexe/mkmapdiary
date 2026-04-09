@@ -1,8 +1,9 @@
+import json
 import logging
 import tempfile
 
-import llm_dataclass
 from PIL import Image
+from pydantic import TypeAdapter
 
 from mkmapdiary.lib.asset import AssetMetadata, AssetRecord
 from mkmapdiary.postprocessors.base.multiAssetPostprocessor import (
@@ -23,10 +24,8 @@ class ImageSummarizer(MultiAssetPostprocessor):
             if asset.type not in ("image"):
                 continue
 
-            lang = self.config["site"]["locale"].split("_")[0]
-            schema = llm_dataclass.Schema(
-                AssetMetadata, root_attributes={"xml:lang": lang}
-            )
+            adapter = TypeAdapter(AssetMetadata)
+            schema = adapter.json_schema()
             for _ in range(3):  # Retry up to 3 times
                 with tempfile.NamedTemporaryFile(
                     delete=False, suffix=".jpg"
@@ -40,12 +39,14 @@ class ImageSummarizer(MultiAssetPostprocessor):
 
                     result = self.ai(
                         "summarize_image",
-                        {"example": schema.dumps()},
+                        {},
                         message_params={"images": [tmpfile.name]},
+                        format=schema,
                     )
 
                 try:
-                    metadata = schema.loads(result)
+                    metadata_dict = json.loads(result)
+                    metadata = adapter.validate_python(metadata_dict)
                 except Exception as e:
                     logger.debug(f"Failed to parse AI response, retrying... ({e})")
                     continue
