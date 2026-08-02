@@ -331,6 +331,11 @@ def resolved_packages(
         "--report",
         "-",
     ]
+    # REVISIT ON FIRST STABLE RELEASE: --pre exists only because mkmapdiary has
+    # never published a non-prerelease version, so pip cannot select it at all.
+    # It is coarse -- it opts every transitive dependency into pre-releases too.
+    # Once a stable release exists, resolved_packages("mkmapdiary[all]") works
+    # unflagged and this switch should be reconsidered. See CLAUDE.md.
     if allow_prerelease:
         command.append("--pre")
     command.append(spec)
