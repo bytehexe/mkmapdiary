@@ -40,7 +40,7 @@ def test_none_when_all_unset(monkeypatch: pytest.MonkeyPatch) -> None:
     assert auto_detect_locale() is None
 
 
-@pytest.mark.parametrize("value", ["C", "POSIX"])
+@pytest.mark.parametrize("value", ["C", "POSIX", "C.UTF-8", "POSIX.UTF-8"])
 def test_none_for_language_less_values(
     monkeypatch: pytest.MonkeyPatch, value: str
 ) -> None:
