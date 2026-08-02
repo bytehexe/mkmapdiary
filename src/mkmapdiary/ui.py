@@ -4,7 +4,6 @@
 import datetime
 import gettext
 import io
-import locale
 import logging
 import os
 import pathlib
@@ -26,6 +25,7 @@ from .commands.calibrate import file as calibrate_file_command
 from .commands.config import config as config_command
 from .commands.inspect import inspect as inspect_command
 from .lib.dirs import Dirs
+from .util.locale import auto_detect_locale, get_language
 
 
 # Setup gettext for UI translations
@@ -144,15 +144,8 @@ class MkmapdiaryUI:
             localedir = dirs.locale_dir
 
         # Try to get system locale, fall back to English
-        try:
-            system_locale = locale.getdefaultlocale()[0]
-            language = system_locale.split("_")[0] if system_locale else "en"
-        except Exception:
-            language = "en"
-
-        # Map C/POSIX locale to English
-        if language in ("C", "POSIX", None):
-            language = "en"
+        system_locale = auto_detect_locale()
+        language = get_language(system_locale) if system_locale else "en"
 
         # Load translations with English as fallback
         try:
