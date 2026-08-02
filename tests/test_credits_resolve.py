@@ -1,8 +1,16 @@
 import json
+import subprocess
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
-from mkmapdiary.lib.credits import canonical_name, packages_from_report
+import pytest
+
+from mkmapdiary.lib.credits import (
+    canonical_name,
+    packages_from_report,
+    resolved_packages,
+)
 
 REPORT = Path(__file__).parent / "fixtures" / "pip_report.json"
 
@@ -46,3 +54,35 @@ def test_report_reads_urls() -> None:
 
 def test_empty_report_yields_nothing() -> None:
     assert packages_from_report({"install": []}) == []
+
+
+def test_resolved_packages_defaults_to_no_prerelease(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, list[str]] = {}
+
+    def fake_run(command: list[str], **kwargs: Any) -> SimpleNamespace:
+        captured["command"] = command
+        return SimpleNamespace(stdout='{"install": []}')
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    resolved_packages()
+
+    assert "--pre" not in captured["command"]
+
+
+def test_resolved_packages_allow_prerelease_adds_pre_flag(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, list[str]] = {}
+
+    def fake_run(command: list[str], **kwargs: Any) -> SimpleNamespace:
+        captured["command"] = command
+        return SimpleNamespace(stdout='{"install": []}')
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    resolved_packages("mkmapdiary[all]", allow_prerelease=True)
+
+    assert "--pre" in captured["command"]

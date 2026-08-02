@@ -290,7 +290,10 @@ def packages_from_report(report: Mapping[str, Any]) -> list[Package]:
     return sorted(packages, key=lambda package: package.name.lower())
 
 
-def resolved_packages(spec: str = ".[all]") -> list[Package]:
+def resolved_packages(
+    spec: str = ".[all]",
+    allow_prerelease: bool = False,
+) -> list[Package]:
     """Resolve ``spec`` from the package index without installing it.
 
     PyPI serves PEP 658 metadata files, so pip fetches each wheel's METADATA
@@ -304,22 +307,36 @@ def resolved_packages(spec: str = ".[all]") -> list[Package]:
     a real constraint today, since PyPI currently has no stable mkmapdiary
     release.
 
+    ``allow_prerelease`` adds pip's ``--pre`` flag, which is pip's own
+    all-or-nothing switch: it opts every transitive dependency into
+    pre-releases, not just the package named in ``spec``. It exists only to
+    resolve a *published* name, e.g. ``resolved_packages("mkmapdiary[all]",
+    allow_prerelease=True)`` -- currently the only way to resolve mkmapdiary
+    from PyPI at all, since mkmapdiary itself has no stable release yet. It
+    is a stopgap tied to that fact, not a permanent design choice: once a
+    stable mkmapdiary release exists, resolving the published name should
+    not need it.
+
     Raises CalledProcessError when resolution fails, so a documentation build
     goes red rather than silently publishing an incomplete credits page.
     """
+    command = [
+        sys.executable,
+        "-m",
+        "pip",
+        "install",
+        "--dry-run",
+        "--ignore-installed",
+        "--quiet",
+        "--report",
+        "-",
+    ]
+    if allow_prerelease:
+        command.append("--pre")
+    command.append(spec)
+
     completed = subprocess.run(
-        [
-            sys.executable,
-            "-m",
-            "pip",
-            "install",
-            "--dry-run",
-            "--ignore-installed",
-            "--quiet",
-            "--report",
-            "-",
-            spec,
-        ],
+        command,
         capture_output=True,
         check=True,
         text=True,
