@@ -35,7 +35,8 @@ Environment notes: `default`, `min`, `types` and `hatch-test` all install the pr
 in dev mode, so imports work without any `PYTHONPATH` — never set one and never call
 bare `python3`. `mkdocs` and `ruff` are `detached`, so the project is *not* importable
 there; that is deliberate, and it is what makes the `mkdocs` env a faithful stand-in
-for the docs CI job, which installs only mkdocs and mkdocs-material.
+for the docs CI job, which installs only mkdocs, mkdocs-material and
+plantuml-markdown.
 
 Running the generator end to end:
 

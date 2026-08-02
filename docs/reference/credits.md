@@ -14,11 +14,15 @@ also by Janna Hopp, under the MIT license.
 ## Dependencies
 
 Mkmapdiary is built on the following open source packages. This list is generated
-when the documentation is built, by resolving `mkmapdiary[all]` against the package
-index, so it always matches the current dependency set.
+when the documentation is built, by resolving this checkout's `[all]` extra against
+the package index, so it describes the dependency set of the commit that built
+this page.
 
 Attribution here is a courtesy rather than an obligation: the attribution clauses in
 the MIT, BSD and Apache licenses attach to redistribution, and mkmapdiary does not
 redistribute these packages — pip fetches each one from PyPI.
+
+External programs mkmapdiary invokes as subprocesses — exiftool, ffmpeg, gpsbabel,
+plantuml — are deliberately not listed below: they are executed, not redistributed.
 
 <!-- CREDITS_TABLE -->

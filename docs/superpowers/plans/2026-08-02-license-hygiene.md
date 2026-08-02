@@ -155,7 +155,7 @@ This mirrors the existing validation block at lines 650-659.
 
 - [ ] **Step 6: Remove tkcalendar from the extras**
 
-In `pyproject.toml`, delete the `"tkcalendar",` line from both the `ui` extra (line 89) and the `all` extra (line 103). `babel` was pulled in only by tkcalendar and leaves with it — a grep confirms the only `babel` matches in the source tree are `gpsbabel`.
+In `pyproject.toml`, delete the `"tkcalendar",` line from both the `ui` extra (line 89) and the `all` extra (line 103). `babel` was tkcalendar's dependency, but it remains in the tree via mkdocs-material, so nothing is pruned by this removal.
 
 - [ ] **Step 7: Remove the now-unused licenses environment**
 
