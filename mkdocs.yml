@@ -1,4 +1,8 @@
 site_name: mkmapdiary
+
+exclude_docs: |
+  /superpowers/
+
 theme:
   name: material
   palette:
