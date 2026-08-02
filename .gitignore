@@ -26,6 +26,21 @@ monkeytype.sqlite3
 # Claude Code project config (local tooling, not project content)
 /.claude/
 
+# Sandbox-masked paths. These are artifacts of the agent command sandbox, which
+# bind-mounts over protected paths so they appear inside the working directory.
+# Nothing is really here; the entries only keep `git status` quiet.
+/.bashrc
+/.bash_profile
+/.profile
+/.zshrc
+/.zprofile
+/.gitconfig
+/.gitmodules
+/.mcp.json
+/.ripgreprc
+/.idea
+/.vscode
+
 # venv
 venv/
 env/
