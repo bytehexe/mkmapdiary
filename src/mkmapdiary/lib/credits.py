@@ -8,9 +8,10 @@ import dataclasses
 import logging
 import re
 from collections import deque
+from collections.abc import Iterator, Mapping
 from email.message import Message
 from importlib.metadata import Distribution, PackageNotFoundError, distribution
-from typing import cast
+from typing import Any, cast
 
 logger = logging.getLogger(__name__)
 
@@ -140,3 +141,96 @@ def installed_packages(root: str = "mkmapdiary") -> list[Package]:
         queue.extend(_requirement_names(dist))
 
     return sorted(packages, key=lambda package: package.name.lower())
+
+
+# Licenses for CDN-hosted libraries, which a URL cannot express. Keyed by the
+# canonical name that parse_cdn_url() returns. The test
+# test_every_cdn_library_has_a_license_entry guards this against site_config.yaml.
+FRONTEND_LICENSES = {
+    "leaflet": ("BSD-2-Clause", "https://leafletjs.com/"),
+    "leaflet-markercluster": (
+        "MIT",
+        "https://github.com/Leaflet/Leaflet.markercluster",
+    ),
+    "@lychee-org/leaflet-photo": (
+        "MIT",
+        "https://github.com/lychee-org/Leaflet.Photo",
+    ),
+    "leaflet-awesome-markers": (
+        "MIT",
+        "https://github.com/lennardv2/Leaflet.awesome-markers",
+    ),
+    "leaflet-gpx": ("BSD-2-Clause", "https://github.com/mpetazzoni/leaflet-gpx"),
+    "leaflet-gesture-handling": (
+        "MIT",
+        "https://github.com/elmarquis/Leaflet.GestureHandling",
+    ),
+    "leaflet-fullscreen": (
+        "MIT",
+        "https://github.com/brunob/leaflet.fullscreen",
+    ),
+    "jquery": ("MIT", "https://jquery.com/"),
+    "justifiedgallery": ("MIT", "https://github.com/miromannino/Justified-Gallery"),
+    "iconoir-icons/iconoir": ("MIT", "https://iconoir.com/"),
+}
+
+_CDN_PATTERNS = (
+    re.compile(
+        r"^https://unpkg\.com/(?P<name>@[^/@]+/[^/@]+|[^/@]+)(?:@(?P<version>[^/]+))?/",
+    ),
+    re.compile(
+        r"^https://cdn\.jsdelivr\.net/npm/(?P<name>@[^/@]+/[^/@]+|[^/@]+)(?:@(?P<version>[^/]+))?/",
+    ),
+    re.compile(
+        r"^https://cdn\.jsdelivr\.net/gh/(?P<name>[^/@]+/[^/@]+)(?:@(?P<version>[^/]+))?/",
+    ),
+    re.compile(
+        r"^https://cdnjs\.cloudflare\.com/ajax/libs/(?P<name>[^/]+)/(?P<version>[^/]+)/",
+    ),
+)
+
+
+def parse_cdn_url(url: str) -> tuple[str, str | None] | None:
+    """Extract (name, version) from a CDN URL, or None for local paths."""
+    for pattern in _CDN_PATTERNS:
+        match = pattern.match(url)
+        if match:
+            return match.group("name"), match.group("version")
+    return None
+
+
+def _asset_urls(site_config: Mapping[str, Any]) -> Iterator[str]:
+    for entry in site_config.get("extra_css") or []:
+        yield entry
+    for entry in site_config.get("extra_javascript") or []:
+        # extra_javascript entries are mappings with a path key
+        yield entry["path"] if isinstance(entry, Mapping) else entry
+
+
+def frontend_libraries(site_config: Mapping[str, Any]) -> list[Package]:
+    """Credit the CDN libraries a generated site loads.
+
+    Name and version come from the URL, so they cannot drift from what the
+    page actually loads; license and homepage come from FRONTEND_LICENSES.
+    """
+    found: dict[str, Package] = {}
+
+    for url in _asset_urls(site_config):
+        parsed = parse_cdn_url(url)
+        if parsed is None:
+            continue
+
+        name, version = parsed
+        key = canonical_name(name)
+        if key in found:
+            continue
+
+        license_name, homepage = FRONTEND_LICENSES.get(key, (None, None))
+        found[key] = Package(
+            name=name,
+            version=version,
+            license=license_name,
+            url=homepage,
+        )
+
+    return sorted(found.values(), key=lambda package: package.name.lower())
