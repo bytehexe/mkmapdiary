@@ -2,7 +2,7 @@ import dataclasses
 import logging
 import pathlib
 import shutil
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping, Sequence
 from typing import Any
 
 import gpxpy
@@ -14,6 +14,7 @@ import yaml
 from doit import create_after
 
 from mkmapdiary.lib.credits import (
+    Package,
     canonical_name,
     frontend_libraries,
     installed_packages,
@@ -25,6 +26,30 @@ from ..lib.fmt import location_string, time_string
 from .base.httpRequest import HttpRequest
 
 logger = logging.getLogger(__name__)
+
+
+def credits_libraries(
+    site_config: Mapping[str, Any],
+    installed: Mapping[str, Package],
+    bundled: Sequence[str],
+) -> list[Package]:
+    """Merge frontend and bundled-package credits into one sorted list.
+
+    ``installed`` must already be keyed by ``canonical_name()``. A ``bundled``
+    entry missing from ``installed`` is logged at warning level and skipped --
+    credits must never fail a journal build.
+    """
+    libraries = list(frontend_libraries(site_config))
+
+    for name in bundled:
+        package = installed.get(name)
+        if package is not None:
+            libraries.append(package)
+        else:
+            logger.warning(f"Not installed, omitted from credits: {name}")
+
+    libraries.sort(key=lambda package: package.name.lower())
+    return libraries
 
 
 class SiteTask(HttpRequest):
@@ -300,20 +325,15 @@ class SiteTask(HttpRequest):
             ) as site_config_file:
                 site_config = yaml.safe_load(site_config_file)
 
-            libraries = list(frontend_libraries(site_config))
-
             installed = {
                 canonical_name(package.name): package
                 for package in installed_packages()
             }
-            for name in self.__bundled_packages:
-                package = installed.get(name)
-                if package is not None:
-                    libraries.append(package)
-                else:
-                    logger.warning(f"Not installed, omitted from credits: {name}")
-
-            libraries.sort(key=lambda package: package.name.lower())
+            libraries = credits_libraries(
+                site_config,
+                installed,
+                self.__bundled_packages,
+            )
 
             version = installed.get("mkmapdiary")
             content = self.template(
