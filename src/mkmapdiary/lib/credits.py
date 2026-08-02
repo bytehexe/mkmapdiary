@@ -293,6 +293,7 @@ def packages_from_report(report: Mapping[str, Any]) -> list[Package]:
 def resolved_packages(
     spec: str = ".[all]",
     allow_prerelease: bool = False,
+    timeout: float = 300.0,
 ) -> list[Package]:
     """Resolve ``spec`` from the package index without installing it.
 
@@ -319,6 +320,17 @@ def resolved_packages(
 
     Raises CalledProcessError when resolution fails, so a documentation build
     goes red rather than silently publishing an incomplete credits page.
+
+    ``timeout`` bounds the subprocess in seconds and is deliberately generous:
+    resolution walks a large dependency set including torch and the CUDA
+    stack, fetching PEP 658 metadata for each one, which can take a while on
+    a slow connection. This runs during the documentation build in CI, where
+    a hung package index would otherwise hang the subprocess indefinitely and
+    run the docs job out to GitHub Actions' own job time limit instead of
+    failing fast. ``subprocess.TimeoutExpired`` is allowed to propagate
+    rather than being caught, for the same fail-loud reason as
+    ``check=True``: a docs build that silently publishes a credits page
+    missing its table is worse than a red build.
     """
     command = [
         sys.executable,
@@ -345,5 +357,6 @@ def resolved_packages(
         capture_output=True,
         check=True,
         text=True,
+        timeout=timeout,
     )
     return packages_from_report(json.loads(completed.stdout))
