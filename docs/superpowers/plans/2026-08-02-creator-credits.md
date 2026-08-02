@@ -55,7 +55,7 @@ Three claims in `docs/superpowers/specs/2026-08-02-creator-credits-design.md` di
 | `src/mkmapdiary/tasks/base/exifReader.py` | `ExifData.artist`, `artist_from_exif()` |
 | `src/mkmapdiary/tasks/{image,markdown,text,audio,rawInput}Task.py` | propagate creator |
 | `src/mkmapdiary/tasks/gpxTask.py` | `track_creators` property |
-| `src/mkmapdiary/tasks/galleryTask.py` | abstract `track_creators`; pass `show_creators` |
+| `src/mkmapdiary/tasks/galleryTask.py` | pass `show_creators` |
 | `src/mkmapdiary/tasks/journalTask.py` | `creator` in item dict; pass `show_creators` |
 | `src/mkmapdiary/tasks/siteTask.py` | abstract `track_creators`; `merge_creators()`; pass `show_creators`, `creators` |
 | `src/mkmapdiary/tasks/base/baseTask.py` | `show_creators` property |
@@ -442,8 +442,16 @@ git commit -m "feat: carry the creator from calibration onto every asset"
 
 **Files:**
 - Modify: `src/mkmapdiary/tasks/gpxTask.py:29-42`
-- Modify: `src/mkmapdiary/tasks/galleryTask.py:23-26`
 - Test: `tests/test_creator_registry.py`
+
+**Budget:** this task is ~6 lines of production code. If it grows beyond
+that — if it starts needing changes in `GpxCreator`, per-date source
+attribution, or more than the one property below — **stop and skip the task
+entirely**, per Janna's instruction. Tracks going uncredited is an acceptable
+outcome; a disproportionate GPX detour is not. If skipped, drop
+`self.track_creators` from the `merge_creators(...)` call in Task 7 Step 6 and
+pass `set()` in its place, and remove Task 7's abstract `track_creators`
+property.
 
 **Interfaces:**
 - Consumes: `Calibration.creator` (Task 1).
@@ -505,14 +513,9 @@ In `handle_gpx` (line 35), after `self.__sources.append(source)`:
             self.__source_creators.add(calibration.creator)
 ```
 
-In `galleryTask.py`, beside the existing abstract `track_statistics` property (line 23-26), add:
-
-```python
-    @property
-    @abstractmethod
-    def track_creators(self) -> set[str]:
-        raise NotImplementedError("GalleryTask does not provide track creators.")
-```
+Do **not** add an abstract `track_creators` to `GalleryTask`. It declares an
+abstract `track_statistics` because it *uses* it (`galleryTask.py:97`);
+`track_creators` is consumed only by `SiteTask`, which declares it in Task 7.
 
 - [ ] **Step 4: Run tests to verify they pass**
 
@@ -527,8 +530,7 @@ Expected: all pass. Watch for mypy complaining that `TaskList` no longer satisfi
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/mkmapdiary/tasks/gpxTask.py src/mkmapdiary/tasks/galleryTask.py \
-        tests/test_creator_registry.py
+git add src/mkmapdiary/tasks/gpxTask.py tests/test_creator_registry.py
 git commit -m "feat: collect creators from GPX source files"
 ```
 
