@@ -31,6 +31,12 @@ hatch run mkdocs:serve                       # serve the project docs (task serv
 
 Pytest markers: `slow`, `local` (the latter must not run in CI).
 
+Environment notes: `default`, `min`, `types` and `hatch-test` all install the project
+in dev mode, so imports work without any `PYTHONPATH` — never set one and never call
+bare `python3`. `mkdocs` and `ruff` are `detached`, so the project is *not* importable
+there; that is deliberate, and it is what makes the `mkdocs` env a faithful stand-in
+for the docs CI job, which installs only mkdocs and mkdocs-material.
+
 Running the generator end to end:
 
 ```bash

@@ -23,6 +23,9 @@ monkeytype.sqlite3
 # Agent scratch (implementation ledgers, review packages)
 /.superpowers/
 
+# Claude Code project config (local tooling, not project content)
+/.claude/
+
 # venv
 venv/
 env/
