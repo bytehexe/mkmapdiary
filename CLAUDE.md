@@ -125,3 +125,22 @@ Enabling/disabling a postprocessor is done by editing those two lists.
 `mkmapdiary` → `__main__.py` click group with `build`, `config`, `generate-demo`,
 `calibrate`, `inspect`. `mkmapdiary-ui` → `ui.py`, a Tkinter front-end that invokes those
 same click commands in-process and captures their output.
+
+## REVISIT ON FIRST STABLE RELEASE
+
+Decisions below were made *because* mkmapdiary has never published a
+non-prerelease version to PyPI. They are stopgaps, not settled design. When the
+first stable release ships, work through this list — grep for
+`REVISIT ON FIRST STABLE RELEASE` to find the code sites.
+
+- **`resolved_packages(allow_prerelease=...)` in `lib/credits.py`.** The switch
+  adds pip's `--pre` so that a *published* spec like `mkmapdiary[all]` can be
+  resolved at all; without a stable release pip refuses to select anything.
+  `--pre` is coarse — it opts every transitive dependency into pre-releases too,
+  which is a real cost. Once a stable release exists, `resolved_packages(
+  "mkmapdiary[all]")` works unflagged and the switch should be reconsidered:
+  either dropped, or kept but documented as a deliberate opt-in rather than a
+  workaround.
+- The default spec stays `".[all]"` regardless. Resolving the local checkout
+  describes the commit being documented rather than the last published release,
+  which is the better behaviour for a credits page independent of release state.
