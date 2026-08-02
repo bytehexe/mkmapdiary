@@ -18,7 +18,7 @@ jobs:
           python-version: 3.x
       - name: Install PlantUML
         run: sudo apt-get update && sudo apt-get install -y plantuml
-      - run: pip install mkdocs mkdocs-material
+      - run: pip install mkdocs mkdocs-material plantuml-markdown
       - run: env PYTHONPATH=src:docs/ mkdocs build
       - name: Upload static files as artifact
         id: upload-pages
