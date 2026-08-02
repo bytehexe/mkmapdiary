@@ -187,14 +187,43 @@ to machine-generated output only.
 `travellers`) and to the `credits` block in `resources/config_schema.yaml`,
 which is `additionalProperties: false` and so must list it explicitly.
 
-`task_build_credits_page` (`siteTask.py:364`) passes:
+`merge_creators` (`siteTask.py:62-73`), a module-level function living beside
+the existing `credits_libraries`, unions all three creator sources into one
+deduplicated, sorted list:
 
 ```python
-creators=sorted(
-    (set(self.config["credits"]["creators"]) | self.db.distinct_creators())
-    - {None}
-)
+def merge_creators(
+    config_creators: list[str],
+    asset_creators: set[str | None],
+    track_creators: set[str],
+) -> list[str]:
+    merged = set(config_creators) | asset_creators | track_creators
+    return sorted(name for name in merged if name is not None)
 ```
+
+`task_build_credits_page` (`siteTask.py:385-417`) calls it with the config
+list, `self.db.distinct_creators()`, and `self.track_creators`:
+
+```python
+creators=merge_creators(
+    self.config["credits"]["creators"],
+    self.db.distinct_creators(),
+    self.track_creators,
+),
+```
+
+`SiteTask` cannot supply that third argument itself — GPX source creators are
+collected on `GPXTask`, not `SiteTask` — so `SiteTask` declares `track_creators`
+as an abstract property (`siteTask.py:90-93`) that only `GPXTask` implements.
+This has a real consequence for `taskList.py`'s mixin list: `TaskList(*tasks)`
+resolves an abstract property from whichever listed class defines it first,
+abstract or not, so `GPXTask` must precede `SiteTask` in `tasks` or `TaskList`
+raises `TypeError: Can't instantiate abstract class TaskList` at construction
+time. This is not a new pattern — `GalleryTask.track_statistics` is an
+existing abstract property GPXTask also implements, and `taskList.py` already
+carries a comment warning not to reorder the list without checking for
+abstract properties first; this design adds a second property to that same
+constraint rather than introducing it.
 
 `travellers` keeps its own section — who travelled and who authored are
 different claims. That task already carries `uptodate=[False]`, so a
@@ -277,8 +306,8 @@ Janna runs the example builds; the implementer asks rather than running them.
   calibration has none; an empty or whitespace tag counts as absent.
 - `distinct_creators()` and the `>= 2` threshold at each row of the visibility
   table, including the mixed `{Bob, None}` case.
-- Credits page: union of config and asset creators, deduplicated and sorted,
-  with `None` dropped; empty list renders no section.
+- `merge_creators`: union of config, asset, and track creators, deduplicated
+  and sorted, with `None` dropped; empty result renders no section.
 - Templates: all three render with and without `show_creators`, and an asset
   with no creator renders no separator when `show_creators` is true.
 - `calibrate creator`: sets, unsets, errors when given both a name and
