@@ -12,6 +12,7 @@ from whenever import Date
 from ..lib.fmt import location_string, time_string
 from ..lib.highlights import Highlights
 from ..lib.statistics import Statistics
+from ..util.locale import get_language
 from .base.baseTask import BaseTask
 
 
@@ -38,7 +39,7 @@ class GalleryTask(BaseTask):
 
             gallery_items = []
             geo_items = []
-            language = self.config["site"]["locale"].split("_")[0]
+            language = get_language(self.config["site"]["locale"])
 
             for i, asset in enumerate(images):
                 model_dict = dataclasses.asdict(asset)
