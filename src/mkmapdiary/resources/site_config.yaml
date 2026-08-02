@@ -16,7 +16,7 @@ plugins:
       skip_classes:
         - skip-lightbox
 
-copyright: 'Created with <a href="https://github.com/bytehexe/mkmapdiary">mkmapdiary</a>'
+copyright: 'Created with <a href="https://github.com/bytehexe/mkmapdiary">mkmapdiary</a> — <a href="credits.html">Credits</a>'
 
 extra:
   social:

@@ -13,6 +13,11 @@ import shapely
 import yaml
 from doit import create_after
 
+from mkmapdiary.lib.credits import (
+    canonical_name,
+    frontend_libraries,
+    installed_packages,
+)
 from mkmapdiary.lib.highlights import Highlights
 from mkmapdiary.lib.statistics import Statistics
 
@@ -276,6 +281,59 @@ class SiteTask(HttpRequest):
 
         return dict(actions=[_generate], file_dep=[input_sass], targets=[output_css])
 
+    # Packages whose *output* is copied into the built site. Metadata cannot
+    # answer "does this end up in _dist", so the list is explicit.
+    __bundled_packages = (
+        "mkdocs-material",  # theme CSS/JS is compiled into the site
+        "mkdocs-glightbox",  # lightbox assets are copied into the site
+    )
+
+    DOCS_CREDITS_URL = "https://bytehexe.github.io/mkmapdiary/reference/credits.html"
+
+    @create_after("end_postprocessing")
+    def task_build_credits_page(self) -> dict[str, Any]:
+        """Generate the credits page for the journal."""
+
+        def _generate() -> None:
+            with open(
+                self.dirs.resources_dir / "site_config.yaml",
+            ) as site_config_file:
+                site_config = yaml.safe_load(site_config_file)
+
+            libraries = list(frontend_libraries(site_config))
+
+            installed = {
+                canonical_name(package.name): package
+                for package in installed_packages()
+            }
+            for name in self.__bundled_packages:
+                package = installed.get(name)
+                if package is not None:
+                    libraries.append(package)
+                else:
+                    logger.warning(f"Not installed, omitted from credits: {name}")
+
+            libraries.sort(key=lambda package: package.name.lower())
+
+            version = installed.get("mkmapdiary")
+            content = self.template(
+                "credits.j2",
+                travellers=self.config["credits"]["travellers"],
+                mkmapdiary_version=version.version if version else "",
+                libraries=libraries,
+                docs_url=self.DOCS_CREDITS_URL,
+            )
+
+            with open(self.dirs.docs_dir / "credits.md", "w") as credits_file:
+                credits_file.write(content)
+
+        return dict(
+            actions=[(_generate, ())],
+            targets=[self.dirs.docs_dir / "credits.md"],
+            task_dep=[f"create_directory:{self.dirs.docs_dir}"],
+            uptodate=[False],
+        )
+
     def task_copy_simple_asset(self) -> Iterator[dict[str, Any]]:
         simple_assets = self.__simple_assets
 
@@ -315,6 +373,7 @@ class SiteTask(HttpRequest):
         def _generate_file_deps() -> Iterator[Any]:
             yield self.dirs.build_dir / "mkdocs.yml"
             yield self.dirs.docs_dir / "index.md"
+            yield self.dirs.docs_dir / "credits.md"
             yield from (str(asset.path) for asset in self.db.get_all_assets())
             for date in self.db.get_all_dates():
                 yield self.dirs.docs_dir / f"{date}.md"
@@ -333,6 +392,7 @@ class SiteTask(HttpRequest):
             task_dep=[
                 f"create_directory:{self.dirs.dist_dir}",
                 "build_index_page",
+                "build_credits_page",
                 "generate_mkdocs_config",
                 "compile_css",
                 "build_day_page",
