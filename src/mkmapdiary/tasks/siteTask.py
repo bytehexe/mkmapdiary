@@ -24,6 +24,7 @@ from mkmapdiary.lib.statistics import Statistics
 
 from ..lib.fmt import location_string, time_string
 from ..util.locale import get_language
+from .audioTask import WHISPER_MODEL
 from .base.httpRequest import HttpRequest
 
 logger = logging.getLogger(__name__)
@@ -68,6 +69,7 @@ class SiteTask(HttpRequest):
             "cross-orange.svg",
             "logo-blue.svg",
             "logo-white.svg",
+            "ai-generated.svg",
         ]
 
     @property
@@ -322,6 +324,42 @@ class SiteTask(HttpRequest):
 
     DOCS_CREDITS_URL = "https://bytehexe.github.io/mkmapdiary/reference/credits.html"
 
+    def __ai_disclosure(self) -> list[dict[str, str]]:
+        """Content/model pairs for the AI transparency section of the credits.
+
+        Art. 50 AI Act disclosure (see CLAUDE.md "AI transparency"). Gated on
+        the same feature flags that decide whether the content is generated at
+        all, so a build without AI carries no claim that it used any.
+        """
+        strings = self.config["strings"]
+        prompts = self.config["llm_prompts"]
+        features = self.config["features"]
+        rows: list[dict[str, str]] = []
+
+        if features["llms"]["enabled"]:
+            rows.append(
+                {
+                    "content": strings["ai_disclosure_titles"],
+                    "model": prompts["generate_title"]["model"],
+                },
+            )
+            rows.append(
+                {
+                    "content": strings["ai_disclosure_tags"],
+                    "model": prompts["generate_tags"]["model"],
+                },
+            )
+
+        if features["transcription"]["enabled"]:
+            rows.append(
+                {
+                    "content": strings["ai_disclosure_transcripts"],
+                    "model": f"whisper {WHISPER_MODEL}",
+                },
+            )
+
+        return rows
+
     @create_after("end_postprocessing")
     def task_build_credits_page(self) -> dict[str, Any]:
         """Generate the credits page for the journal."""
@@ -349,6 +387,7 @@ class SiteTask(HttpRequest):
                 mkmapdiary_version=version.version if version else "",
                 libraries=libraries,
                 docs_url=self.DOCS_CREDITS_URL,
+                ai_disclosure=self.__ai_disclosure(),
             )
 
             with open(self.dirs.docs_dir / "credits.md", "w") as credits_file:

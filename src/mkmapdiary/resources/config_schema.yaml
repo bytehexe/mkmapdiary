@@ -328,6 +328,22 @@ properties:
         $ref: "#/definitions/customString"
       credits_toolchain:
         $ref: "#/definitions/customString"
+      ai_generated_label:
+        $ref: "#/definitions/customString"
+      ai_disclosure_title:
+        $ref: "#/definitions/customString"
+      ai_disclosure_intro:
+        $ref: "#/definitions/customString"
+      ai_disclosure_content:
+        $ref: "#/definitions/customString"
+      ai_disclosure_model:
+        $ref: "#/definitions/customString"
+      ai_disclosure_titles:
+        $ref: "#/definitions/customString"
+      ai_disclosure_tags:
+        $ref: "#/definitions/customString"
+      ai_disclosure_transcripts:
+        $ref: "#/definitions/customString"
     additionalProperties: false
 
   llm_prompts:

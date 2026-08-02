@@ -10,6 +10,10 @@ STRINGS = {
     "credits_made_with": "Made with",
     "credits_software": "Open source software",
     "credits_toolchain": "Full list in the docs.",
+    "ai_disclosure_title": "AI-generated content",
+    "ai_disclosure_intro": "Parts of this journal were generated automatically.",
+    "ai_disclosure_content": "Content",
+    "ai_disclosure_model": "Model",
 }
 
 
@@ -25,6 +29,7 @@ def _render(**params: Any) -> str:
         "libraries": [],
         "docs_url": "https://bytehexe.github.io/mkmapdiary/reference/credits.html",
         "strings": STRINGS,
+        "ai_disclosure": [],
     }
     defaults.update(params)
     return env.get_template("credits.j2").render(**defaults)
@@ -78,3 +83,25 @@ def test_renders_missing_license_as_not_declared() -> None:
     output = _render(libraries=[Package("cuda-toolkit", "12.0", None, None)])
 
     assert "| cuda-toolkit | 12.0 | not declared |" in output
+
+
+def test_renders_ai_disclosure_naming_each_model() -> None:
+    output = _render(
+        ai_disclosure=[
+            {"content": "Entry titles", "model": "granite3.3:8b"},
+            {"content": "Audio transcripts", "model": "whisper turbo"},
+        ],
+    )
+
+    assert "AI-generated content" in output
+    assert "Parts of this journal were generated automatically." in output
+    assert "| Entry titles | granite3.3:8b |" in output
+    assert "| Audio transcripts | whisper turbo |" in output
+
+
+def test_omits_ai_disclosure_when_nothing_was_generated() -> None:
+    """A build with every AI feature off must not claim it used AI."""
+    output = _render(ai_disclosure=[])
+
+    assert "AI-generated content" not in output
+    assert "Parts of this journal were generated automatically." not in output

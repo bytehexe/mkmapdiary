@@ -443,3 +443,27 @@ msgstr "Open source software"
 
 msgid "credits_toolchain"
 msgstr "Built using more open source software than is listed here; the full list is in the mkmapdiary documentation."
+
+msgid "ai_generated_label"
+msgstr "AI-generated"
+
+msgid "ai_disclosure_title"
+msgstr "AI-generated content"
+
+msgid "ai_disclosure_intro"
+msgstr "Parts of this journal were generated automatically. Passages marked with the AI GENERATED symbol were produced by the models listed below, from the traveller's own photos, recordings and notes."
+
+msgid "ai_disclosure_content"
+msgstr "Content"
+
+msgid "ai_disclosure_model"
+msgstr "Model"
+
+msgid "ai_disclosure_titles"
+msgstr "Entry titles"
+
+msgid "ai_disclosure_tags"
+msgstr "Day tags"
+
+msgid "ai_disclosure_transcripts"
+msgstr "Audio transcripts"

@@ -131,6 +131,14 @@ strings:
   credits_made_with: null
   credits_software: null
   credits_toolchain: null
+  ai_generated_label: null
+  ai_disclosure_title: null
+  ai_disclosure_intro: null
+  ai_disclosure_content: null
+  ai_disclosure_model: null
+  ai_disclosure_titles: null
+  ai_disclosure_tags: null
+  ai_disclosure_transcripts: null
 
 llm_prompts:
   # LLM prompt templates
