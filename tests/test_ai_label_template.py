@@ -28,7 +28,12 @@ def test_label_carries_the_eu_symbol_and_accessible_text() -> None:
 
     assert 'src="ai-generated.svg"' in output
     assert 'alt="AI-generated"' in output
-    assert 'class="ai-generated-label"' in output
+    assert "ai-generated-label" in output
+
+
+def test_label_is_excluded_from_the_lightbox() -> None:
+    """glightbox otherwise wraps it in an anchor, making the badge clickable."""
+    assert "skip-lightbox" in _render("ai_label.j2")
 
 
 def test_label_is_machine_readable_via_iptc_vocabulary() -> None:
