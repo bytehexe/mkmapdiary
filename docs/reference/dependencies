@@ -1,7 +1,0 @@
-# Dependencies
-
-Possible ependencies that cannot be installed with pip:
-
-* ffmpeg or avconv (for pydub)
-* ollama (for llms)
-* gpsbabel (for conversion of geo formats)
