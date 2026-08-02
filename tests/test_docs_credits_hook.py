@@ -59,3 +59,16 @@ def test_credits_module_imports_only_stdlib() -> None:
     assert not third_party, (
         f"credits.py must import only the standard library; found: {third_party}"
     )
+
+
+def test_credits_page_contains_the_marker() -> None:
+    """Guard on_page_markdown's silent no-op.
+
+    If the marker is ever removed or renamed, this test -- not a
+    quietly-tableless page in production -- is what catches it.
+    """
+    module = _load_hook()
+
+    content = (ROOT / "docs" / "reference" / "credits.md").read_text()
+
+    assert module.MARKER in content

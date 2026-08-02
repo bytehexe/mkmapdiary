@@ -114,8 +114,22 @@ def test_installed_packages_includes_root_and_excludes_strays() -> None:
 
     assert "mkmapdiary" in names
     assert "click" in names
-    # pyinstaller may be present in the environment but is declared by nothing
-    assert "pyinstaller" not in names
+    # pytest-rerunfailures is installed in every hatch-test environment (it
+    # is one of hatch's own baked-in test-runner dependencies), so it is a
+    # live sentinel for "environment-installed but not walked" everywhere,
+    # including CI -- unlike a package (e.g. pyinstaller) that might simply
+    # be absent from a given environment and pass this assertion vacuously.
+    #
+    # Note: plain "pytest" is NOT a safe sentinel here, despite looking like
+    # the obvious choice. imageio declares "pytest; extra == \"test\"" (and
+    # "dev"/"full") in its own metadata, and _requirement_names() ignores
+    # extra markers by design (see its docstring) -- so the graph walk from
+    # "mkmapdiary" reaches imageio and picks up the name "pytest" as a
+    # requirement to look up. Since pytest is installed (it is running this
+    # very test), installed_packages() legitimately includes it, and
+    # asserting its absence fails on real, correctly-walked data, not on a
+    # bug. Verified by tracing imageio's Requires-Dist directly.
+    assert "pytest-rerunfailures" not in names
 
 
 def test_installed_packages_returns_sorted_packages() -> None:

@@ -103,6 +103,14 @@ def capture_command_output(
         log_handler.close()
 
 
+def _parse_iso_date(text: str) -> datetime.date:
+    """Parse an ISO date (YYYY-MM-DD), tolerating surrounding whitespace.
+
+    Raises ValueError when malformed.
+    """
+    return datetime.date.fromisoformat(text.strip())
+
+
 class IsoDateEntry(ttk.Entry):
     """A date entry accepting ISO dates (YYYY-MM-DD).
 
@@ -117,7 +125,7 @@ class IsoDateEntry(ttk.Entry):
 
     def get_date(self) -> datetime.date:
         """Return the entered date. Raises ValueError when malformed."""
-        return datetime.date.fromisoformat(self.get().strip())
+        return _parse_iso_date(self.get())
 
 
 class MkmapdiaryUI:
