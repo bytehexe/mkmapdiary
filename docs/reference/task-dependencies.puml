@@ -98,6 +98,7 @@ rectangle "Asset Collections" as asset_collections #lightyellow {
 ' Site building tasks
 rectangle "generate_mkdocs_config" as generate_mkdocs_config #lavender
 rectangle "build_index_page" as build_index_page #lavender
+rectangle "build_credits_page" as build_credits_page #lavender
 rectangle "compile_css" as compile_css #lavender
 rectangle "copy_simple_asset" as copy_simple_asset #lavender
 rectangle "pre_build_site" as pre_build_site #lavender
@@ -140,6 +141,8 @@ end_postprocessing ==> build_day_page
 end_postprocessing ==> build_gallery
 end_postprocessing ==> build_journal
 end_postprocessing ==> build_tags
+end_postprocessing ==> build_index_page
+end_postprocessing ==> build_credits_page
 end_postprocessing ==> build_site
 
 ' Asset dependencies (file_dep on all assets)
@@ -158,6 +161,7 @@ unpositioned_assets --> geo_correlation
 
 ' Dependencies for build_site
 build_index_page --> build_site
+build_credits_page --> build_site
 generate_mkdocs_config --> build_site
 compile_css --> build_site
 copy_simple_asset --> build_site

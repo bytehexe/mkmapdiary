@@ -38,6 +38,9 @@ This document shows the dependency graph of the various build tasks in mkmapdiar
 ### Site Building Tasks
 - **generate_mkdocs_config**: Creates the MkDocs configuration file
 - **build_index_page**: Generates the main index page
+- **build_credits_page**: Generates the credits page, listing travellers
+  (`credits.travellers`) alongside dependency and frontend-library credits computed at
+  build time; `build_site` depends on it
 - **compile_css**: Compiles SASS to CSS
 - **copy_simple_asset**: Copies static assets (JS, CSS, images)
 - **pre_build_site**: Ensures all site directories exist before building

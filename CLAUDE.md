@@ -151,6 +151,13 @@ they are not theoretical.
 - **Optional heavy deps** (whisper, torch/piq, onnxruntime) are extras; import them lazily
   inside the feature that needs them and gate on the corresponding `features.*` config,
   as `commands/build.py` and the postprocessors do.
+- **Credits**: `lib/credits.py` computes dependency credits at build time — never
+  from a committed file. It must import **only the standard library**, because
+  `docs/hooks/credits_table.py` imports it with just `src` on `PYTHONPATH` so the
+  docs CI never installs mkmapdiary. `installed_packages()` walks the declared
+  graph locally (offline, used by journals); `resolved_packages()` resolves from
+  the index (used by the docs). CDN library licenses live in `FRONTEND_LICENSES`
+  and a test asserts every URL in `site_config.yaml` has an entry.
 
 ### Entry points
 
