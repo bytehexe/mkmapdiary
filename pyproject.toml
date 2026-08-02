@@ -151,6 +151,9 @@ features = ["all"]
 [tool.hatch.envs.min]
 features = []
 
+[tool.hatch.envs.hatch-test]
+features = ["ui"]
+
 [tool.hatch.envs.types]
 extra-dependencies = [
   "mypy>=1.0.0",
