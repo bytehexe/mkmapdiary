@@ -224,6 +224,7 @@ class SiteTask(HttpRequest):
             )
 
             gallery_items = []
+            language = self.config["site"]["locale"].split("_")[0]
             for asset in page_info.gallery_assets + page_info.map_assets:
                 dict_asset = dataclasses.asdict(asset)
                 dict_asset["time"], dict_asset["timezone"] = time_string(
@@ -239,6 +240,7 @@ class SiteTask(HttpRequest):
                     dict_asset["location_admin"] = (
                         poiidx.get_administrative_hierarchy_string(
                             shapely.geometry.Point(asset.longitude, asset.latitude),
+                            language,
                         )
                     )
                 else:

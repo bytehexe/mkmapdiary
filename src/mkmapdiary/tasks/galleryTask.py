@@ -38,6 +38,7 @@ class GalleryTask(BaseTask):
 
             gallery_items = []
             geo_items = []
+            language = self.config["site"]["locale"].split("_")[0]
 
             for i, asset in enumerate(images):
                 model_dict = dataclasses.asdict(asset)
@@ -49,7 +50,8 @@ class GalleryTask(BaseTask):
                 ):
                     model_dict["location_admin"] = (
                         poiidx.get_administrative_hierarchy_string(
-                            shapely.geometry.Point(asset.longitude, asset.latitude)
+                            shapely.geometry.Point(asset.longitude, asset.latitude),
+                            language,
                         )
                     )
                 else:
