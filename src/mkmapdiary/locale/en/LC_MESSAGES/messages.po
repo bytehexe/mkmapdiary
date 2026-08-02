@@ -79,6 +79,9 @@ msgstr ""
 msgid "download_gpx"
 msgstr "Download GPX"
 
+msgid "zoom_to_fit"
+msgstr "Zoom to fit"
+
 msgid "legend_track"
 msgstr "Track"
 
