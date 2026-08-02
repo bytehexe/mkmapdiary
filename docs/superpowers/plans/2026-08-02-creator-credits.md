@@ -366,7 +366,7 @@ git commit -m "feat: read the authorship tag from EXIF metadata"
 - Modify: `src/mkmapdiary/tasks/textTask.py:26`
 - Modify: `src/mkmapdiary/tasks/audioTask.py:42,49`
 - Modify: `src/mkmapdiary/tasks/rawInputTask.py:49`
-- Test: `tests/test_creator_calibration.py` (extend)
+- Test: none — see below.
 
 **Interfaces:**
 - Consumes: `Calibration.creator` and `AssetRecord.creator` (Task 1); `ExifData.artist` (Task 2).
@@ -374,28 +374,15 @@ git commit -m "feat: read the authorship tag from EXIF metadata"
 
 Precedence is `calibration.creator or exif_data.artist` — a deliberate `calibration.yaml` must beat a stale camera tag naming a previous owner.
 
-- [ ] **Step 1: Write the failing test**
+**No new tests, by Janna's explicit decision.** The handlers build their
+`AssetRecord`s inside a scan that needs a full `TaskList`, and the cheap
+alternative — asserting on a bare Python `or` expression — would be a test
+that verifies nothing. Verification here is the Step 2 grep; the creator's
+behaviour on assets is covered by Task 5's registry tests. Do not add
+tautological tests to fill the gap, and do not treat the absence as an
+oversight to correct.
 
-Append to `tests/test_creator_calibration.py`:
-
-```python
-def test_calibration_creator_wins_over_the_exif_artist() -> None:
-    """A stale camera tag must never override a deliberate calibration.yaml."""
-    calibration = Calibration(timezone="UTC", offset=0, creator="Janna")
-    assert (calibration.creator or "Bob") == "Janna"
-
-
-def test_exif_artist_fills_the_gap_when_calibration_is_silent() -> None:
-    calibration = Calibration(timezone="UTC", offset=0)
-    assert (calibration.creator or "Bob") == "Bob"
-```
-
-- [ ] **Step 2: Run test to verify it fails**
-
-Run: `hatch test tests/test_creator_calibration.py -v`
-Expected: PASS immediately — these pin the precedence expression only. The real verification is Step 4's grep, because the handlers construct `AssetRecord`s inside a scan that needs a full `TaskList`.
-
-- [ ] **Step 3: Edit the five handlers**
+- [ ] **Step 1: Edit the five handlers**
 
 `imageTask.py` — inside the `AssetRecord(...)` call, after `effects=calibration.effects.copy(),`:
 
@@ -417,22 +404,22 @@ Expected: PASS immediately — these pin the precedence expression only. The rea
         asset.creator = calibration.creator or exif.artist
 ```
 
-- [ ] **Step 4: Verify every handler was covered**
+- [ ] **Step 2: Verify every handler was covered**
 
 Run: `grep -n "creator" src/mkmapdiary/tasks/*Task.py`
 Expected: six `creator=` / `asset.creator` lines — image (1), markdown (1), text (1), audio (2), rawInput (1). GPX is intentionally absent; it is Task 4.
 
-- [ ] **Step 5: Full gate**
+- [ ] **Step 3: Full gate**
 
 Run: `hatch run types:check && hatch run ruff:ruff check . && hatch test`
 Expected: all pass.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
 git add src/mkmapdiary/tasks/imageTask.py src/mkmapdiary/tasks/markdownTask.py \
         src/mkmapdiary/tasks/textTask.py src/mkmapdiary/tasks/audioTask.py \
-        src/mkmapdiary/tasks/rawInputTask.py tests/test_creator_calibration.py
+        src/mkmapdiary/tasks/rawInputTask.py
 git commit -m "feat: carry the creator from calibration onto every asset"
 ```
 
