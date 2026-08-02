@@ -46,3 +46,4 @@ class AssetRecord:
     color_hash: imagehash.ImageHash | None = None
     embedding: list[float] | None = None
     effects: list[str] = dataclasses.field(default_factory=list)
+    creator: str | None = None

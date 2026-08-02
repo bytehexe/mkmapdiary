@@ -39,6 +39,14 @@ properties:
         - "autorotate"
       description: "Name of the effect"
 
+  creator:
+    type: ["string", "null"]
+    description: >
+      Name of the person who created the media in this directory. Inherited by
+      subdirectories unless overridden. Set to null to clear an inherited creator.
+    examples:
+      - "Bob Ross"
+
   # Alternative root-level format (for backward compatibility)
   timezone:
     type: string
@@ -53,5 +61,6 @@ properties:
 anyOf:
   - required: ["calibration"]
   - required: ["effects"]
+  - required: ["creator"]
 
 additionalProperties: true
