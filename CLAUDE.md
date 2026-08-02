@@ -143,6 +143,12 @@ they are not theoretical.
   and `BaseTask.ai()` formats it, calls ollama, and optionally validates the response
   against a schema. UI strings use an `ui.` prefix. After touching `.po` files run
   `task translate`, or pre-commit fails.
+  **Gender-neutral German**: prefer neutral formulations — substantivierte
+  Partizipien (`Reisende`), abstract nouns, or reformulation. Where a gendered
+  noun is unavoidable, use the asterisk (`Urheber*innen`), not the colon or
+  Binnen-I. Precision that still reads as normal German wins: `Urheberschaft`
+  is legalese nobody says, and `Mitwirkende` is so broad it collapses into
+  `Reisende`, the section right next to it.
 - **AI transparency**: any feature putting machine-generated content into a journal must
   both render `templates/ai_label.j2` beside it and add a row to
   `SiteTask.__ai_disclosure()` for the credits page. Gate both on the feature flag —

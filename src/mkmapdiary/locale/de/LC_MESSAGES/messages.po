@@ -435,6 +435,9 @@ msgstr "Danksagungen"
 msgid "credits_travellers"
 msgstr "Reisende"
 
+msgid "credits_creators"
+msgstr "Urheber*innen"
+
 msgid "credits_made_with"
 msgstr "Erstellt mit"
 

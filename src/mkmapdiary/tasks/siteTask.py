@@ -2,6 +2,7 @@ import dataclasses
 import logging
 import pathlib
 import shutil
+from abc import abstractmethod
 from collections.abc import Iterator, Mapping, Sequence
 from typing import Any
 
@@ -58,6 +59,20 @@ def credits_libraries(
     return libraries
 
 
+def merge_creators(
+    config_creators: list[str],
+    asset_creators: set[str | None],
+    track_creators: set[str],
+) -> list[str]:
+    """One deduplicated, sorted credit list from all three sources.
+
+    `asset_creators` keeps None as a value so the display threshold can count
+    it; the credits page drops it, since "nobody" is not a name.
+    """
+    merged = set(config_creators) | asset_creators | track_creators
+    return sorted(name for name in merged if name is not None)
+
+
 class SiteTask(HttpRequest):
     def __init__(self) -> None:
         super().__init__()
@@ -71,6 +86,11 @@ class SiteTask(HttpRequest):
             "logo-white.svg",
             "ai-generated.svg",
         ]
+
+    @property
+    @abstractmethod
+    def track_creators(self) -> set[str]:
+        raise NotImplementedError("SiteTask does not provide track creators.")
 
     @property
     def __site_dirs(self) -> list[pathlib.Path]:
@@ -389,6 +409,11 @@ class SiteTask(HttpRequest):
                 libraries=libraries,
                 docs_url=self.DOCS_CREDITS_URL,
                 ai_disclosure=self.__ai_disclosure(),
+                creators=merge_creators(
+                    self.config["credits"]["creators"],
+                    self.db.distinct_creators(),
+                    self.track_creators,
+                ),
             )
 
             with open(self.dirs.docs_dir / "credits.md", "w") as credits_file:

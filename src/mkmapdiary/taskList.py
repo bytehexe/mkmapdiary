@@ -34,12 +34,12 @@ logger = logging.getLogger(__name__)
 
 tasks = [
     ImageTask,
-    SiteTask,
     RawInputTask,
     TextTask,
     MarkdownTask,
     AudioTask,
     GPXTask,
+    SiteTask,
     GpsbabelInputTask,
     TagsTask,
     PostprocessingTask,

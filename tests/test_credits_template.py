@@ -7,6 +7,7 @@ from mkmapdiary.lib.credits import Package
 STRINGS = {
     "credits_title": "Credits",
     "credits_travellers": "Travellers",
+    "credits_creators": "Creators",
     "credits_made_with": "Made with",
     "credits_software": "Open source software",
     "credits_toolchain": "Full list in the docs.",
@@ -25,6 +26,7 @@ def _render(**params: Any) -> str:
     )
     defaults: dict[str, Any] = {
         "travellers": [],
+        "creators": [],
         "mkmapdiary_version": "1.2.3",
         "libraries": [],
         "docs_url": "https://bytehexe.github.io/mkmapdiary/reference/credits.html",
@@ -105,3 +107,23 @@ def test_omits_ai_disclosure_when_nothing_was_generated() -> None:
 
     assert "AI-generated content" not in output
     assert "Parts of this journal were generated automatically." not in output
+
+
+def test_renders_creators() -> None:
+    output = _render(creators=["Bob Ross", "Janna Hopp"])
+
+    assert "Creators" in output
+    assert "Bob Ross" in output
+    assert "Janna Hopp" in output
+
+
+def test_omits_the_creators_section_when_empty() -> None:
+    assert "Creators" not in _render(creators=[])
+
+
+def test_creators_are_separate_from_travellers() -> None:
+    """Who travelled and who authored are different claims."""
+    output = _render(travellers=["Alex"], creators=["Bob"])
+
+    assert "Travellers" in output
+    assert "Creators" in output

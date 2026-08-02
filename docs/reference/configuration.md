@@ -136,7 +136,14 @@ credits:
   travellers:                              # Names shown on the credits page
     - Janna Hopp
     - Alex
+  creators:                                # General credit for the media
+    - Bob Ross
 ```
+
+`credits.creators` is a general credit for the media. It is merged and
+deduplicated with the creators picked up automatically from `calibration.yaml`
+files and from EXIF metadata, and shown only on the credits page — never on an
+individual asset.
 
 ## Special Tags
 

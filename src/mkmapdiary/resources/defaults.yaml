@@ -88,6 +88,9 @@ ignore_dates: []
 credits:
   # Names of the people who travelled; shown on the generated credits page
   travellers: []
+  # General credit for the media; merged with the creators found in
+  # calibration.yaml files. Does not appear on individual assets.
+  creators: []
 
 strings:
   # Override translation strings here by providing custom values
@@ -128,6 +131,7 @@ strings:
   track_total_time: null
   credits_title: null
   credits_travellers: null
+  credits_creators: null
   credits_made_with: null
   credits_software: null
   credits_toolchain: null

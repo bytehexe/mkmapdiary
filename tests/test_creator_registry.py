@@ -3,6 +3,7 @@ from pathlib import PosixPath
 from mkmapdiary.lib.asset import AssetRecord
 from mkmapdiary.lib.assetRegistry import AssetRegistry
 from mkmapdiary.tasks.gpxTask import GPXTask
+from mkmapdiary.tasks.siteTask import merge_creators
 
 
 def test_track_creators_is_a_property() -> None:
@@ -56,3 +57,20 @@ def test_threshold_mixed_named_and_unattributed_is_shown() -> None:
 
 def test_threshold_two_named_creators_is_shown() -> None:
     assert len(_registry("Bob", "Janna").distinct_creators()) >= 2
+
+
+def test_merge_unions_all_three_sources() -> None:
+    assert merge_creators(["Chris"], {"Bob"}, {"Alex"}) == ["Alex", "Bob", "Chris"]
+
+
+def test_merge_deduplicates_across_sources() -> None:
+    assert merge_creators(["Janna"], {"Janna", "Bob"}, {"Janna"}) == ["Bob", "Janna"]
+
+
+def test_merge_drops_the_none_placeholder() -> None:
+    """distinct_creators keeps None as a value; the credits page must not."""
+    assert merge_creators([], {"Bob", None}, set()) == ["Bob"]
+
+
+def test_merge_of_nothing_is_empty() -> None:
+    assert merge_creators([], set(), set()) == []

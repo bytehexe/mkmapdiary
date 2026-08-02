@@ -242,6 +242,11 @@ properties:
         description: "Names of the people who travelled"
         items:
           type: string
+      creators:
+        type: array
+        description: "General credit for the media, merged with calibration creators"
+        items:
+          type: string
     additionalProperties: false
 
   strings:
@@ -321,6 +326,8 @@ properties:
       credits_title:
         $ref: "#/definitions/customString"
       credits_travellers:
+        $ref: "#/definitions/customString"
+      credits_creators:
         $ref: "#/definitions/customString"
       credits_made_with:
         $ref: "#/definitions/customString"

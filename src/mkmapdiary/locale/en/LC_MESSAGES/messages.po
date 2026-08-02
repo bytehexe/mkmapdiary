@@ -435,6 +435,9 @@ msgstr "Credits"
 msgid "credits_travellers"
 msgstr "Travellers"
 
+msgid "credits_creators"
+msgstr "Creators"
+
 msgid "credits_made_with"
 msgstr "Made with"
 

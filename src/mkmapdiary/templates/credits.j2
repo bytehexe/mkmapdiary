@@ -6,7 +6,12 @@
 {{ travellers | join(", ") }}
 
 {% endif %}
-{# Photographers belong here once that feature lands. #}
+{% if creators %}
+## {{ strings.credits_creators }}
+
+{{ creators | join(", ") }}
+
+{% endif %}
 ## {{ strings.credits_made_with }}
 
 [mkmapdiary](https://github.com/bytehexe/mkmapdiary) {{ mkmapdiary_version }} —
