@@ -5,8 +5,11 @@ imports it with just ``src`` on ``PYTHONPATH``, without installing mkmapdiary.
 """
 
 import dataclasses
+import json
 import logging
 import re
+import subprocess
+import sys
 from collections import deque
 from collections.abc import Iterator, Mapping
 from email.message import Message
@@ -234,3 +237,83 @@ def frontend_libraries(site_config: Mapping[str, Any]) -> list[Package]:
         )
 
     return sorted(found.values(), key=lambda package: package.name.lower())
+
+
+def _metadata_from_report_entry(entry: Mapping[str, Any]) -> Message:
+    """Rebuild a metadata Message from a pip report entry.
+
+    Reusing the Message shape means resolved packages go through exactly the
+    same license and URL rules as installed ones.
+    """
+    metadata = Message()
+    metadata.add_header("Name", entry.get("name", ""))
+
+    expression = entry.get("license_expression")
+    if expression:
+        metadata.add_header("License-Expression", expression)
+
+    raw = entry.get("license")
+    if raw:
+        metadata.add_header("License", raw)
+
+    for classifier in entry.get("classifier") or []:
+        metadata.add_header("Classifier", classifier)
+
+    home_page = entry.get("home_page")
+    if home_page:
+        metadata.add_header("Home-page", home_page)
+
+    for url in entry.get("project_url") or []:
+        metadata.add_header("Project-URL", url)
+
+    return metadata
+
+
+def packages_from_report(report: Mapping[str, Any]) -> list[Package]:
+    """Convert a `pip install --report` document into packages."""
+    packages = []
+    for item in report.get("install") or []:
+        entry = item.get("metadata") or {}
+        name = entry.get("name", "")
+        if not name:
+            continue
+        metadata = _metadata_from_report_entry(entry)
+        packages.append(
+            Package(
+                name=name,
+                version=entry.get("version"),
+                license=normalise_license(metadata, name),
+                url=project_url(metadata),
+            ),
+        )
+
+    return sorted(packages, key=lambda package: package.name.lower())
+
+
+def resolved_packages(spec: str = "mkmapdiary[all]") -> list[Package]:
+    """Resolve ``spec`` from the package index without installing it.
+
+    PyPI serves PEP 658 metadata files, so pip fetches each wheel's METADATA
+    rather than the wheel itself; resolving the torch stack costs kilobytes.
+
+    Raises CalledProcessError when resolution fails, so a documentation build
+    goes red rather than silently publishing an incomplete credits page.
+    """
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "pip",
+            "install",
+            "--dry-run",
+            "--ignore-installed",
+            "--quiet",
+            "--report",
+            "-",
+            spec,
+        ],
+        capture_output=True,
+        check=True,
+        text=True,
+    )
+    return packages_from_report(json.loads(completed.stdout))

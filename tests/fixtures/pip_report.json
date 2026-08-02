@@ -1,0 +1,32 @@
+{
+  "version": "1",
+  "install": [
+    {
+      "metadata": {
+        "name": "click",
+        "version": "8.1.7",
+        "classifier": ["License :: OSI Approved :: BSD License"],
+        "project_url": ["Source, https://github.com/pallets/click"]
+      }
+    },
+    {
+      "metadata": {
+        "name": "poiidx",
+        "version": "0.0.8",
+        "license_expression": "MIT",
+        "home_page": "https://github.com/bytehexe/poiidx"
+      }
+    },
+    {
+      "metadata": {
+        "name": "PyExifTool",
+        "version": "0.5.6",
+        "license": "GPLv3+/BSD",
+        "classifier": [
+          "License :: OSI Approved :: BSD License",
+          "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)"
+        ]
+      }
+    }
+  ]
+}
