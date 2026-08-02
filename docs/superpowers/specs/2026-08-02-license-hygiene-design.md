@@ -85,10 +85,19 @@ that happen to be installed but are not dependencies. The audit found
 
 License normalisation resolves in a fixed order, first hit wins:
 
+0. An **election table** in the module, keyed by distribution name
 1. `License-Expression` metadata field (PEP 639)
 2. `License :: ...` classifiers, joined with `; `
 3. `License` field, when it is a short identifier rather than embedded license text
 4. `None`
+
+The election table exists because dual-licensed packages offer a choice that
+metadata cannot express. `PyExifTool` is licensed `GPLv3+ or BSD` at the
+recipient's option and declares both as classifiers; joining them would render
+`BSD License; GNU General Public License v3 or later (GPLv3+)`, which reads as a
+conflict rather than a choice. mkmapdiary elects **BSD**, and the table records
+that election with a comment stating the reason. Entries are only added for
+genuine dual licenses, never to paper over an unclear one.
 
 `resolved_packages` shells out to `pip install --dry-run --report -` and parses
 the JSON report. PyPI serves PEP 658 metadata files, so pip fetches each wheel's
@@ -203,12 +212,6 @@ No test performs network access.
 
 ## Follow-ups
 
-These are real and unresolved; each needs an owner rather than a mention.
-
-- **Verify PyExifTool's license.** Version 0.5.6 declares both `BSD License`
-  and `GPLv3+` in its classifiers. If the wrapper is genuinely GPLv3, it is the
-  same class of problem as tkcalendar and is *not* addressed by this spec. The
-  exiftool binary itself is invoked as a subprocess, which is unaffected.
 - **Photographer credits**, per the non-goals above.
 
 ## Appendix: audit findings
@@ -223,6 +226,16 @@ From `importlib.metadata` over the development environment, 135 distributions.
   restrictions. mkmapdiary does not ship tkcalendar, but declaring it a required
   dependency of an extra means `pipx install mkmapdiary[all]` assembles the
   combination by design, which weakens a mere-aggregation argument.
+
+**Verified during design, resolved**
+
+- `PyExifTool` 0.5.6 declares both `BSD License` and `GPLv3+` classifiers, which
+  initially looked like a second GPL problem. Its `LICENSE` file resolves it:
+  the package may be used "under the terms of the GNU General Public License
+  … version 3 … or the BSD licence", and the wheel ships both `COPYING.BSD` and
+  `COPYING.GPL`. This is a dual license, not a conflict. mkmapdiary elects BSD,
+  recorded in the election table described in section 1. The exiftool binary
+  itself is invoked as a subprocess and is unaffected either way.
 
 **Noted, no action**
 
