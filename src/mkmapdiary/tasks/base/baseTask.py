@@ -168,7 +168,7 @@ class BaseTask(ABC, metaclass=ABCMeta):
         format_args: dict[str, Any],
         message_params: dict[str, Any] | None = None,
         schema: type[_T] | None = None,
-    ) -> str | _T:
+    ) -> str | _T | None:
         translation_key = self.config["llm_prompts"][key]["translation_key"]
         format_schema = (
             TypeAdapter(schema).json_schema() if schema is not None else None
@@ -183,6 +183,13 @@ class BaseTask(ABC, metaclass=ABCMeta):
 
         if schema is None:
             return response
+
+        if not response:
+            # `__ai` returns "" when features.llms is disabled, and a model can
+            # return nothing even when it is not. The schema-less branch above
+            # hands that back as "", so mirror it here rather than letting
+            # json.loads choke on an empty document.
+            return None
 
         return TypeAdapter(schema).validate_python(json.loads(response))
 

@@ -7,7 +7,7 @@ from mkmapdiary.tasks.base.baseTask import BaseTask
 
 class DummyTask(BaseTask):
     def __init__(self) -> None:
-        self._config = {
+        self._config: dict[str, Any] = {
             "llm_prompts": {
                 "summarize_journal_entry": {
                     "translation_key": "journal_prompt",
@@ -76,6 +76,27 @@ def test_ai_returns_dataclass_for_schema() -> None:
     assert metadata.identifier == "id"
     assert metadata.title == "Title"
     assert metadata.subject == ["tag1"]
+
+
+def test_ai_returns_none_for_schema_when_llms_disabled() -> None:
+    """`__ai` yields "" with LLMs off, which json.loads cannot parse.
+
+    Reached by any build with features.llms disabled — example/config.yaml
+    does exactly that — via JournalSummarizer.
+    """
+    task = DummyTask()
+    task._config["features"]["llms"]["enabled"] = False
+
+    result = task.ai("summarize_journal_entry", {"text": "Hello"}, schema=AssetMetadata)
+
+    assert result is None
+
+
+def test_ai_returns_empty_string_without_schema_when_llms_disabled() -> None:
+    task = DummyTask()
+    task._config["features"]["llms"]["enabled"] = False
+
+    assert task.ai("generate_tags", {"text": "Hello"}) == ""
 
 
 def test_ai_returns_string_without_schema() -> None:
