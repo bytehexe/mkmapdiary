@@ -3,6 +3,7 @@ import datetime
 import logging
 from abc import ABC, abstractmethod
 from pathlib import PosixPath
+from typing import Any
 
 import exiftool
 import whenever
@@ -18,6 +19,23 @@ class ExifData:
     latitude: float | None = None
     longitude: float | None = None
     orientation: int | None = None
+    artist: str | None = None
+
+
+ARTIST_TAGS = ("EXIF:Artist", "IPTC:By-line", "XMP:Creator")
+
+
+def artist_from_exif(exif: dict[str, Any]) -> str | None:
+    """The first non-blank authorship tag, or None.
+
+    A camera that was never configured writes an empty Artist field, so a
+    blank value must not shadow a populated tag further down the list.
+    """
+    for tag in ARTIST_TAGS:
+        value = exif.get(tag)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return None
 
 
 class ExifReader(ABC):
@@ -50,6 +68,8 @@ class ExifReader(ABC):
             exif_data.create_date = self.extract_meta_datetime(source, calibration)
             logger.debug(f"Failed to read EXIF data from {source} (no data)")
             return exif_data
+
+        exif_data.artist = artist_from_exif(exif_data_dict)
 
         date_formats = [
             # strptime format, exif tag, is UTC
