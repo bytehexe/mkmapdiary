@@ -22,7 +22,9 @@ def auto_detect_locale() -> str | None:
         value = os.environ.get(var)
         if not value:
             continue
-        if value in ("C", "POSIX"):
+        # The encoding suffix carries no language information, so "C.UTF-8"
+        # is as language-less as a bare "C".
+        if value.split(".")[0] in ("C", "POSIX"):
             return None
         return value
     return None
