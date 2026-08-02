@@ -72,3 +72,9 @@ def test_links_to_the_docs_for_the_toolchain() -> None:
     output = _render()
 
     assert "https://bytehexe.github.io/mkmapdiary/reference/credits.html" in output
+
+
+def test_renders_missing_license_as_not_declared() -> None:
+    output = _render(libraries=[Package("cuda-toolkit", "12.0", None, None)])
+
+    assert "| cuda-toolkit | 12.0 | not declared |" in output

@@ -48,6 +48,10 @@ def credits_libraries(
         else:
             logger.warning(f"Not installed, omitted from credits: {name}")
 
+    for library in libraries:
+        if library.license is None:
+            logger.warning(f"No declared license for {library.name}")
+
     libraries.sort(key=lambda package: package.name.lower())
     return libraries
 

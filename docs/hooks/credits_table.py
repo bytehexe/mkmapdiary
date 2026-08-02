@@ -4,9 +4,12 @@ Imports mkmapdiary.lib.credits from the source tree, so the documentation
 build never installs mkmapdiary or its dependencies.
 """
 
+import logging
 from typing import Any
 
 from mkmapdiary.lib.credits import Package, resolved_packages
+
+logger = logging.getLogger(__name__)
 
 MARKER = "<!-- CREDITS_TABLE -->"
 
@@ -19,7 +22,10 @@ def render_table(packages: list[Package]) -> str:
             name = f"[{package.name}]({package.url})"
         else:
             name = package.name
-        rows.append(f"| {name} | {package.version or ''} | {package.license or ''} |")
+        if package.license is None:
+            logger.warning(f"No declared license for {package.name}")
+        license_cell = package.license or "not declared"
+        rows.append(f"| {name} | {package.version or ''} | {license_cell} |")
     return "\n".join(rows)
 
 

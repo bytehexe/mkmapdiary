@@ -1,4 +1,5 @@
 import ast
+import logging
 import sys
 from pathlib import Path
 from typing import Any
@@ -40,6 +41,21 @@ def test_render_table_handles_missing_fields() -> None:
     table = module.render_table([Package("mystery")])
 
     assert "mystery" in table
+
+
+def test_render_table_marks_missing_license_as_not_declared(
+    caplog: Any,
+) -> None:
+    module = _load_hook()
+
+    with caplog.at_level(logging.WARNING):
+        table = module.render_table([Package("cuda-toolkit", "12.0", None)])
+
+    assert "| cuda-toolkit | 12.0 | not declared |" in table
+    assert any(
+        record.levelno == logging.WARNING and "cuda-toolkit" in record.getMessage()
+        for record in caplog.records
+    )
 
 
 def test_credits_module_imports_only_stdlib() -> None:

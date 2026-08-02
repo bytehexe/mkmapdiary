@@ -18,7 +18,7 @@
 | Name | Version | License |
 | --- | --- | --- |
 {% for library in libraries -%}
-| {% if library.url %}[{{ library.name }}]({{ library.url }}){% else %}{{ library.name }}{% endif %} | {{ library.version or "" }} | {{ library.license or "" }} |
+| {% if library.url %}[{{ library.name }}]({{ library.url }}){% else %}{{ library.name }}{% endif %} | {{ library.version or "" }} | {{ library.license or "not declared" }} |
 {% endfor %}
 {% endif %}
 {{ strings.credits_toolchain }} [{{ docs_url }}]({{ docs_url }})

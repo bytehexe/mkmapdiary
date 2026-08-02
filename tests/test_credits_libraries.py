@@ -74,3 +74,18 @@ def test_empty_site_config_yields_only_bundled_packages() -> None:
     libraries = credits_libraries({}, installed, ("mkdocs-material",))
 
     assert [library.name for library in libraries] == ["mkdocs-material"]
+
+
+def test_missing_license_warns_with_the_package_name(caplog: Any) -> None:
+    installed = {
+        "mkdocs-material": Package("mkdocs-material", "9.5.0", None, None),
+    }
+
+    with caplog.at_level(logging.WARNING):
+        libraries = credits_libraries({}, installed, ("mkdocs-material",))
+
+    assert libraries[0].license is None
+    assert any(
+        record.levelno == logging.WARNING and "mkdocs-material" in record.getMessage()
+        for record in caplog.records
+    )
