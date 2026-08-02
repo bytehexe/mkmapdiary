@@ -32,6 +32,14 @@ from .tasks import (
 
 logger = logging.getLogger(__name__)
 
+# GPXTask must precede SiteTask and GalleryTask in this list. Both declare
+# abstract properties (SiteTask.track_creators, GalleryTask.track_statistics)
+# that only GPXTask implements; TaskList's MRO resolves the first-listed
+# class's definition of a name, abstract or not, so if either came before
+# GPXTask the abstract declaration would win and TaskList would raise
+# `TypeError: Can't instantiate abstract class TaskList` at construction time.
+# Do not alphabetize or otherwise reorder this list without checking for
+# abstract properties like these first.
 tasks = [
     ImageTask,
     RawInputTask,
