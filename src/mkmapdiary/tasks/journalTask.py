@@ -66,6 +66,7 @@ class JournalTask(BaseTask):
                         longitude=asset_data.longitude,
                         location=location,
                         location_admin=location_admin,
+                        creator=asset_data.creator,
                         id=asset_data.id,
                     )
                     assets.append(item)
@@ -75,6 +76,7 @@ class JournalTask(BaseTask):
                     self.template(
                         "day_journal.j2",
                         assets=assets,
+                        show_creators=self.show_creators,
                     ),
                 )
 

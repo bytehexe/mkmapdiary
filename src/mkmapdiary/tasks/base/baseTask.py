@@ -71,6 +71,15 @@ class BaseTask(ABC, metaclass=ABCMeta):
         """Property to access the database."""
 
     @property
+    def show_creators(self) -> bool:
+        """Whether to render a creator on each asset's metadata line.
+
+        Suppressed unless the journal holds more than one distinct creator
+        value; one name repeated on every photo carries no information.
+        """
+        return len(self.db.distinct_creators()) >= 2
+
+    @property
     @abstractmethod
     def dirs(self) -> Dirs:
         """Property to access the directory structure."""

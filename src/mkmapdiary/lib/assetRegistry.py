@@ -91,6 +91,15 @@ class AssetRegistry:
             )
             return sorted_assets
 
+    def distinct_creators(self) -> set[str | None]:
+        """Every distinct creator value, with None kept as a value.
+
+        None is significant: a journal mixing named and unattributed assets
+        has two distinct values and so does show creators per asset.
+        """
+        with self.lock:
+            return {asset.creator for asset in self.__assets}
+
     def get_all_dates(
         self, ignore_dates: list[datetime.date] | None = None
     ) -> list[whenever.Date]:

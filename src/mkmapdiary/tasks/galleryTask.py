@@ -113,6 +113,7 @@ class GalleryTask(BaseTask):
                         gpx_data=gpx_data,
                         gpx_file=str(gpx[0].path).split("/")[-1] if gpx else None,
                         track_statistics=track_statistics,
+                        show_creators=self.show_creators,
                     ),
                 )
 

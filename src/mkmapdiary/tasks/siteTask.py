@@ -260,6 +260,7 @@ class SiteTask(HttpRequest):
                         gallery_rows=page_info.gallery_rows,
                         gpx_data=gpx_data,
                         track_statistics=track_statistics,
+                        show_creators=self.show_creators,
                     ),
                 )
 

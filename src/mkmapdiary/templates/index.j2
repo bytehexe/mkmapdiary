@@ -12,6 +12,7 @@
 {%- if item.timezone %} · <i class="iconoir iconoir-time-zone"></i> {{ item.timezone }}{% endif %}
 {%- if item.location %} · <i class="iconoir iconoir-map-pin"></i> {{ item.location }}{% endif %}
 {%- if item.location_admin %} · <i class="iconoir iconoir-map"></i> {{ item.location_admin }}{% endif %}
+{%- if show_creators and item.creator %} · <i class="iconoir iconoir-user"></i> {{ item.creator }}{% endif %}
 </div>
 {%- endfor -%}
 </div>
