@@ -2,6 +2,10 @@ site_name: mkmapdiary
 
 exclude_docs: |
   /superpowers/
+  /hooks/
+
+hooks:
+  - docs/hooks/credits_table.py
 
 theme:
   name: material

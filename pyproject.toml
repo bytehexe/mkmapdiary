@@ -190,7 +190,7 @@ config-path = "none"
 
 [tool.hatch.envs.mkdocs.scripts]
 
-serve = "PYTHONPATH=docs/ mkdocs serve --livereload"
+serve = "PYTHONPATH=src:docs/ mkdocs serve --livereload"
 
 [tool.mypy]
 disable_error_code = ["import-not-found", "import-untyped"]

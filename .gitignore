@@ -6,6 +6,9 @@ __pycache__/
 dist/
 __about__.py
 
+# mkdocs build output
+/site/
+
 # Doit
 /.doit.db
 
