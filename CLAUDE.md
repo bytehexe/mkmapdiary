@@ -87,6 +87,38 @@ mutually order-independent) and `MultiAssetPostprocessor`s (one task, sequential
 order, see all assets). LLM work must be multi-asset — inference is not thread-safe here.
 Enabling/disabling a postprocessor is done by editing those two lists.
 
+### Adding anything that generates output — use the existing doit structures
+
+Never write a bespoke generation step, a helper that writes files at import time, or a
+side effect buried in another task. Everything that produces output is a **doit task**:
+add a `task_*` method to the relevant mixin in `tasks/` (or a new mixin registered in
+`taskList.py`'s `tasks` list). The pitfalls below have each cost a fix commit already —
+they are not theoretical.
+
+- **`task_dep` does not cause rebuilds.** doit's docs are explicit: "Task dependencies
+  (`task_dep`) are not used to determine if a task is up-to-date." It orders execution
+  and nothing more. A task whose output must be regenerated when an input changes needs
+  `file_dep` (or `calc_dep`/`uptodate`) as well.
+- **A new page must be added to `task_build_site` in two places.** That task has an
+  explicit `_generate_file_deps()` generator *and* a `task_dep` list. The file dependency
+  makes mkdocs rebuild when the page changes; the task dependency stops mkdocs running
+  before the page exists. Adding only one produces an intermittent failure that a single
+  clean build will not reveal. See `b83bd57`, which retrofitted the file dependencies.
+- **`uptodate=[False]` for anything whose inputs are not files.** Content driven by
+  `config` — strings, feature flags, `credits.travellers` — has no file to hang a
+  dependency on, so doit would consider the task up to date and skip it, silently
+  shipping a stale page. `6d63f24` flipped four tasks from `uptodate=[True]` to `[False]`
+  for exactly this. Most page-building tasks here already use it; follow them.
+- **`@create_after` takes exactly one task**, so when work must wait for *several*
+  upstream tasks, the codebase inserts a **barrier task** that depends on all of them and
+  has downstream tasks `create_after` the barrier. That is the entire purpose of
+  `pre_gpx`, `end_gpx` and `end_postprocessing` — `6d63f24` added `end_gpx` and repointed
+  four decorators from `geo_correlation` onto it. Depend on the barrier, not on whatever
+  individual task happens to run last today.
+- **Update `docs/reference/task-dependencies.md`** (and its `.puml`) when you add or
+  rewire a task. The graph is documented by hand and drifts otherwise; the history has
+  several commits doing nothing but catching it up.
+
 ### Cross-cutting concerns
 
 - **Config** is layered in `commands/build.py`: `resources/defaults.yaml` →
