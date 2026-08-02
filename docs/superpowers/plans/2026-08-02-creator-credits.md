@@ -1189,7 +1189,24 @@ git add src/mkmapdiary/templates/index.j2
 git commit -m "fix: remove a stray closing div from the start page"
 ```
 
-#### 8b — Gap below the highlights (hypothesis)
+#### 8b — Gap below the highlights — RESOLVED BY 8a, NO SEPARATE FIX
+
+**Outcome: fixed by 8a; the hypothesis below was never confirmed and is
+almost certainly wrong.** Janna verified the gap was gone after the stray
+`</div>` was removed. That fits: the unbalanced tag closed an ancestor
+element early, so the floated highlights were no longer contained by the
+wrapper meant to hold them, and `.clear` could not clear them against it.
+
+A div-balance check across all nine templates afterwards shows every one
+balanced, so no sibling defect remains. **Do not implement the justifiedGallery
+fix described below.** It is retained only as a record of a hypothesis that
+the evidence did not support — a reminder that "the gap is exactly one image
+row" pointed at float containment, not at the layout plugin.
+
+---
+
+<details>
+<summary>Original (unconfirmed, superseded) hypothesis</summary>
 
 A gap roughly one image-row tall sits between the highlights strip and the
 map, on the start page and on day pages.
@@ -1229,6 +1246,8 @@ widths.
 git add src/mkmapdiary/resources/gallery.js
 git commit -m "fix: stop the highlights reserving space for a hidden row"
 ```
+
+</details>
 
 #### 8c — Wrapped captions clip (hypothesis)
 
