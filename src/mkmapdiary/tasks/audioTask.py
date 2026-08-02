@@ -40,6 +40,7 @@ class AudioTask(BaseTask):
             type="audio",
             timestamp_utc=timestamp,
             effects=calibration.effects.copy(),
+            creator=calibration.creator,
         )
 
         transcript_asset = AssetRecord(
@@ -47,6 +48,7 @@ class AudioTask(BaseTask):
             type="transcript",
             timestamp_utc=timestamp,
             effects=calibration.effects.copy(),
+            creator=calibration.creator,
         )
 
         yield asset

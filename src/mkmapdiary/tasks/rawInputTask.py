@@ -47,6 +47,7 @@ class RawInputTask(MultiFormat, ExifReader):
             asset.longitude = exif.longitude
         # Effects are already set by handle_image, but ensure they're preserved
         asset.effects = calibration.effects.copy()
+        asset.creator = calibration.creator or exif.artist
         yield asset
 
     def task_convert_raw(self) -> Iterator[dict[str, Any]]:

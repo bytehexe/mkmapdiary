@@ -32,6 +32,7 @@ class ImageTask(BaseTask, ExifReader):
             longitude=exif_data.longitude,
             orientation=exif_data.orientation,
             effects=calibration.effects.copy(),
+            creator=calibration.creator or exif_data.artist,
         )
 
         yield asset

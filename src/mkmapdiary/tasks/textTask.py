@@ -24,6 +24,7 @@ class TextTask(BaseTask):
             type="markdown",
             timestamp_utc=self.extract_meta_datetime(source, calibration),
             effects=calibration.effects.copy(),
+            creator=calibration.creator,
         )
 
     def __generate_destination_filename(self, source: PosixPath) -> PosixPath:
