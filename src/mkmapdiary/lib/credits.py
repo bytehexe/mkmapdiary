@@ -290,11 +290,19 @@ def packages_from_report(report: Mapping[str, Any]) -> list[Package]:
     return sorted(packages, key=lambda package: package.name.lower())
 
 
-def resolved_packages(spec: str = "mkmapdiary[all]") -> list[Package]:
+def resolved_packages(spec: str = ".[all]") -> list[Package]:
     """Resolve ``spec`` from the package index without installing it.
 
     PyPI serves PEP 658 metadata files, so pip fetches each wheel's METADATA
     rather than the wheel itself; resolving the torch stack costs kilobytes.
+
+    The default spec resolves the local checkout (``.``) rather than the
+    published ``mkmapdiary`` name deliberately: the documentation build
+    always runs from a repository checkout, so this documents the dependency
+    set of the commit actually being built rather than the last release.
+    It also means resolution works before any release has been published --
+    a real constraint today, since PyPI currently has no stable mkmapdiary
+    release.
 
     Raises CalledProcessError when resolution fails, so a documentation build
     goes red rather than silently publishing an incomplete credits page.
