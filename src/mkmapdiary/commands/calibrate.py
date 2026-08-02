@@ -272,6 +272,34 @@ def effects(
         logger.info(f"Current effects: {current_effects}")
 
 
+@click.command()
+@click.option("-o", "--output", type=click.Path(path_type=Path), required=True)
+@click.option(
+    "--unset",
+    is_flag=True,
+    help="Clear the creator for this directory instead of setting one. "
+    "Writes an explicit null, which overrides an inherited creator; "
+    "omitting the key entirely would inherit it instead.",
+)
+@click.option(
+    "-n", "--dry-run", is_flag=True, help="Perform a dry run without writing output."
+)
+@click.argument("name", type=str, required=False)
+def creator(output: Path, unset: bool, dry_run: bool, name: str | None) -> None:
+    """Set the creator of the media in a directory."""
+
+    if unset and name is not None:
+        raise click.UsageError("Give either a name or --unset, not both.")
+    if not unset and name is None:
+        raise click.UsageError("Give a name, or --unset to clear the creator.")
+
+    if output.is_dir():
+        output = output / "calibration.yaml"
+
+    write_calibration_data({"creator": None if unset else name}, output, dry_run)
+
+
 calibrate.add_command(file)
 calibrate.add_command(manual)
 calibrate.add_command(effects)
+calibrate.add_command(creator)
