@@ -20,4 +20,5 @@ This section contains technical reference documentation for mkmapdiary's interna
 - **[Task Dependencies](task-dependencies.md)** - Flowchart showing how build tasks depend on each other
 - **[Development Commands](development/dev-commands.md)** - Commands for development and testing
 - **[Commit Prefixes](development/commit-prefixes.md)** - Git commit message conventions
+- **[System Dependencies](dependencies.md)** - External binaries mkmapdiary invokes as subprocesses
 - **[Credits](credits.md)** - License and the open source packages mkmapdiary builds on

@@ -86,3 +86,37 @@ def test_resolved_packages_allow_prerelease_adds_pre_flag(
     resolved_packages("mkmapdiary[all]", allow_prerelease=True)
 
     assert "--pre" in captured["command"]
+
+
+def test_resolved_packages_passes_default_timeout_to_subprocess_run(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    def fake_run(command: list[str], **kwargs: Any) -> SimpleNamespace:
+        captured["command"] = command
+        captured["kwargs"] = kwargs
+        return SimpleNamespace(stdout='{"install": []}')
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    resolved_packages()
+
+    assert captured["kwargs"]["timeout"] == 300.0
+
+
+def test_resolved_packages_passes_explicit_timeout_to_subprocess_run(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    def fake_run(command: list[str], **kwargs: Any) -> SimpleNamespace:
+        captured["command"] = command
+        captured["kwargs"] = kwargs
+        return SimpleNamespace(stdout='{"install": []}')
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    resolved_packages(timeout=5.0)
+
+    assert captured["kwargs"]["timeout"] == 5.0

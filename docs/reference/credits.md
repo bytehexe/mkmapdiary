@@ -22,7 +22,8 @@ Attribution here is a courtesy rather than an obligation: the attribution clause
 the MIT, BSD and Apache licenses attach to redistribution, and mkmapdiary does not
 redistribute these packages — pip fetches each one from PyPI.
 
-External programs mkmapdiary invokes as subprocesses — exiftool, ffmpeg, gpsbabel,
-plantuml — are deliberately not listed below: they are executed, not redistributed.
+External programs mkmapdiary invokes as subprocesses are deliberately not listed
+below: they are executed, not redistributed. See [System Dependencies](dependencies.md)
+for that list.
 
 <!-- CREDITS_TABLE -->
