@@ -190,7 +190,8 @@ The GPLv3 conflict. Exposure is one import and one call site.
 - Remove the import at `ui.py:22`.
 - Replace `DateEntry` at `ui.py:974` with a `ttk.Entry` carrying ISO-date
   validation. The calendar popup is the only functionality lost.
-- `babel` was pulled in solely as tkcalendar's dependency and leaves with it.
+- `babel` was tkcalendar's dependency, but it remains in the tree via
+  mkdocs-material, so nothing is pruned by this removal.
 
 The `[tool.hatch.envs.licenses]` environment and its `pip-licenses` dependency
 become unused and are removed. It inherits `features = ["all"]`, so invoking it

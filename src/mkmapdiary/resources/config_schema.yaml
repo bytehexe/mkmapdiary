@@ -233,6 +233,17 @@ properties:
       description: "Date in yyyy-mm-dd format (YAML auto-parses to datetime.date)"
     default: []
 
+  credits:
+    type: object
+    description: "Credits shown on the generated site"
+    properties:
+      travellers:
+        type: array
+        description: "Names of the people who travelled"
+        items:
+          type: string
+    additionalProperties: false
+
   strings:
     type: object
     description: "Custom translation strings"
@@ -306,6 +317,16 @@ properties:
       track_time_moving:
         $ref: "#/definitions/customString"
       track_total_time:
+        $ref: "#/definitions/customString"
+      credits_title:
+        $ref: "#/definitions/customString"
+      credits_travellers:
+        $ref: "#/definitions/customString"
+      credits_made_with:
+        $ref: "#/definitions/customString"
+      credits_software:
+        $ref: "#/definitions/customString"
+      credits_toolchain:
         $ref: "#/definitions/customString"
     additionalProperties: false
 

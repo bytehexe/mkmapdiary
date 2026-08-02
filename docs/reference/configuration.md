@@ -15,6 +15,7 @@ mkmapdiary uses YAML configuration files to customize its behavior. Configuratio
 features:              # Feature configuration
 site:                  # Site generation settings  
 strings:               # Custom translation strings
+credits:               # Credits page configuration
 llm_prompts:           # LLM prompt templates
 ```
 
@@ -123,6 +124,18 @@ llm_prompts:
     options:
       temperature: 0.8
       top_p: 0.8
+```
+
+### Credits Section
+
+Names shown on the generated credits page, alongside the dependency and
+frontend-library credits computed automatically at build time.
+
+```yaml
+credits:
+  travellers:                              # Names shown on the credits page
+    - Janna Hopp
+    - Alex
 ```
 
 ## Special Tags

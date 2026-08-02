@@ -86,7 +86,6 @@ ui = [
     "click",
     "sv-ttk",
     "darkdetect",
-    "tkcalendar",
 ]
 
 all = [
@@ -100,7 +99,6 @@ all = [
     "click",
     "sv-ttk",
     "darkdetect",
-    "tkcalendar",
 ]
 
 [project.scripts]
@@ -153,10 +151,8 @@ features = ["all"]
 [tool.hatch.envs.min]
 features = []
 
-[tool.hatch.envs.licenses]
-extra-dependencies = [
-  "pip-licenses",
-]
+[tool.hatch.envs.hatch-test]
+features = ["ui"]
 
 [tool.hatch.envs.types]
 extra-dependencies = [
@@ -165,7 +161,7 @@ extra-dependencies = [
 features = ["ui"]
 
 [tool.hatch.envs.types.scripts]
-check = "mypy --install-types --non-interactive {args:src/mkmapdiary tests}"
+check = "mypy --install-types --non-interactive {args:src/mkmapdiary tests docs/hooks}"
 
 [tool.hatch.envs.mkdocs]
 skip-install = true
@@ -175,16 +171,26 @@ dependencies = [
     "plantuml-markdown",
 ]
 
+# Pinned to match [tool.hatch.envs.hatch-static-analysis] below so that
+# `hatch fmt` and `hatch run ruff:ruff` always agree on the ruff version.
 [tool.hatch.envs.ruff]
 skip-install = true
 detached = true
 extra-dependencies = [
-  "ruff",
+  "ruff==0.14.10",
 ]
+
+# hatch 1.14.2 pins its internal static-analysis env to ruff==0.4.5 by default,
+# which drifts from the project's own ruff env above. Pin it to the same
+# version so `hatch fmt` and `hatch run ruff:ruff` behave identically, and
+# disable hatch's bundled rule set so only [tool.ruff] below applies.
+[tool.hatch.envs.hatch-static-analysis]
+dependencies = ["ruff==0.14.10"]
+config-path = "none"
 
 [tool.hatch.envs.mkdocs.scripts]
 
-serve = "PYTHONPATH=docs/ mkdocs serve --livereload"
+serve = "PYTHONPATH=src:docs/ mkdocs serve --livereload"
 
 [tool.mypy]
 disable_error_code = ["import-not-found", "import-untyped"]

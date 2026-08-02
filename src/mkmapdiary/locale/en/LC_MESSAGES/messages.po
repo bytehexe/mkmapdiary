@@ -79,6 +79,9 @@ msgstr ""
 msgid "download_gpx"
 msgstr "Download GPX"
 
+msgid "zoom_to_fit"
+msgstr "Zoom to fit"
+
 msgid "legend_track"
 msgstr "Track"
 
@@ -425,3 +428,18 @@ msgstr "Timezone"
 
 msgid "ui.inspect_button"
 msgstr "🔍 Inspect"
+
+msgid "credits_title"
+msgstr "Credits"
+
+msgid "credits_travellers"
+msgstr "Travellers"
+
+msgid "credits_made_with"
+msgstr "Made with"
+
+msgid "credits_software"
+msgstr "Open source software"
+
+msgid "credits_toolchain"
+msgstr "Built using more open source software than is listed here; the full list is in the mkmapdiary documentation."

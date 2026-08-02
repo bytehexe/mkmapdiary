@@ -155,7 +155,7 @@ This mirrors the existing validation block at lines 650-659.
 
 - [ ] **Step 6: Remove tkcalendar from the extras**
 
-In `pyproject.toml`, delete the `"tkcalendar",` line from both the `ui` extra (line 89) and the `all` extra (line 103). `babel` was pulled in only by tkcalendar and leaves with it — a grep confirms the only `babel` matches in the source tree are `gpsbabel`.
+In `pyproject.toml`, delete the `"tkcalendar",` line from both the `ui` extra (line 89) and the `all` extra (line 103). `babel` was tkcalendar's dependency, but it remains in the tree via mkdocs-material, so nothing is pruned by this removal.
 
 - [ ] **Step 7: Remove the now-unused licenses environment**
 
@@ -1490,25 +1490,34 @@ def test_render_table_handles_missing_fields() -> None:
     assert "mystery" in table
 
 
-def test_credits_module_imports_with_only_src_on_the_path() -> None:
-    """The docs build imports credits.py without installing mkmapdiary."""
-    result = subprocess.run(
-        [
-            sys.executable,
-            "-c",
-            "import mkmapdiary.lib.credits as c; print(c.Package('x').name)",
-        ],
-        cwd=ROOT,
-        env={"PYTHONPATH": "src", "PATH": ""},
-        capture_output=True,
-        text=True,
-    )
+def test_credits_module_imports_only_stdlib() -> None:
+    """The docs build imports credits.py without mkmapdiary's dependencies.
 
-    assert result.returncode == 0, result.stderr
-    assert result.stdout.strip() == "x"
+    Checked statically rather than by importing in a dependency-free
+    environment: a static check cannot be accidentally satisfied by an
+    environment that happens to have the package installed, and it needs no
+    subprocess, no PYTHONPATH and no second env.
+    """
+    source = (ROOT / "src" / "mkmapdiary" / "lib" / "credits.py").read_text()
+
+    imported: set[str] = set()
+    for node in ast.walk(ast.parse(source)):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                imported.add(alias.name.split(".")[0])
+        elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+            imported.add(node.module.split(".")[0])
+
+    third_party = sorted(imported - sys.stdlib_module_names)
+
+    assert not third_party, (
+        f"credits.py must import only the standard library; found: {third_party}"
+    )
 ```
 
-The third test is the guard for the stdlib-only constraint: it runs with an environment containing nothing but `PYTHONPATH=src`, so any third-party import fails it.
+The third test is the guard for the stdlib-only constraint. `sys.stdlib_module_names`
+exists from Python 3.10, which is this project's floor. Note the test file needs
+`import ast` and `import sys` rather than `subprocess`.
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
@@ -1719,7 +1728,9 @@ git commit -m "docs: document the credits config and module constraints"
 
 **Ordering.** Task 1 is independent and resolves the license conflict, so do it first. Tasks 2-4 build the module bottom-up. Task 5 must precede Task 6, which reads the config it adds. Task 7 depends only on Tasks 2 and 4.
 
-**The stdlib-only rule is load-bearing.** If `credits.py` grows a third-party import, `test_credits_module_imports_with_only_src_on_the_path` fails and the docs build breaks in CI. Reach for `email.message.Message` and `re` rather than `packaging`.
+**The stdlib-only rule is load-bearing.** If `credits.py` grows a third-party import, `test_credits_module_imports_only_stdlib` fails and the docs build breaks in CI. Reach for `email.message.Message` and `re` rather than `packaging`.
+
+**Never set `PYTHONPATH` and never call bare `python3`.** Hatch installs the project into `default`, `min`, `types` and `hatch-test` in dev mode, so imports work already. The `mkdocs` and `ruff` envs are `detached` and deliberately do not have the project — the docs build's `PYTHONPATH=src:docs` in Task 7 is the one legitimate exception, because that env is intentionally project-free.
 
 **Environment markers are ignored on purpose.** `_requirement_names` strips everything after `;`. A dependency behind an uninstalled extra fails the `distribution()` lookup and is skipped, which is what makes the journal page credit exactly what is installed.
 

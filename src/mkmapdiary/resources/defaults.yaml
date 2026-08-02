@@ -85,6 +85,10 @@ debug:
 
 ignore_dates: []
 
+credits:
+  # Names of the people who travelled; shown on the generated credits page
+  travellers: []
+
 strings:
   # Override translation strings here by providing custom values
   journal_title: null
@@ -122,6 +126,11 @@ strings:
   track_elevation_loss: null
   track_time_moving: null
   track_total_time: null
+  credits_title: null
+  credits_travellers: null
+  credits_made_with: null
+  credits_software: null
+  credits_toolchain: null
 
 llm_prompts:
   # LLM prompt templates

@@ -4,18 +4,28 @@ import tzlocal
 def auto_detect_locale() -> str | None:
     """Auto-detect the system locale.
 
-    Returns:
-        The detected locale string (e.g., 'en_US.UTF-8') or None if detection fails.
-    """
-    import locale
+    Reads the standard POSIX locale environment variables in precedence
+    order (``LC_ALL``, ``LC_CTYPE``, ``LANG``) without mutating any
+    process-global locale state. This intentionally avoids
+    ``locale.getdefaultlocale()`` (deprecated, slated for removal in
+    Python 3.15) and the ``setlocale()``/``getlocale()`` pair, since the
+    latter would require calling ``setlocale()`` to have any locale to
+    report, and this function must stay side-effect-free.
 
-    try:
-        loc = locale.getdefaultlocale()
-        if loc[0] is not None:
-            return f"{loc[0]}.{loc[1]}" if loc[1] else loc[0]
-        return None
-    except Exception:
-        return None
+    Returns:
+        The detected locale string (e.g., 'en_US.UTF-8') or None if detection
+        fails or only carries no language information (e.g. 'C', 'POSIX').
+    """
+    import os
+
+    for var in ("LC_ALL", "LC_CTYPE", "LANG"):
+        value = os.environ.get(var)
+        if not value:
+            continue
+        if value in ("C", "POSIX"):
+            return None
+        return value
+    return None
 
 
 def get_language(locale_str: str) -> str:

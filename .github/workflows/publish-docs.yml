@@ -15,11 +15,15 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: 3.x
+          # Pinned, not 3.x: the docs build resolves .[all], which includes
+          # torch and the CUDA stack. torch lags new CPython releases by
+          # months, so floating here risks a tag push failing resolution
+          # for reasons unrelated to mkmapdiary. Bump deliberately.
+          python-version: '3.12'
       - name: Install PlantUML
         run: sudo apt-get update && sudo apt-get install -y plantuml
-      - run: pip install mkdocs mkdocs-material
-      - run: env PYTHONPATH=docs/ mkdocs build
+      - run: pip install mkdocs mkdocs-material plantuml-markdown
+      - run: env PYTHONPATH=src:docs/ mkdocs build
       - name: Upload static files as artifact
         id: upload-pages
         uses: actions/upload-pages-artifact@v3 # or specific "vX.X.X" version tag for this action

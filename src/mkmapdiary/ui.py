@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Tkinter UI for mkmapdiary - A travel journal generator."""
 
+import datetime
 import gettext
 import io
 import locale
@@ -19,7 +20,6 @@ from zoneinfo import available_timezones
 import click
 import darkdetect
 import sv_ttk
-from tkcalendar import DateEntry
 
 from .commands.build import build as build_command
 from .commands.calibrate import file as calibrate_file_command
@@ -101,6 +101,31 @@ def capture_command_output(
         root_logger.removeHandler(log_handler)
         root_logger.setLevel(original_level)
         log_handler.close()
+
+
+def _parse_iso_date(text: str) -> datetime.date:
+    """Parse an ISO date (YYYY-MM-DD), tolerating surrounding whitespace.
+
+    Raises ValueError when malformed.
+    """
+    return datetime.date.fromisoformat(text.strip())
+
+
+class IsoDateEntry(ttk.Entry):
+    """A date entry accepting ISO dates (YYYY-MM-DD).
+
+    Replaces tkcalendar.DateEntry, which is GPLv3 and therefore incompatible
+    with mkmapdiary's PolyForm Noncommercial license. Keeps the get_date()
+    interface so existing callers are unaffected.
+    """
+
+    def __init__(self, master: tk.Misc, **kwargs: Any) -> None:
+        super().__init__(master, **kwargs)
+        self.insert(0, datetime.date.today().isoformat())
+
+    def get_date(self) -> datetime.date:
+        """Return the entered date. Raises ValueError when malformed."""
+        return _parse_iso_date(self.get())
 
 
 class MkmapdiaryUI:
@@ -659,7 +684,19 @@ class MkmapdiaryUI:
             return
 
         # Get date and time from picker widgets
-        ref_date = self.calibrate_ref_date.get_date().strftime("%Y-%m-%d")
+        try:
+            ref_date = self.calibrate_ref_date.get_date().strftime("%Y-%m-%d")
+        except ValueError:
+            self.write_to_output(
+                self.calibrate_output_text,
+                "❌ Error: Please enter the date as YYYY-MM-DD",
+                mode="replace",
+            )
+            self.calibrate_status_label.config(
+                text="❌ Error", foreground=self.colors["error"]
+            )
+            return
+
         hour = int(self.calibrate_ref_hour.get())
         minute = int(self.calibrate_ref_minute.get())
         second = int(self.calibrate_ref_second.get())
@@ -971,13 +1008,9 @@ class MkmapdiaryUI:
         ttk.Label(datetime_frame, text=_("ui.calibrate_date")).pack(
             side="left", padx=(0, 5)
         )
-        self.calibrate_ref_date = DateEntry(
+        self.calibrate_ref_date = IsoDateEntry(
             datetime_frame,
             width=12,
-            background="darkblue",
-            foreground="white",
-            borderwidth=2,
-            date_pattern="yyyy-mm-dd",
         )
         self.calibrate_ref_date.pack(side="left", padx=(0, 15))
 

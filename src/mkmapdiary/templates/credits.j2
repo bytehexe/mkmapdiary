@@ -1,0 +1,24 @@
+# {{ strings.credits_title }}
+
+{% if travellers %}
+## {{ strings.credits_travellers }}
+
+{{ travellers | join(", ") }}
+
+{% endif %}
+{# Photographers belong here once that feature lands. #}
+## {{ strings.credits_made_with }}
+
+[mkmapdiary](https://github.com/bytehexe/mkmapdiary) {{ mkmapdiary_version }} —
+[PolyForm Noncommercial 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0/)
+
+{% if libraries %}
+## {{ strings.credits_software }}
+
+| Name | Version | License |
+| --- | --- | --- |
+{% for library in libraries -%}
+| {% if library.url %}[{{ library.name }}]({{ library.url }}){% else %}{{ library.name }}{% endif %} | {{ library.version or "" }} | {{ library.license or "not declared" }} |
+{% endfor %}
+{% endif %}
+{{ strings.credits_toolchain }} [{{ docs_url }}]({{ docs_url }})

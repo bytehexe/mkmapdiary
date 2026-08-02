@@ -428,3 +428,18 @@ msgstr "Zeitzone"
 
 msgid "ui.inspect_button"
 msgstr "🔍 Inspizieren"
+
+msgid "credits_title"
+msgstr "Danksagungen"
+
+msgid "credits_travellers"
+msgstr "Reisende"
+
+msgid "credits_made_with"
+msgstr "Erstellt mit"
+
+msgid "credits_software"
+msgstr "Open-Source-Software"
+
+msgid "credits_toolchain"
+msgstr "Erstellt mit mehr Open-Source-Software als hier aufgeführt; die vollständige Liste steht in der mkmapdiary-Dokumentation."

@@ -31,6 +31,13 @@ hatch run mkdocs:serve                       # serve the project docs (task serv
 
 Pytest markers: `slow`, `local` (the latter must not run in CI).
 
+Environment notes: `default`, `min`, `types` and `hatch-test` all install the project
+in dev mode, so imports work without any `PYTHONPATH` — never set one and never call
+bare `python3`. `mkdocs` and `ruff` are `detached`, so the project is *not* importable
+there; that is deliberate, and it is what makes the `mkdocs` env a faithful stand-in
+for the docs CI job, which installs only mkdocs, mkdocs-material and
+plantuml-markdown.
+
 Running the generator end to end:
 
 ```bash
@@ -39,6 +46,13 @@ task example                                 # build ./example with persistent b
 hatch run mkmapdiary build <src> [<dist>] -B -a   # -B persistent build dir, -a force rebuild
 hatch run mkmapdiary build <src> --debug-fast     # skip/replace slow features (dev only)
 ```
+
+**Commits in this repo are GPG-signed** — `commit.gpgsign` is `true` in the repo-local
+config (it is *not* set globally). gpg-agent cannot write inside the command sandbox, so a
+sandboxed `git commit` fails to sign. **Always commit with the sandbox disabled**, and this
+applies to subagents too: tell any dispatched agent to commit unsandboxed. Never reach for
+`--no-gpg-sign` to get past it — that silently leaves an unsigned commit in a signed history,
+which then has to be found and amended.
 
 Commits must follow Conventional Commits (enforced by gitlint in the `commit-msg` hook); see
 `docs/reference/development/commit-prefixes.md` for the allowed prefixes. Install the hooks
@@ -74,6 +88,38 @@ mutually order-independent) and `MultiAssetPostprocessor`s (one task, sequential
 order, see all assets). LLM work must be multi-asset — inference is not thread-safe here.
 Enabling/disabling a postprocessor is done by editing those two lists.
 
+### Adding anything that generates output — use the existing doit structures
+
+Never write a bespoke generation step, a helper that writes files at import time, or a
+side effect buried in another task. Everything that produces output is a **doit task**:
+add a `task_*` method to the relevant mixin in `tasks/` (or a new mixin registered in
+`taskList.py`'s `tasks` list). The pitfalls below have each cost a fix commit already —
+they are not theoretical.
+
+- **`task_dep` does not cause rebuilds.** doit's docs are explicit: "Task dependencies
+  (`task_dep`) are not used to determine if a task is up-to-date." It orders execution
+  and nothing more. A task whose output must be regenerated when an input changes needs
+  `file_dep` (or `calc_dep`/`uptodate`) as well.
+- **A new page must be added to `task_build_site` in two places.** That task has an
+  explicit `_generate_file_deps()` generator *and* a `task_dep` list. The file dependency
+  makes mkdocs rebuild when the page changes; the task dependency stops mkdocs running
+  before the page exists. Adding only one produces an intermittent failure that a single
+  clean build will not reveal. See `b83bd57`, which retrofitted the file dependencies.
+- **`uptodate=[False]` for anything whose inputs are not files.** Content driven by
+  `config` — strings, feature flags, `credits.travellers` — has no file to hang a
+  dependency on, so doit would consider the task up to date and skip it, silently
+  shipping a stale page. `6d63f24` flipped four tasks from `uptodate=[True]` to `[False]`
+  for exactly this. Most page-building tasks here already use it; follow them.
+- **`@create_after` takes exactly one task**, so when work must wait for *several*
+  upstream tasks, the codebase inserts a **barrier task** that depends on all of them and
+  has downstream tasks `create_after` the barrier. That is the entire purpose of
+  `pre_gpx`, `end_gpx` and `end_postprocessing` — `6d63f24` added `end_gpx` and repointed
+  four decorators from `geo_correlation` onto it. Depend on the barrier, not on whatever
+  individual task happens to run last today.
+- **Update `docs/reference/task-dependencies.md`** (and its `.puml`) when you add or
+  rewire a task. The graph is documented by hand and drifts otherwise; the history has
+  several commits doing nothing but catching it up.
+
 ### Cross-cutting concerns
 
 - **Config** is layered in `commands/build.py`: `resources/defaults.yaml` →
@@ -106,9 +152,35 @@ Enabling/disabling a postprocessor is done by editing those two lists.
 - **Optional heavy deps** (whisper, torch/piq, onnxruntime) are extras; import them lazily
   inside the feature that needs them and gate on the corresponding `features.*` config,
   as `commands/build.py` and the postprocessors do.
+- **Credits**: `lib/credits.py` computes dependency credits at build time — never
+  from a committed file. It must import **only the standard library**, because
+  `docs/hooks/credits_table.py` imports it with just `src` on `PYTHONPATH` so the
+  docs CI never installs mkmapdiary. `installed_packages()` walks the declared
+  graph locally (offline, used by journals); `resolved_packages()` resolves from
+  the index (used by the docs). CDN library licenses live in `FRONTEND_LICENSES`
+  and a test asserts every URL in `site_config.yaml` has an entry.
 
 ### Entry points
 
 `mkmapdiary` → `__main__.py` click group with `build`, `config`, `generate-demo`,
 `calibrate`, `inspect`. `mkmapdiary-ui` → `ui.py`, a Tkinter front-end that invokes those
 same click commands in-process and captures their output.
+
+## REVISIT ON FIRST STABLE RELEASE
+
+Decisions below were made *because* mkmapdiary has never published a
+non-prerelease version to PyPI. They are stopgaps, not settled design. When the
+first stable release ships, work through this list — grep for
+`REVISIT ON FIRST STABLE RELEASE` to find the code sites.
+
+- **`resolved_packages(allow_prerelease=...)` in `lib/credits.py`.** The switch
+  adds pip's `--pre` so that a *published* spec like `mkmapdiary[all]` can be
+  resolved at all; without a stable release pip refuses to select anything.
+  `--pre` is coarse — it opts every transitive dependency into pre-releases too,
+  which is a real cost. Once a stable release exists, `resolved_packages(
+  "mkmapdiary[all]")` works unflagged and the switch should be reconsidered:
+  either dropped, or kept but documented as a deliberate opt-in rather than a
+  workaround.
+- The default spec stays `".[all]"` regardless. Resolving the local checkout
+  describes the commit being documented rather than the last published release,
+  which is the better behaviour for a credits page independent of release state.
