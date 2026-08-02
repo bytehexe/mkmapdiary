@@ -40,6 +40,13 @@ hatch run mkmapdiary build <src> [<dist>] -B -a   # -B persistent build dir, -a 
 hatch run mkmapdiary build <src> --debug-fast     # skip/replace slow features (dev only)
 ```
 
+**Commits in this repo are GPG-signed** — `commit.gpgsign` is `true` in the repo-local
+config (it is *not* set globally). gpg-agent cannot write inside the command sandbox, so a
+sandboxed `git commit` fails to sign. **Always commit with the sandbox disabled**, and this
+applies to subagents too: tell any dispatched agent to commit unsandboxed. Never reach for
+`--no-gpg-sign` to get past it — that silently leaves an unsigned commit in a signed history,
+which then has to be found and amended.
+
 Commits must follow Conventional Commits (enforced by gitlint in the `commit-msg` hook); see
 `docs/reference/development/commit-prefixes.md` for the allowed prefixes. Install the hooks
 with `pre-commit install` — the pre-commit gate runs yamllint, ruff check, ruff format,
