@@ -20,6 +20,9 @@ monkeytype.sqlite3
 # Caches
 /.*cache
 
+# Agent scratch (implementation ledgers, review packages)
+/.superpowers/
+
 # venv
 venv/
 env/
