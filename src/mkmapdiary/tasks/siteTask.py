@@ -23,6 +23,7 @@ from mkmapdiary.lib.highlights import Highlights
 from mkmapdiary.lib.statistics import Statistics
 
 from ..lib.fmt import location_string, time_string
+from ..util.locale import get_language
 from .base.httpRequest import HttpRequest
 
 logger = logging.getLogger(__name__)
@@ -118,7 +119,7 @@ class SiteTask(HttpRequest):
                 config["docs_dir"] = str(self.dirs.docs_dir.absolute())
                 config["site_dir"] = str(self.dirs.dist_dir.absolute())
 
-            language = self.config["site"]["locale"].split("_")[0]
+            language = get_language(self.config["site"]["locale"])
             config["theme"]["language"] = language
             config["markdown_extensions"][0]["pymdownx.snippets"]["base_path"] = [
                 self.dirs.build_dir,
@@ -224,7 +225,7 @@ class SiteTask(HttpRequest):
             )
 
             gallery_items = []
-            language = self.config["site"]["locale"].split("_")[0]
+            language = get_language(self.config["site"]["locale"])
             for asset in page_info.gallery_assets + page_info.map_assets:
                 dict_asset = dataclasses.asdict(asset)
                 dict_asset["time"], dict_asset["timezone"] = time_string(

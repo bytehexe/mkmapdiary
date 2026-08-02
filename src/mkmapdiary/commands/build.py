@@ -25,6 +25,7 @@ from ..lib.cache import Cache
 from ..lib.config import load_config_file, load_config_param
 from ..lib.dirs import Dirs
 from ..taskList import TaskList
+from ..util.locale import get_language
 from ..util.log import add_file_logging, current_task
 
 logger = logging.getLogger(__name__)
@@ -136,7 +137,7 @@ def main(
     # Load gettext
     localedir = dirs.locale_dir
 
-    language = config_data["site"]["locale"].split("_")[0]
+    language = get_language(config_data["site"]["locale"])
 
     lang = gettext.translation(
         "messages",

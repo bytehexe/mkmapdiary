@@ -9,6 +9,7 @@ import whenever
 from doit import create_after
 
 from ..lib.fmt import location_string, time_string
+from ..util.locale import get_language
 from .base.baseTask import BaseTask
 
 logger = logging.getLogger(__name__)
@@ -46,7 +47,7 @@ class JournalTask(BaseTask):
                         and asset_data.latitude is not None
                         and asset_data.longitude is not None
                     ):
-                        language = self.config["site"]["locale"].split("_")[0]
+                        language = get_language(self.config["site"]["locale"])
                         location_admin = poiidx.get_administrative_hierarchy_string(
                             shapely.geometry.Point(
                                 asset_data.longitude, asset_data.latitude

@@ -17,6 +17,7 @@ from mkmapdiary.lib.calibration import Calibration
 from mkmapdiary.lib.gpxCreator import GpxCreator
 from mkmapdiary.lib.statistics import Statistics
 from mkmapdiary.tasks.base.httpRequest import HttpRequest
+from mkmapdiary.util.locale import get_language
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +88,7 @@ class GPXTask(HttpRequest):
             index_data = self.httpRequest("https://download.geofabrik.de/index-v1.json")
             assert isinstance(index_data, dict), "Invalid index data received"
 
-            language = self.config["site"]["locale"].split("_")[0]
+            language = get_language(self.config["site"]["locale"])
             # Create GpxCreator - it will automatically discover all dates
             gc = GpxCreator(
                 index_data,
