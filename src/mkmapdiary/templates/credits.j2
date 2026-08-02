@@ -12,6 +12,17 @@
 [mkmapdiary](https://github.com/bytehexe/mkmapdiary) {{ mkmapdiary_version }} —
 [PolyForm Noncommercial 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0/)
 
+{% if ai_disclosure %}
+## {{ strings.ai_disclosure_title }}
+
+{{ strings.ai_disclosure_intro }}
+
+| {{ strings.ai_disclosure_content }} | {{ strings.ai_disclosure_model }} |
+| --- | --- |
+{% for entry in ai_disclosure -%}
+| {{ entry.content }} | {{ entry.model }} |
+{% endfor %}
+{% endif %}
 {% if libraries %}
 ## {{ strings.credits_software }}
 

@@ -143,6 +143,29 @@ html
 .audio-section audio
     width: 100%
 
+// Art. 50 AI Act transparency marker (see CLAUDE.md "AI transparency").
+// The EU symbol ships as a ~3.16:1 pill, so it must be constrained by height
+// or it renders at its natural 1789px width.
+// Qualified with .md-typeset img so it outranks the theme's own
+// `.md-typeset img` rules, which a bare .ai-generated-label loses to.
+.md-typeset img.ai-generated-label
+    // Matches the height of the transcript timestamp chips it sits beside.
+    // Stays under the 1.6 typeset line-height, so it does not open up the
+    // lines it appears in.
+    height: 1.45em
+    width: auto
+    vertical-align: middle
+    margin-left: .2em
+    // The marker is a statement about the content, not part of it; keep it
+    // legible but visually subordinate to the text it qualifies.
+    opacity: .75
+
+.md-typeset h1 img.ai-generated-label, .md-typeset h2 img.ai-generated-label, .md-typeset h3 img.ai-generated-label, .md-typeset h4 img.ai-generated-label, .md-typeset h5 img.ai-generated-label, .md-typeset h6 img.ai-generated-label
+    // Headings set their own font size, so em here is already larger; keep the
+    // pill near the body-text size rather than letting it scale with the
+    // heading.
+    height: 1.2em
+
 // Compare to material color scheme:
 // https://github.com/squidfunk/mkdocs-material/blob/master/src/templates/assets/stylesheets/palette/_primary.scss
 // https://app.unpkg.com/material-design-color@2.3.2/files/material-color.scss

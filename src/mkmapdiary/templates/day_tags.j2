@@ -1,4 +1,6 @@
 {% if tags -%}
-**Tags:** {{ tags }}
+{#- The marker leads the list, as it does in transcripts: trailing it orphans
+    onto its own line whenever the tags fill the content column. -#}
+**Tags:** {% include "ai_label.j2" %} {{ tags }}
 
 {% endif %}

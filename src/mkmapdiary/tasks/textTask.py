@@ -41,16 +41,22 @@ class TextTask(BaseTask):
                 content = f_src.read()
                 text = content.strip()
 
-                title = f"{self.config['strings']['text_title']}: "
-                title += self.ai(
+                # Empty when features.llms is disabled; the heading then stays
+                # the plain label and carries no AI marker.
+                generated_title = self.ai(
                     "generate_title",
                     dict(locale=self.config["site"]["locale"], text=text),
                 )
+
+                title = self.config["strings"]["text_title"]
+                if generated_title:
+                    title = f"{title}: {generated_title}"
 
                 markdown = self.template(
                     "md_text.j2",
                     title=title,
                     text=text,
+                    ai_generated=bool(generated_title),
                 )
 
                 f_dst.write(markdown)

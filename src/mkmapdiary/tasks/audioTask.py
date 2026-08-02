@@ -15,6 +15,10 @@ from .base.baseTask import BaseTask
 
 whisper_lock = threading.Lock()
 
+# Named here rather than inline so the credits page can disclose the model that
+# produced the transcripts without duplicating the literal.
+WHISPER_MODEL = "turbo"
+
 logger = logging.getLogger(__name__)
 
 
@@ -86,7 +90,7 @@ class AudioTask(BaseTask):
                 if not hasattr(self, "_model"):
                     # Loading the model seems to leak memory; therefore, we
                     # load it only once and reuse it.
-                    self._model = whisper.load_model("turbo")
+                    self._model = whisper.load_model(WHISPER_MODEL)
                 result = self._model.transcribe(str(src))
         return result
 
@@ -101,8 +105,14 @@ class AudioTask(BaseTask):
                     f.write(f"### {audio_title}\n\n")
                 return
 
+            # The transcript itself is machine-produced, so it carries the
+            # marker regardless of whether the LLM-generated title below is
+            # available; whisper and features.llms are gated separately.
+            ai_label = self.template("ai_label.j2")
+
             output = []
             output.append("<div class='transcript'>")
+            output.append(f"{ai_label}\n")
 
             result = self.with_cache(
                 "whisper",
@@ -136,8 +146,14 @@ class AudioTask(BaseTask):
 
             output.append("</div>")
 
+            # Empty when features.llms is disabled; the heading then stays the
+            # plain label and carries no AI marker.
+            heading = audio_title
+            if title:
+                heading = f"{audio_title}: {title} {ai_label}"
+
             with open(dst, "w") as f:
-                f.write(f"### {audio_title}: {title}\n\n")
+                f.write(f"### {heading}\n\n")
                 f.write("\n".join(output))
 
         def _transcribe_all() -> None:

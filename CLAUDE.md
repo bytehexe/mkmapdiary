@@ -47,6 +47,9 @@ hatch run mkmapdiary build <src> [<dist>] -B -a   # -B persistent build dir, -a 
 hatch run mkmapdiary build <src> --debug-fast     # skip/replace slow features (dev only)
 ```
 
+**Do not run the examples — ask Janna to.** `task demo` is the exception; it contains
+only test data.
+
 **Commits in this repo are GPG-signed** — `commit.gpgsign` is `true` in the repo-local
 config (it is *not* set globally). gpg-agent cannot write inside the command sandbox, so a
 sandboxed `git commit` fails to sign. **Always commit with the sandbox disabled**, and this
@@ -140,6 +143,12 @@ they are not theoretical.
   and `BaseTask.ai()` formats it, calls ollama, and optionally validates the response
   against a schema. UI strings use an `ui.` prefix. After touching `.po` files run
   `task translate`, or pre-commit fails.
+- **AI transparency**: any feature putting machine-generated content into a journal must
+  both render `templates/ai_label.j2` beside it and add a row to
+  `SiteTask.__ai_disclosure()` for the credits page. Gate both on the feature flag —
+  `BaseTask.ai()` returns `""` when `features.llms` is off, and an unguarded label
+  claims AI wrote something it did not. Marks output only: a postprocessor that merely
+  reads assets (quality scoring, embeddings) needs no label.
 - **Caching**: `lib/cache.py` is a sqlite-backed `MutableMapping` in the platform cache dir;
   reach it via `BaseTask.with_cache(key, fn, *args)`. `--no-cache` swaps in a throwaway db.
   Separately, doit's own up-to-date db lives in the build dir.

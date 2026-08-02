@@ -1,0 +1,10 @@
+{#- Art. 50 AI Act transparency marker. Rendered next to every piece of
+    machine-generated content; see CLAUDE.md "AI transparency". The icon is the
+    EU "AI GENERATED" symbol, copied to the docs root by task_copy_simple_asset,
+    so the relative path resolves from day pages and snippets alike.
+
+    data-digital-source-type carries the IPTC NewsCodes term for generative-AI
+    output, the vocabulary C2PA and friends reference. It marks the adjacent
+    content machine-readably at no cost; it is inert metadata and asserts
+    nothing about conformance to any code of practice. -#}
+<img src="ai-generated.svg" alt="{{ strings.ai_generated_label }}" title="{{ strings.ai_generated_label }}" class="ai-generated-label skip-lightbox" data-digital-source-type="http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia">
