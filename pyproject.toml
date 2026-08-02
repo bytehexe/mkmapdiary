@@ -161,7 +161,7 @@ extra-dependencies = [
 features = ["ui"]
 
 [tool.hatch.envs.types.scripts]
-check = "mypy --install-types --non-interactive {args:src/mkmapdiary tests}"
+check = "mypy --install-types --non-interactive {args:src/mkmapdiary tests docs/hooks}"
 
 [tool.hatch.envs.mkdocs]
 skip-install = true

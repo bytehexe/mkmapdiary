@@ -3,6 +3,8 @@ site_name: mkmapdiary
 exclude_docs: |
   /superpowers/
   /hooks/
+  /util.py
+  /__pycache__/
 
 hooks:
   - docs/hooks/credits_table.py
