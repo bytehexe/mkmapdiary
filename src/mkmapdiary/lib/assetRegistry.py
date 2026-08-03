@@ -96,9 +96,16 @@ class AssetRegistry:
 
         None is significant: a journal mixing named and unattributed assets
         has two distinct values and so does show creators per asset.
+
+        Merged GPX tracks are excluded. They are stitched together from many
+        source files and so carry no single creator — GPXTask.track_creators
+        credits their sources instead. Counting their unavoidable None here
+        would put a second value in every journal that has a track, which is
+        nearly all of them, and the uniform-creator case would never be
+        suppressed.
         """
         with self.lock:
-            return {asset.creator for asset in self.__assets}
+            return {asset.creator for asset in self.__assets if asset.type != "gpx"}
 
     def get_all_dates(
         self, ignore_dates: list[datetime.date] | None = None

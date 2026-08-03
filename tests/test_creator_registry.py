@@ -59,6 +59,26 @@ def test_threshold_two_named_creators_is_shown() -> None:
     assert len(_registry("Bob", "Janna").distinct_creators()) >= 2
 
 
+def _with_merged_track(registry: AssetRegistry) -> AssetRegistry:
+    """Add the per-date GPX record GPXTask builds, which has no creator."""
+    registry.add_asset(AssetRecord(path=PosixPath("2026-08-02.gpx"), type="gpx"))
+    return registry
+
+
+def test_merged_track_does_not_count_as_a_creator() -> None:
+    """A track is stitched from many sources, so its None is not a value.
+
+    Without this, every journal holding a GPX track would have a second
+    distinct value and the uniform-creator case could never be suppressed.
+    """
+    registry = _with_merged_track(_registry("Bob", "Bob"))
+    assert registry.distinct_creators() == {"Bob"}
+
+
+def test_merged_track_does_not_force_creators_to_show() -> None:
+    assert len(_with_merged_track(_registry("Bob", "Bob")).distinct_creators()) < 2
+
+
 def test_merge_unions_all_three_sources() -> None:
     assert merge_creators(["Chris"], {"Bob"}, {"Alex"}) == ["Alex", "Bob", "Chris"]
 

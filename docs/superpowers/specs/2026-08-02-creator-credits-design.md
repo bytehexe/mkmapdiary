@@ -146,18 +146,29 @@ it already assembles by hand.
 ### Visibility rule
 
 A creator is shown per-asset **iff the journal contains at least two distinct
-creator values, counting `None` as a value**:
+creator values, counting `None` as a value**, over every asset *except* the
+merged GPX tracks:
 
 ```python
-show_creators = len({a.creator for a in registry.get_all_assets()}) >= 2
+show_creators = (
+    len({a.creator for a in registry.get_all_assets() if a.type != "gpx"}) >= 2
+)
 ```
 
 | Journal | Shown |
 | --- | --- |
 | No creators anywhere | no |
 | One creator, uniform across all assets | no |
+| One creator, plus a merged GPX track | no |
 | Bob on some assets, nothing on the rest | yes |
 | Bob and Janna | yes |
+
+The GPX exclusion is not an optimisation. `GPXTask` adds one `type="gpx"`
+`AssetRecord` per date for the merged track, and that record structurally
+cannot carry a creator — it is stitched from many source files, which is the
+whole reason `track_creators` exists. Counting its `None` would put a second
+distinct value in every journal that has a track, i.e. nearly all of them, and
+the uniform-creator row above would never be reached.
 
 The single-creator case is suppressed because repeating one name on every photo
 carries no information; the credits page still names them. The mixed case is
