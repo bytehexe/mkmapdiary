@@ -287,5 +287,12 @@ h2.hidden
 // specificity alone regardless of extra.css vs glightbox.min.css load
 // order. Scoped to the lightbox image only; the description element is
 // untouched, as it is not the source of the clip.
-.glightbox-container .gslide-image img
-    max-height: calc(100vh - 110px)
+//
+// Confined to the same breakpoint as the rule it corrects. Below 769px the
+// base cap is 100vh and glightbox switches to `.glightbox-mobile`, which
+// absolutely positions the description over the image with a gradient, so
+// no vertical room needs reserving there and shortening the image by 110px
+// would cost height for nothing.
+@media (min-width: 769px)
+    .glightbox-container .gslide-image img
+        max-height: calc(100vh - 110px)
