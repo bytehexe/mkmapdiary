@@ -1,6 +1,7 @@
 # Command Reference
 
-mkmapdiary uses a command-based interface with three main subcommands: `build`, `config`, and `generate-demo`.
+mkmapdiary uses a command-based interface with five subcommands: `build`, `config`,
+`generate-demo`, `calibrate`, and `inspect`.
 
 ## Global Options
 
@@ -111,6 +112,102 @@ mkmapdiary build demo
 ```
 
 Note: This command is primarily for testing and development purposes. The target directory must be empty.
+
+## calibrate
+
+Write a `calibration.yaml` into a source directory. Every subcommand edits one such
+file, merging into it rather than replacing it, so the four can be used in any order on
+the same directory. See [Calibration files](calibration.md) for what the resulting file
+means and how it is inherited by subdirectories.
+
+```bash
+mkmapdiary calibrate SUBCOMMAND [OPTIONS]
+```
+
+All subcommands take `-o, --output PATH`, which may be either the directory to calibrate
+or the `calibration.yaml` inside it. It is required everywhere except `calibrate file`,
+which falls back to the directory holding the reference image. `calibrate file`,
+`calibrate effects` and `calibrate creator` also take `-n, --dry-run` to print the
+result without writing.
+
+### calibrate file
+
+Derive the camera offset from a photo of a clock, a phone screen, or any other
+reference whose true time you know.
+
+```bash
+mkmapdiary calibrate file [OPTIONS] IMAGE REF_TIME
+```
+
+- `IMAGE`: a photo taken by the camera to calibrate
+- `REF_TIME`: the true time at which it was taken
+- `--camera-tz TEXT`: timezone of the camera's own clock (default: system localtime)
+- `--ref-tz TEXT`: timezone `REF_TIME` is given in (default: system localtime)
+
+### calibrate manual
+
+Write a known offset directly, without a reference photo.
+
+```bash
+mkmapdiary calibrate manual -o PATH [-x SECONDS] [--camera-tz TEXT]
+```
+
+- `-x, --offset INTEGER`: offset in seconds; positive means the camera clock runs ahead
+
+### calibrate effects
+
+Manage the per-directory effects list. Currently only `autorotate` is supported.
+
+```bash
+mkmapdiary calibrate effects -o PATH [--add NAME] [--remove NAME]
+```
+
+`--add` and `--remove` may each be given multiple times.
+
+### calibrate creator
+
+Record who made the media in a directory. The name is shown next to each asset's time
+and place — but only when the journal holds more than one distinct creator — and always
+on the credits page.
+
+```bash
+mkmapdiary calibrate creator -o PATH [NAME]
+mkmapdiary calibrate creator -o PATH --unset
+```
+
+- `NAME`: the creator to record; required unless `--unset` is given
+- `--unset`: clear the creator for this directory. This writes an explicit `null`, which
+  overrides a creator inherited from a parent directory. Omitting the key entirely would
+  inherit it instead — see [Calibration files](calibration.md#inheritance).
+
+For images, a creator set here wins over any `Artist` recorded in the file's own EXIF
+metadata.
+
+### Examples
+
+```bash
+# The camera clock was 259 seconds fast
+mkmapdiary calibrate manual -o trip/day1 -x 259
+
+# Derive the same offset from a photo of a clock reading 14:32:10
+mkmapdiary calibrate file trip/day1/IMG_0001.jpg 2026-08-02T14:32:10 -o trip/day1
+
+# Credit a directory, then exempt one subdirectory from that credit
+mkmapdiary calibrate creator -o trip "Janna Hopp"
+mkmapdiary calibrate creator -o trip/borrowed-camera --unset
+```
+
+## inspect
+
+Print the timestamps mkmapdiary reads from a source directory, so a calibration can be
+checked before a full build.
+
+```bash
+mkmapdiary inspect [--tz TEXT] SOURCE
+```
+
+- `SOURCE`: the source directory to inspect
+- `--tz TEXT`: timezone to display the timestamps in
 
 ## Configuration Parameter Format
 
