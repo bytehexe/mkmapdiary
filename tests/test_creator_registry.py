@@ -1,20 +1,61 @@
+from collections.abc import Callable
 from pathlib import PosixPath
+from typing import Any, cast
 
 from mkmapdiary.lib.asset import AssetRecord
 from mkmapdiary.lib.assetRegistry import AssetRegistry
+from mkmapdiary.lib.calibration import Calibration
+from mkmapdiary.lib.dirs import Dirs
 from mkmapdiary.tasks.gpxTask import GPXTask
 from mkmapdiary.tasks.siteTask import merge_creators
 
 
-def test_track_creators_is_a_property() -> None:
-    """Asserts on the class rather than an instance.
+class _GPXTask(GPXTask):
+    """GPXTask made instantiable by satisfying BaseTask's abstract members.
 
-    GPXTask inherits BaseTask's abstract properties (config, db, dirs, cache,
-    gettext, handle), so a bare instantiation raises TypeError before
-    track_creators is ever reached -- not the AttributeError the brief
-    expected. Per the brief's Step 2 fallback, assert on the class instead.
+    handle_gpx touches none of them, so plain stubs suffice -- no config, no
+    build directory, no filesystem.
     """
-    assert isinstance(GPXTask.track_creators, property)
+
+    config: dict = {}
+    db = AssetRegistry()
+    dirs = cast(Dirs, None)
+    cache: dict = {}
+
+    @property
+    def gettext(self) -> Callable:
+        return lambda message: message
+
+    def handle(self, source: PosixPath) -> list[Any]:
+        return []
+
+
+def _handled(*creators: str | None) -> set[str]:
+    """Feed one GPX source per creator through handle_gpx."""
+    task = _GPXTask()
+    for i, creator in enumerate(creators):
+        task.handle_gpx(
+            PosixPath(f"{i}.gpx"),
+            Calibration(timezone="UTC", offset=0, creator=creator),
+        )
+    return task.track_creators
+
+
+def test_track_creators_collects_the_source_creator() -> None:
+    assert _handled("Bob") == {"Bob"}
+
+
+def test_track_creators_deduplicates_across_sources() -> None:
+    assert _handled("Bob", "Bob", "Janna") == {"Bob", "Janna"}
+
+
+def test_track_creators_drops_unattributed_sources() -> None:
+    """None is not a creator here -- the credits page has nothing to name."""
+    assert _handled("Bob", None) == {"Bob"}
+
+
+def test_track_creators_of_no_sources_is_empty() -> None:
+    assert _handled() == set()
 
 
 def _registry(*creators: str | None) -> AssetRegistry:
