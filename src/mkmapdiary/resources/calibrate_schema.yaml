@@ -47,16 +47,11 @@ properties:
     examples:
       - "Bob Ross"
 
-  # Alternative root-level format (for backward compatibility)
-  timezone:
-    type: string
-    description: "Timezone of the camera timestamps (root-level format)"
-    examples:
-      - "UTC"
-      - "Europe/Berlin"
-  offset:
-    type: integer
-    description: "Time offset in seconds (root-level format)"
+# Note: root-level `timezone`/`offset` keys were once declared here as an
+# alternative "backward compatibility" format. They never worked. Nothing reads
+# them -- Calibration.resolve() looks only inside `calibration` -- and the anyOf
+# below never accepted a file containing only them, so such a file failed
+# validation and aborted the build. They were removed rather than implemented.
 
 anyOf:
   - required: ["calibration"]
