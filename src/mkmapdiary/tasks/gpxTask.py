@@ -185,6 +185,16 @@ class GPXTask(HttpRequest):
             "task_dep": ["geo_correlation", "qstarz2gpx"],
             "targets": targets,
             "clean": True,
+            # The action does more than write its targets: it populates
+            # self.__statistics and adds the per-date GPX AssetRecords, both
+            # of which downstream page tasks read from memory. Letting doit
+            # skip it on an incremental rebuild left track statistics missing
+            # from the gallery and index pages. Nothing persists that state
+            # between runs, so the task has to run every time.
+            # This is the "task has to always run" arm of issue #71; the
+            # other arm, persisting the statistics and the record set so the
+            # generation work can still be skipped, remains open there.
+            "uptodate": [False],
         }
 
     @create_after("end_gpx")
