@@ -85,6 +85,12 @@ debug:
 
 ignore_dates: []
 
+# Images to open the start page with, as paths relative to this config file.
+# They lead the highlight strip in the order given and are shown regardless of
+# the quality, duplicate and entropy filters. The automatic selection fills the
+# remaining slots and avoids anything resembling a listed image.
+highlights: []
+
 credits:
   # Names of the people who travelled; shown on the generated credits page
   travellers: []

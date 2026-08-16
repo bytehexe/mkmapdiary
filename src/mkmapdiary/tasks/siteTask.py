@@ -20,7 +20,7 @@ from mkmapdiary.lib.credits import (
     frontend_libraries,
     installed_packages,
 )
-from mkmapdiary.lib.highlights import Highlights
+from mkmapdiary.lib.highlights import Highlights, resolve_pinned_highlights
 from mkmapdiary.lib.statistics import Statistics
 
 from ..lib.fmt import location_string, time_string
@@ -165,7 +165,13 @@ class SiteTask(HttpRequest):
             images = self.db.get_assets_by_type("image")
 
             logger.info("Generating index page data ...")
-            page_info = Highlights(images, self.config)
+            pinned = resolve_pinned_highlights(
+                self.config.get("highlights", []),
+                self.dirs.source_dir,
+                images,
+                self.source_paths.items(),
+            )
+            page_info = Highlights(images, self.config, pinned=pinned)
             logger.info("Generating index page ...")
             logger.debug(f"Gallery assets: {len(page_info.gallery_assets)}")
             logger.debug(f"Map assets: {len(page_info.map_assets)}")

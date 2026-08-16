@@ -1,5 +1,7 @@
 import logging
 import math
+import pathlib
+from collections.abc import Iterable
 
 import numpy as np
 import sklearn.cluster
@@ -11,29 +13,74 @@ from mkmapdiary.lib.asset import AssetRecord
 logger = logging.getLogger(__name__)
 
 
+def resolve_pinned_highlights(
+    configured: list[str],
+    source_dir: pathlib.Path,
+    assets: list[AssetRecord],
+    sources: Iterable[tuple[pathlib.Path, pathlib.Path]],
+) -> list[AssetRecord]:
+    """Turn configured source paths into the assets they were converted into.
+
+    ``sources`` pairs an asset path with the source file it came from, which is
+    what lets the configuration name ``day1/IMG_1234.CR2`` while the page shows
+    ``IMG_1234.jpg``.
+    """
+
+    by_source = {source: destination for destination, source in sources}
+    by_path = {asset.path: asset for asset in assets}
+
+    pinned = []
+    for entry in configured:
+        source = source_dir / entry
+        destination = by_source.get(source)
+        asset = by_path.get(destination) if destination is not None else None
+        if asset is None:
+            raise ValueError(
+                f"Configured highlight {entry!r} does not match any image "
+                f"below {source_dir}"
+            )
+        pinned.append(asset)
+
+    return pinned
+
+
 class Highlights:
-    def __init__(self, assets: list[AssetRecord], config: dict, day_page: bool = False):
+    def __init__(
+        self,
+        assets: list[AssetRecord],
+        config: dict,
+        day_page: bool = False,
+        pinned: list[AssetRecord] | None = None,
+    ):
         self.assets = assets
         self.config = config
+        # An explicit choice outranks the heuristics, so pinned assets skip the
+        # duplicate, quality and entropy filters entirely.
+        self.pinned = list(pinned or [])
 
-        valid_assets = [
+        valid_assets = self.pinned + [
             asset
             for asset in assets
-            if not asset.is_duplicate
+            if asset not in self.pinned
+            and not asset.is_duplicate
             and not asset.is_bad
             and asset.timestamp_utc is not None
             and asset.entropy is not None
             and asset.entropy > 6.5
         ]
+        # Pinned assets lead the highlight strip, so they never compete for one
+        # of the map markers, whether or not they carry coordinates.
         geo_assets = [
             asset
             for asset in valid_assets
-            if asset.latitude is not None and asset.longitude is not None
+            if asset not in self.pinned
+            and asset.latitude is not None
+            and asset.longitude is not None
         ]
         non_geo_assets = [
             asset
             for asset in valid_assets
-            if asset.latitude is None or asset.longitude is None
+            if asset in self.pinned or asset.latitude is None or asset.longitude is None
         ]
 
         # Calculate mode
@@ -61,10 +108,19 @@ class Highlights:
         self.target_gallery_count = min(
             self.target_gallery_count, len(valid_assets) - self.target_map_count
         )
+        # Every pin is shown, even when they outnumber the usual strip.
+        self.target_gallery_count = max(self.target_gallery_count, len(self.pinned))
 
         self.geo_portion = len(geo_assets) / len(valid_assets) if valid_assets else 0
-        self.geo_bucket_size = max(
-            math.ceil(self.total_target_count * self.geo_portion), self.target_map_count
+        # Capping at the pin-free remainder keeps room for the pins, which all
+        # live in the non-geo bucket. target_map_count fits either way, because
+        # target_gallery_count is at least the number of pins.
+        self.geo_bucket_size = min(
+            max(
+                math.ceil(self.total_target_count * self.geo_portion),
+                self.target_map_count,
+            ),
+            self.total_target_count - len(self.pinned),
         )
         self.non_geo_bucket_size = self.total_target_count - self.geo_bucket_size
 
@@ -75,6 +131,7 @@ class Highlights:
             non_geo_assets,
             self.non_geo_bucket_size,
             with_geo=False,
+            pinned=self.pinned,
         )
 
         logger.debug(f"Valid assets count: {len(valid_assets)}")
@@ -110,7 +167,7 @@ class Highlights:
         assert len(self.map_assets) == self.target_map_count
 
         self.map_assets.sort(key=lambda a: a.quality or 0)
-        self._arrange_gallery_assets(self.gallery_assets)
+        self._arrange_gallery_assets(self.gallery_assets, pinned=self.pinned)
 
     def _calculate_bucket(
         self,
@@ -118,6 +175,7 @@ class Highlights:
         bucket_size: int,
         with_geo: bool,
         with_non_geo: bool = True,
+        pinned: list[AssetRecord] | None = None,
     ) -> list[AssetRecord]:
         if len(assets) <= bucket_size:
             return assets
@@ -127,7 +185,9 @@ class Highlights:
         )
 
         # Continue with clustering
-        return self._cluster_assets(bucket_size, assets, total_distance_matrix)
+        return self._cluster_assets(
+            bucket_size, assets, total_distance_matrix, pinned=pinned
+        )
 
     @classmethod
     def _calculate_distance_matrix(
@@ -153,8 +213,13 @@ class Highlights:
 
     @classmethod
     def _cluster_assets(
-        cls, bucket_size: int, assets: list[AssetRecord], distance_matrix: np.ndarray
+        cls,
+        bucket_size: int,
+        assets: list[AssetRecord],
+        distance_matrix: np.ndarray,
+        pinned: list[AssetRecord] | None = None,
     ) -> list[AssetRecord]:
+        pinned = pinned or []
         if len(assets) <= bucket_size:
             return assets
         if bucket_size == 0:
@@ -170,9 +235,24 @@ class Highlights:
             cluster_indices = np.where(labels == cluster_id)[0]
             cluster_assets = [assets[i] for i in cluster_indices]
 
+            # A pinned asset takes its whole cluster, so the near-identical
+            # pictures grouped with it cannot be selected on their own merit.
+            cluster_pins = [asset for asset in cluster_assets if asset in pinned]
+            if cluster_pins:
+                clustered_assets.extend(cluster_pins)
+                continue
+
             # Select the asset with the highest quality in the cluster
             best_asset = max(cluster_assets, key=lambda a: a.quality or 0)
             clustered_assets.append(best_asset)
+
+        # Clusters holding more than one pin overshoot the bucket. The pins are
+        # not negotiable, so the weakest automatic picks yield their slots.
+        while len(clustered_assets) > bucket_size:
+            automatic = [a for a in clustered_assets if a not in pinned]
+            if not automatic:
+                break
+            clustered_assets.remove(min(automatic, key=lambda a: a.quality or 0))
 
         return clustered_assets
 
@@ -264,14 +344,25 @@ class Highlights:
         return self.target_gallery_count + self.target_map_count
 
     @classmethod
-    def _arrange_gallery_assets(cls, gallery_assets: list[AssetRecord]) -> None:
+    def _arrange_gallery_assets(
+        cls,
+        gallery_assets: list[AssetRecord],
+        pinned: list[AssetRecord] | None = None,
+    ) -> None:
         """Arrange gallery assets to alternate between high and low quality."""
 
-        if len(gallery_assets) <= 2:
+        # The configured order is the user's, so the pins are placed rather than
+        # arranged; only the automatic remainder goes through the optimiser.
+        leading = [asset for asset in (pinned or []) if asset in gallery_assets]
+        automatic = [asset for asset in gallery_assets if asset not in leading]
+
+        if len(automatic) <= 2:
+            gallery_assets.clear()
+            gallery_assets.extend(leading + automatic)
             return
 
         distance_matrix = cls._calculate_distance_matrix(
-            gallery_assets, with_geo=False, with_non_geo=True
+            automatic, with_geo=False, with_non_geo=True
         )
 
         # Invert the distance matrix to get similarity matrix
@@ -284,22 +375,24 @@ class Highlights:
             return np.sum(similarity_matrix[order, np.roll(order, -1)])
 
         # Dual annealing to arrange assets
-        bounds = [(0, 1)] * len(gallery_assets)
+        bounds = [(0, 1)] * len(automatic)
 
         result = dual_annealing(_tour_length, bounds, seed=42)
         initial_order = np.argsort(result.x)
         # initial_distance = np.sum(similarity_matrix[initial_order, np.roll(initial_order, -1)])
 
         # Apply initial arrangement
-        arranged_assets = [gallery_assets[i] for i in initial_order]
+        arranged_assets = [automatic[i] for i in initial_order]
 
-        # Rotate to put best asset in second position
-        best_asset_index = max(
-            range(len(arranged_assets)),
-            key=lambda i: arranged_assets[i].quality or 0,
-        )
-        rotate_by = (best_asset_index - 1) % len(arranged_assets)
-        arranged_assets = arranged_assets[rotate_by:] + arranged_assets[:rotate_by]
+        # Rotate to put best asset in second position. With pins in front the
+        # lead is already chosen, so the rotation would only displace them.
+        if not leading:
+            best_asset_index = max(
+                range(len(arranged_assets)),
+                key=lambda i: arranged_assets[i].quality or 0,
+            )
+            rotate_by = (best_asset_index - 1) % len(arranged_assets)
+            arranged_assets = arranged_assets[rotate_by:] + arranged_assets[:rotate_by]
 
         gallery_assets.clear()
-        gallery_assets.extend(arranged_assets)
+        gallery_assets.extend(leading + arranged_assets)

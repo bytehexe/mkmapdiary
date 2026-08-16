@@ -233,6 +233,13 @@ properties:
       description: "Date in yyyy-mm-dd format (YAML auto-parses to datetime.date)"
     default: []
 
+  highlights:
+    type: array
+    description: "Images leading the start page highlights, relative to the source directory"
+    items:
+      type: string
+    default: []
+
   credits:
     type: object
     description: "Credits shown on the generated site"

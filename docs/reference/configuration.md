@@ -22,6 +22,7 @@ features:              # Feature configuration
 site:                  # Site generation settings
 debug:                 # Debugging switches
 ignore_dates:          # Dates to skip entirely
+highlights:            # Images leading the start page highlight strip
 credits:               # Credits page configuration
 strings:               # Custom translation strings
 llm_prompts:           # LLM prompt templates
@@ -143,6 +144,32 @@ ignore_dates:
   - 2026-08-01
   - 2026-08-04
 ```
+
+### Highlights
+
+The start page opens with a strip of highlight images that mkmapdiary picks by itself.
+List paths here to choose the first ones yourself. Paths are relative to the directory
+holding the configuration file, and name the *source* file — the original extension, not
+the converted one.
+
+```yaml
+highlights:
+  - day1/IMG_0042.CR2
+  - day3/sunset.jpg
+```
+
+The listed images lead the strip in the order given. They are shown even when the
+duplicate, quality and entropy filters would otherwise reject them, and they never take
+one of the map markers. A path that matches no source file fails the build rather than
+disappearing quietly.
+
+The automatic selection fills the remaining slots and works around the choices: it groups
+similar pictures and only ever shows one per group, so listing an image also removes its
+near-duplicates from the running. Two listed images that resemble each other are both
+still shown, at the cost of one automatic slot. Listing more images than the strip
+normally holds simply makes it longer.
+
+This applies to the start page only; day galleries choose their highlights unaided.
 
 ### Strings Section
 

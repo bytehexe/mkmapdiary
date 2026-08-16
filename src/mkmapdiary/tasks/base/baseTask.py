@@ -4,6 +4,7 @@ import threading
 from abc import ABC, ABCMeta, abstractmethod
 from collections.abc import Callable, Mapping
 from pathlib import PosixPath
+from types import MappingProxyType
 from typing import Any, TypeVar
 
 import dateutil.parser
@@ -146,6 +147,11 @@ class BaseTask(ABC, metaclass=ABCMeta):
     def template(self, template_name: str, **params: Any) -> str:
         template = self.__template_env.get_template(template_name)
         return template.render(**params, strings=self.config["strings"])
+
+    @property
+    def source_paths(self) -> Mapping[PosixPath, PosixPath]:
+        """Map every generated asset path back to the source file it came from."""
+        return MappingProxyType(self.__unique_paths)
 
     def make_unique_filename(
         self,
