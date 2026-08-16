@@ -3,6 +3,21 @@ strict: True
 
 theme:
   name: material
+  features:
+    # Fold the table of contents into the left sidebar. Material otherwise
+    # drawers the navigation below 1220px while keeping the TOC down to 960px;
+    # for a journal the navigation is the more useful of the two, so collapse
+    # both into one column that survives to the narrower breakpoint.
+    - toc.integrate
+    # Previous/next links in the footer. The navigation is ordered by date, so
+    # these read as the previous and next day of the journey.
+    - navigation.footer
+    # Back-to-top button. Journal pages run long once a gallery and a map are
+    # on them, so the way back to the header is worth a shortcut.
+    # navigation.instant is deliberately absent: it needs the Fetch API, which
+    # the offline plugin rules out for file:// browsing, and the scripts in
+    # resources/*.js initialise on DOMContentLoaded rather than `document$`.
+    - navigation.top
   logo: "logo-white.svg"
   favicon: "logo-blue.svg"
   palette:
@@ -30,6 +45,11 @@ exclude_docs: |
   /assets/*.txt
 
 markdown_extensions:
+  # Only H2 reaches the table of contents. Journal pages nest an H3 per asset
+  # ("Audio", "Text", …) under each section, which repeats often enough to be
+  # noise in the sidebar. Headings below H2 keep their anchors either way.
+  - toc:
+      toc_depth: 2
   - pymdownx.snippets:
       check_paths: True
   - attr_list
