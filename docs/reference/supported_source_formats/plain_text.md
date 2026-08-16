@@ -46,21 +46,26 @@ strings:
 features:
   llms:
     enabled: true                    # Enable/disable LLM features
-    text_model: "llama3:8b"         # Model for title generation
   geo_correlation:                   # For coordinate correlation
-    enabled: true
-    time_offset: !duration 0 seconds        # Text device time offset
     max_time_diff: !duration 300 seconds    # Max correlation window
 
 llm_prompts:
   generate_title:                    # Title generation settings
-    prompt: |
-      Create exactly one title that summarizes the following text in {locale}.
-      The title must be a single phrase, 3–5 words long...
+    model: "granite3.3:8b"           # The ollama model to use
     options:
       temperature: 0.2
-      top_p: 0.8
+
+strings:
+  generate_title_prompt: |           # The prompt text itself
+    Create exactly one title that summarizes the following text.
+    The title must be a single phrase, 3-5 words long...
+
+    Text:
+    {text}
 ```
+
+Timestamps are interpreted through the [`calibration.yaml`](../calibration.md) in effect
+for the directory; `features.geo_correlation.time_offset` is not implemented.
 
 ## Dependencies
 

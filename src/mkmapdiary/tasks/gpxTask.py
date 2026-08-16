@@ -27,13 +27,26 @@ class GPXTask(HttpRequest):
         super().__init__()
         self.__sources: list[PosixPath] = []
         self.__statistics: dict[Date, Any] = {}
+        self.__source_creators: set[str] = set()
 
     @property
     def track_statistics(self) -> dict[Date, Statistics]:
         return dict(self.__statistics)
 
+    @property
+    def track_creators(self) -> set[str]:
+        """Creators of the GPX *source* files.
+
+        The generated per-date GPX merges several sources and so has no single
+        creator; this set feeds the credits page instead. See the plan's Spec
+        Corrections section.
+        """
+        return set(self.__source_creators)
+
     def handle_gpx(self, source: PosixPath, calibration: Calibration) -> list[Any]:
         self.__sources.append(source)
+        if calibration.creator is not None:
+            self.__source_creators.add(calibration.creator)
 
         # Do not yield any assets yet; at this point it
         # is difficult to determine which dates are contained,
@@ -172,6 +185,16 @@ class GPXTask(HttpRequest):
             "task_dep": ["geo_correlation", "qstarz2gpx"],
             "targets": targets,
             "clean": True,
+            # The action does more than write its targets: it populates
+            # self.__statistics and adds the per-date GPX AssetRecords, both
+            # of which downstream page tasks read from memory. Letting doit
+            # skip it on an incremental rebuild left track statistics missing
+            # from the gallery and index pages. Nothing persists that state
+            # between runs, so the task has to run every time.
+            # This is the "task has to always run" arm of issue #71; the
+            # other arm, persisting the statistics and the record set so the
+            # generation work can still be skipped, remains open there.
+            "uptodate": [False],
         }
 
     @create_after("end_gpx")

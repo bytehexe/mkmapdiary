@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 )
 @click.argument("source", type=click.Path(path_type=Path), required=True)
 def inspect(source: Path, tz: str) -> None:
-    """Calibrate camera timestamps using a reference file."""
+    """Show the timestamps read from a source directory."""
 
     try:
         ZoneInfo(tz)

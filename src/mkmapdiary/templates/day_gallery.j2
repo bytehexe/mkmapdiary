@@ -78,10 +78,11 @@ gpx_data = {{ gpx_data | tojson }};
 </div><div id="gallery_captions" markdown>
 {%- for item in gallery_items -%}
 <div class="glightbox-desc gallery-caption-{{ item.id }}">
-<i class="iconoir iconoir-clock"></i> {{ item.time }}
-{%- if item.timezone %} · <i class="iconoir iconoir-time-zone"></i> {{ item.timezone }}{% endif %}
-{%- if item.location %} · <i class="iconoir iconoir-map-pin"></i> {{ item.location }}{% endif %}
-{%- if item.location_admin %} · <i class="iconoir iconoir-map"></i> {{ item.location_admin }}{% endif %}
+<span title="{{ strings.meta_time }}"><i class="iconoir iconoir-clock"></i> {{ item.time }}</span>
+{%- if item.timezone %} · <span title="{{ strings.meta_timezone }}"><i class="iconoir iconoir-time-zone"></i> {{ item.timezone }}</span>{% endif %}
+{%- if item.location %} · <span title="{{ strings.meta_location }}"><i class="iconoir iconoir-map-pin"></i> {{ item.location }}</span>{% endif %}
+{%- if item.location_admin %} · <span title="{{ strings.meta_location_admin }}"><i class="iconoir iconoir-map"></i> {{ item.location_admin }}</span>{% endif %}
+{%- if show_creators and item.creator %} · <span title="{{ strings.meta_creator_image }}"><i class="iconoir iconoir-camera"></i> {{ item.creator }}</span>{% endif %}
 </div>
 {%- endfor -%}
 </div>

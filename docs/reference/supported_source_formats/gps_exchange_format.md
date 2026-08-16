@@ -47,10 +47,15 @@ Coordinate correlation behavior can be configured via the `geo_correlation` sect
 ```yaml
 features:
   geo_correlation:
-    enabled: true
-    time_offset: !duration 0 seconds       # Time offset 
     max_time_diff: !duration 300 seconds   # Maximum time difference for correlation
+  track_simplification:
+    enabled: true                          # Thin out redundant track points
+    tolerance: !distance 1 meter           # Set to 0 to disable
 ```
+
+GPX timestamps are absolute (UTC) and therefore need no calibration. The clock offsets in
+a [`calibration.yaml`](../calibration.md) apply to the *other* assets being correlated
+against these tracks, not to the tracks themselves.
 
 ## Output
 

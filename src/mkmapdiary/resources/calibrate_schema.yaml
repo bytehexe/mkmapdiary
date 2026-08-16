@@ -39,19 +39,23 @@ properties:
         - "autorotate"
       description: "Name of the effect"
 
-  # Alternative root-level format (for backward compatibility)
-  timezone:
-    type: string
-    description: "Timezone of the camera timestamps (root-level format)"
+  creator:
+    type: ["string", "null"]
+    description: >
+      Name of the person who created the media in this directory. Inherited by
+      subdirectories unless overridden. Set to null to clear an inherited creator.
     examples:
-      - "UTC"
-      - "Europe/Berlin"
-  offset:
-    type: integer
-    description: "Time offset in seconds (root-level format)"
+      - "Bob Ross"
+
+# Note: root-level `timezone`/`offset` keys were once declared here as an
+# alternative "backward compatibility" format. They never worked. Nothing reads
+# them -- Calibration.resolve() looks only inside `calibration` -- and the anyOf
+# below never accepted a file containing only them, so such a file failed
+# validation and aborted the build. They were removed rather than implemented.
 
 anyOf:
   - required: ["calibration"]
   - required: ["effects"]
+  - required: ["creator"]
 
 additionalProperties: true

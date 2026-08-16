@@ -10,7 +10,7 @@ import yaml
 from identify import identify
 
 from mkmapdiary.lib.asset import AssetRecord
-from mkmapdiary.lib.calibration import Calibration
+from mkmapdiary.lib.calibration import Calibration, resolve
 from mkmapdiary.lib.dirs import Dirs
 
 from .lib.assetRegistry import AssetRegistry
@@ -32,14 +32,22 @@ from .tasks import (
 
 logger = logging.getLogger(__name__)
 
+# GPXTask must precede SiteTask and GalleryTask in this list. Both declare
+# abstract properties (SiteTask.track_creators, GalleryTask.track_statistics)
+# that only GPXTask implements; TaskList's MRO resolves the first-listed
+# class's definition of a name, abstract or not, so if either came before
+# GPXTask the abstract declaration would win and TaskList would raise
+# `TypeError: Can't instantiate abstract class TaskList` at construction time.
+# Do not alphabetize or otherwise reorder this list without checking for
+# abstract properties like these first.
 tasks = [
     ImageTask,
-    SiteTask,
     RawInputTask,
     TextTask,
     MarkdownTask,
     AudioTask,
     GPXTask,
+    SiteTask,
     GpsbabelInputTask,
     TagsTask,
     PostprocessingTask,
@@ -219,19 +227,12 @@ class TaskList(*tasks):  # type: ignore
             logger.error(f"Validation error in {calibration_file}: {e.message}")
             sys.exit(1)
 
-        timezone = data.get("calibration", {}).get(
-            "timezone", self.__calibration[-1].timezone
-        )
-        offset = data.get("calibration", {}).get(
-            "offset", self.__calibration[-1].offset
-        )
-        effects = data.get("effects", self.__calibration[-1].effects)
-
-        self.__calibration.append(
-            Calibration(timezone=timezone, offset=offset, effects=effects)
-        )
+        calibration = resolve(data, self.__calibration[-1])
+        self.__calibration.append(calibration)
         logger.debug(
-            f"Applied calibration from {calibration_file}: timezone={timezone}, offset={offset}",
+            f"Applied calibration from {calibration_file}: "
+            f"timezone={calibration.timezone}, offset={calibration.offset}, "
+            f"creator={calibration.creator}",
             extra={"icon": "🛠️"},
         )
 

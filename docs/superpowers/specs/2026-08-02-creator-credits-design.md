@@ -90,10 +90,23 @@ Every handler that already copies `calibration.effects` gains
 | `tasks/markdownTask.py` | 26 | |
 | `tasks/audioTask.py` | 42, 49 | two records |
 | `tasks/textTask.py` | 26 | |
-| `tasks/gpxTask.py` | 132 | currently hardcodes `effects=[]` |
 
-GPX tracks **do** carry the creator: whoever carried the logger authored the
-track. Tracks have no metadata line, so this surfaces only on the credits page.
+GPX is different from the rest of this table and does not fit the pattern.
+`handle_gpx` (`tasks/gpxTask.py`) yields no `AssetRecord` at all — at scan time
+it is not yet knowable which dates a GPX file covers, so the handler only
+records the source path for later processing. The one place a GPX
+`AssetRecord` *is* built is inside the `_generate_all_gpx_files` action of
+`task_gpx2gpx`, which runs after scanning, has no `Calibration` in scope, and
+produces a single per-date file merged from every source that touches that
+date. Sources from directories with different creators can land in the same
+merged file, so there is no single creator to assign it — `creator=
+calibration.creator` on that `AssetRecord` is not just missing, it has no
+value to be.
+
+Instead, `handle_gpx` collects each source file's `calibration.creator` into a
+`set[str]`, exposed as the `track_creators` property. This feeds the credits
+page only. Tracks have no metadata line, so nothing is lost by the merged file
+carrying no creator of its own.
 
 ### EXIF fallback
 
@@ -123,24 +136,39 @@ into any existing `calibration.yaml`, preserving `calibration` and `effects`.
 
 ## Per-asset display
 
-`creator` reaches both templates for free: `siteTask.py:232` and
-`galleryTask.py:45` both build their dicts with `dataclasses.asdict(asset)`.
+`creator` reaches templates two different ways. `siteTask.py:232` and
+`galleryTask.py:45` build their per-asset dicts with `dataclasses.asdict(asset)`,
+so `creator` arrives for free once it is a field on `AssetRecord`.
+`journalTask.py:60-70` does not: it builds its item dict field by field, and
+needs `creator=asset_data.creator` added explicitly alongside the other fields
+it already assembles by hand.
 
 ### Visibility rule
 
 A creator is shown per-asset **iff the journal contains at least two distinct
-creator values, counting `None` as a value**:
+creator values, counting `None` as a value**, over every asset *except* the
+merged GPX tracks:
 
 ```python
-show_creators = len({a.creator for a in registry.get_all_assets()}) >= 2
+show_creators = (
+    len({a.creator for a in registry.get_all_assets() if a.type != "gpx"}) >= 2
+)
 ```
 
 | Journal | Shown |
 | --- | --- |
 | No creators anywhere | no |
 | One creator, uniform across all assets | no |
+| One creator, plus a merged GPX track | no |
 | Bob on some assets, nothing on the rest | yes |
 | Bob and Janna | yes |
+
+The GPX exclusion is not an optimisation. `GPXTask` adds one `type="gpx"`
+`AssetRecord` per date for the merged track, and that record structurally
+cannot carry a creator — it is stitched from many source files, which is the
+whole reason `track_creators` exists. Counting its `None` would put a second
+distinct value in every journal that has a track, i.e. nearly all of them, and
+the uniform-creator row above would never be reached.
 
 The single-creator case is suppressed because repeating one name on every photo
 carries no information; the credits page still names them. The mixed case is
@@ -148,14 +176,14 @@ carries no information; the credits page still names them. The mixed case is
 is a real distinction.
 
 A new `AssetRegistry.distinct_creators() -> set[str | None]` computes the set;
-both page-building tasks derive the bool and pass `show_creators` into their
-template call.
+all three page-building tasks derive the bool and pass `show_creators` into
+their template call.
 
 ### Templates
 
-Both metadata lines gain the same conditional, following the existing
-`location_admin` pattern — `day_journal.j2` after line 15 and `day_gallery.j2`
-after line 84:
+All three metadata lines gain the same conditional, following the existing
+`location_admin` pattern — `day_journal.j2` after line 15, `day_gallery.j2`
+after line 84, and `index.j2:10-14`:
 
 ```jinja
 {% if show_creators and asset.creator %}· <i class="iconoir iconoir-user"></i> {{ asset.creator }}{% endif %}
@@ -170,14 +198,43 @@ to machine-generated output only.
 `travellers`) and to the `credits` block in `resources/config_schema.yaml`,
 which is `additionalProperties: false` and so must list it explicitly.
 
-`task_build_credits_page` (`siteTask.py:364`) passes:
+`merge_creators` (`siteTask.py:62-73`), a module-level function living beside
+the existing `credits_libraries`, unions all three creator sources into one
+deduplicated, sorted list:
 
 ```python
-creators=sorted(
-    (set(self.config["credits"]["creators"]) | self.db.distinct_creators())
-    - {None}
-)
+def merge_creators(
+    config_creators: list[str],
+    asset_creators: set[str | None],
+    track_creators: set[str],
+) -> list[str]:
+    merged = set(config_creators) | asset_creators | track_creators
+    return sorted(name for name in merged if name is not None)
 ```
+
+`task_build_credits_page` (`siteTask.py:385-417`) calls it with the config
+list, `self.db.distinct_creators()`, and `self.track_creators`:
+
+```python
+creators=merge_creators(
+    self.config["credits"]["creators"],
+    self.db.distinct_creators(),
+    self.track_creators,
+),
+```
+
+`SiteTask` cannot supply that third argument itself — GPX source creators are
+collected on `GPXTask`, not `SiteTask` — so `SiteTask` declares `track_creators`
+as an abstract property (`siteTask.py:90-93`) that only `GPXTask` implements.
+This has a real consequence for `taskList.py`'s mixin list: `TaskList(*tasks)`
+resolves an abstract property from whichever listed class defines it first,
+abstract or not, so `GPXTask` must precede `SiteTask` in `tasks` or `TaskList`
+raises `TypeError: Can't instantiate abstract class TaskList` at construction
+time. This is not a new pattern — `GalleryTask.track_statistics` is an
+existing abstract property GPXTask also implements, and `taskList.py` already
+carries a comment warning not to reorder the list without checking for
+abstract properties first; this design adds a second property to that same
+constraint rather than introducing it.
 
 `travellers` keeps its own section — who travelled and who authored are
 different claims. That task already carries `uptodate=[False]`, so a
@@ -230,11 +287,21 @@ turns an edge case into the normal case.
 
 **The cause is not yet diagnosed.** `extra.sass` contains only
 `#gallery_captions { display: none }` (line 273); the visible caption box is
-styled by mkdocs-glightbox's own CSS. The hypothesis is a fixed height or
-`overflow: hidden` on the description element, sized upstream for one line,
-with the fix being a targeted override in `extra.sass` — but that is a
-hypothesis, and confirming it requires inspecting a real build. Implementation
-must diagnose before fixing, and must not guess at selector names.
+styled by mkdocs-glightbox's own CSS. `.gslide-description` itself is not the
+culprit: in the compiled `glightbox.min.css` it carries only `flex: 1 0 100%`,
+with no height and no overflow rule — the `height`/`max-height`/`overflow`
+rules that do exist on `.gslide-description` are scoped under
+`.glightbox-mobile` and so do not apply on desktop.
+
+The current hypothesis is layout, not overflow: `.glightbox-container` sets
+`overflow: hidden`; `.ginner-container` sets `height: 100vh` and, under
+`desc-bottom`, switches to column flex-direction; and `.gslide-image img` gets
+`max-height: 97vh` at viewport widths ≥769px. Between them the image can claim
+nearly the full height of the container, leaving the caption only whatever
+remainder fits inside the hidden-overflow container — enough for one line but
+not two. This is **not confirmed** — it is read from the stylesheet, not
+measured in a browser — and implementation must verify it against a real build
+before proposing a fix, and must not guess at selector names.
 
 Janna runs the example builds; the implementer asks rather than running them.
 
@@ -250,10 +317,10 @@ Janna runs the example builds; the implementer asks rather than running them.
   calibration has none; an empty or whitespace tag counts as absent.
 - `distinct_creators()` and the `>= 2` threshold at each row of the visibility
   table, including the mixed `{Bob, None}` case.
-- Credits page: union of config and asset creators, deduplicated and sorted,
-  with `None` dropped; empty list renders no section.
-- Templates: both render with and without `show_creators`, and an asset with no
-  creator renders no separator when `show_creators` is true.
+- `merge_creators`: union of config, asset, and track creators, deduplicated
+  and sorted, with `None` dropped; empty result renders no section.
+- Templates: all three render with and without `show_creators`, and an asset
+  with no creator renders no separator when `show_creators` is true.
 - `calibrate creator`: sets, unsets, errors when given both a name and
   `--unset`, and honours `--dry-run`.
 

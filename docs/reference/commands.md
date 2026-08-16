@@ -1,6 +1,7 @@
 # Command Reference
 
-mkmapdiary uses a command-based interface with three main subcommands: `build`, `config`, and `generate-demo`.
+mkmapdiary uses a command-based interface with five subcommands: `build`, `config`,
+`generate-demo`, `calibrate`, and `inspect`.
 
 ## Global Options
 
@@ -37,12 +38,19 @@ mkmapdiary build [OPTIONS] SOURCE_DIR [DIST_DIR]
 
 ### Options
 
-- `-x, --params TEXT`: Add configuration parameter. Format: `key=value`. Can be used multiple times.
+- `-x, --params TEXT`: Add configuration parameter. Format: `key=value`, the value parsed as [YAML](configuration.md#parameter-values-are-yaml). Can be used multiple times.
 - `-b, --build-dir PATH`: Path to build directory (implies `-B`)
 - `-B, --persistent-build`: Use persistent build directory instead of temporary
 - `-a, --always-execute`: Always execute tasks, even if up-to-date
 - `-n, --num-processes INTEGER`: Number of parallel processes (default: CPU count)
-- `--no-cache`: Disable cache in home directory
+- `--no-cache`: Disable cache in home directory (not recommended)
+- `--profile`: Profile the build with yappi (needs the `profile` extra)
+- `--debug-fast`: Development only. Layers `resources/debug_fast.yaml` over the defaults
+  to disable slow features or swap in faster alternatives; the resulting journal is not
+  representative.
+
+`-a, --always-execute` only matters together with a persistent build directory, since a
+temporary one has no up-to-date database to consult.
 
 ### Examples
 
@@ -74,8 +82,9 @@ mkmapdiary config [OPTIONS] [SOURCE_DIR]
 
 ### Options
 
-- `-x, --params TEXT`: Configuration parameter to set. Format: `key=value`. Can be used multiple times.
+- `-x, --params TEXT`: Configuration parameter to set. Format: `key=value`, the value parsed as [YAML](configuration.md#parameter-values-are-yaml). Can be used multiple times.
 - `--user`: Write to user config file instead of project config file
+- `--get`: Print the effective configuration as YAML to stdout instead of writing it
 
 ### Examples
 
@@ -89,6 +98,36 @@ mkmapdiary config -x site.title="My Trip" -x site.author="John Doe" my_project
 # Set user-wide configuration (affects all projects)
 mkmapdiary config --user -x features.llms.enabled=false
 ```
+
+### Showing the effective configuration
+
+`--get` prints the configuration a build would actually use: the packaged
+defaults with the user configuration, the project's `config.yaml` and any
+`-x` parameters merged on top. Nothing is written, so it is safe to combine
+with `-x` to preview a change before applying it.
+
+```bash
+# Show the full configuration for a project
+mkmapdiary config --get my_project
+
+# Preview what a parameter would change
+mkmapdiary config --get -x site.image_format=webp my_project
+
+# Show the configuration without any project layer
+mkmapdiary config --get --user
+
+# Save it as a starting point for a project config
+mkmapdiary config --get my_project > my_project/config.yaml
+```
+
+Values are shown fully computed: `!auto`, `!duration` and `!distance` appear
+as the values they resolve to, and every `strings` entry carries its
+translation rather than a null. The output is still valid configuration and
+can be fed back in.
+
+**Warning:** The dump contains every configured secret in plain text, such as
+`features.poi_detection.connection.password`. Take care when redirecting it to
+a file or sharing it.
 
 ## generate-demo
 
@@ -112,6 +151,102 @@ mkmapdiary build demo
 
 Note: This command is primarily for testing and development purposes. The target directory must be empty.
 
+## calibrate
+
+Write a `calibration.yaml` into a source directory. Every subcommand edits one such
+file, merging into it rather than replacing it, so the four can be used in any order on
+the same directory. See [Calibration files](calibration.md) for what the resulting file
+means and how it is inherited by subdirectories.
+
+```bash
+mkmapdiary calibrate SUBCOMMAND [OPTIONS]
+```
+
+All subcommands take `-o, --output PATH`, which may be either the directory to calibrate
+or the `calibration.yaml` inside it. It is required everywhere except `calibrate file`,
+which falls back to the directory holding the reference image. `calibrate file`,
+`calibrate effects` and `calibrate creator` also take `-n, --dry-run` to print the
+result without writing.
+
+### calibrate file
+
+Derive the camera offset from a photo of a clock, a phone screen, or any other
+reference whose true time you know.
+
+```bash
+mkmapdiary calibrate file [OPTIONS] IMAGE REF_TIME
+```
+
+- `IMAGE`: a photo taken by the camera to calibrate
+- `REF_TIME`: the true time at which it was taken
+- `--camera-tz TEXT`: timezone of the camera's own clock (default: system localtime)
+- `--ref-tz TEXT`: timezone `REF_TIME` is given in (default: system localtime)
+
+### calibrate manual
+
+Write a known offset directly, without a reference photo.
+
+```bash
+mkmapdiary calibrate manual -o PATH [-x SECONDS] [--camera-tz TEXT]
+```
+
+- `-x, --offset INTEGER`: offset in seconds; positive means the camera clock runs ahead
+
+### calibrate effects
+
+Manage the per-directory effects list. Currently only `autorotate` is supported.
+
+```bash
+mkmapdiary calibrate effects -o PATH [--add NAME] [--remove NAME]
+```
+
+`--add` and `--remove` may each be given multiple times.
+
+### calibrate creator
+
+Record who made the media in a directory. The name is shown next to each asset's time
+and place — but only when the journal holds more than one distinct creator — and always
+on the credits page.
+
+```bash
+mkmapdiary calibrate creator -o PATH [NAME]
+mkmapdiary calibrate creator -o PATH --unset
+```
+
+- `NAME`: the creator to record; required unless `--unset` is given
+- `--unset`: clear the creator for this directory. This writes an explicit `null`, which
+  overrides a creator inherited from a parent directory. Omitting the key entirely would
+  inherit it instead — see [Calibration files](calibration.md#inheritance).
+
+For images, a creator set here wins over any `Artist` recorded in the file's own EXIF
+metadata.
+
+### Examples
+
+```bash
+# The camera clock was 259 seconds fast
+mkmapdiary calibrate manual -o trip/day1 -x 259
+
+# Derive the same offset from a photo of a clock reading 14:32:10
+mkmapdiary calibrate file trip/day1/IMG_0001.jpg 2026-08-02T14:32:10 -o trip/day1
+
+# Credit a directory, then exempt one subdirectory from that credit
+mkmapdiary calibrate creator -o trip "Janna Hopp"
+mkmapdiary calibrate creator -o trip/borrowed-camera --unset
+```
+
+## inspect
+
+Print the timestamps mkmapdiary reads from a source directory, so a calibration can be
+checked before a full build.
+
+```bash
+mkmapdiary inspect [--tz TEXT] SOURCE
+```
+
+- `SOURCE`: the source directory to inspect
+- `--tz TEXT`: timezone to display the timestamps in
+
 ## Configuration Parameter Format
 
 Configuration parameters use dot notation to specify nested values:
@@ -124,22 +259,9 @@ mkmapdiary build -x site.title="My Travel Journal" source_dir
 mkmapdiary build -x features.transcription.enabled=true source_dir
 mkmapdiary build -x features.llms.text_model="llama3:70b" source_dir
 
-# Special types (durations, etc.)
+# Special types (durations, distances)
 mkmapdiary build -x features.geo_correlation.max_time_diff="!duration 10 minutes" source_dir
+mkmapdiary build -x features.track_simplification.tolerance="!distance 2 meters" source_dir
 ```
 
-## Migration from v1.x
-
-If you were using the old single-command interface:
-
-```bash
-# Old (v1.x)
-mkmapdiary source_dir
-mkmapdiary -x key=value source_dir
-mkmapdiary --config -x key=value
-
-# New (v2.x)
-mkmapdiary build source_dir
-mkmapdiary build -x key=value source_dir
-mkmapdiary config -x key=value source_dir
-```
+See the [configuration reference](configuration.md) for the full set of keys.

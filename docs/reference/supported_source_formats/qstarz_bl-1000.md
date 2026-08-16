@@ -52,11 +52,20 @@ After conversion to GPX format:
 
 No specific configuration required. Processing follows GPX configuration settings after conversion:
 
+The extensions handled and the gpsbabel driver used for each come from
+`input_formats.gpsbabel.formats`, so other gpsbabel-supported devices can be added there
+without code changes. Once converted, the standard GPX configuration applies:
+
 ```yaml
+input_formats:
+  gpsbabel:
+    formats:
+      .bin: qstarz_bl-1000
+      .poi: qstarz_bl-1000
+      .dat: null                             # Ignored
+
 features:
   geo_correlation:                   # Applied after conversion
-    enabled: true
-    time_offset: !duration 0 seconds         # GPS device time offset
     max_time_diff: !duration 300 seconds     # Max correlation window
 ```
 

@@ -142,6 +142,30 @@ msgstr "Bewegungszeit"
 msgid "track_total_time"
 msgstr "Gesamtzeit"
 
+msgid "meta_time"
+msgstr "Zeitpunkt"
+
+msgid "meta_timezone"
+msgstr "Zeitzone"
+
+msgid "meta_location"
+msgstr "Ort"
+
+msgid "meta_location_admin"
+msgstr "Region"
+
+msgid "meta_creator"
+msgstr "Erstellt von"
+
+msgid "meta_creator_image"
+msgstr "Fotografiert von"
+
+msgid "meta_creator_audio"
+msgstr "Aufgenommen von"
+
+msgid "meta_creator_text"
+msgstr "Geschrieben von"
+
 msgid "A city in {admin} (rank {rank})"
 msgstr "Eine Stadt in {admin} (Rang {rank})"
 
@@ -434,6 +458,9 @@ msgstr "Danksagungen"
 
 msgid "credits_travellers"
 msgstr "Reisende"
+
+msgid "credits_creators"
+msgstr "Urheber*innen"
 
 msgid "credits_made_with"
 msgstr "Erstellt mit"

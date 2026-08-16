@@ -15,7 +15,15 @@ Canon Raw v2 (CR2) files are processed similarly to common image formats, with f
 
 ## File Extensions
 
+The same RAW handler covers every extension listed under `input_formats.raw.formats`:
+
 - `.cr2` - Canon Raw Version 2 format
+- `.cr3`, `.crw` - other Canon RAW formats
+- `.nef`, `.nrw` - Nikon
+- `.arw`, `.sr2`, `.srf` - Sony
+
+Anything LibRaw can read can be added there; the value is ignored as long as it is not
+`null`, which disables the extension.
 
 ## Processing Details
 
@@ -35,9 +43,17 @@ Canon Raw v2 (CR2) files are processed similarly to common image formats, with f
 
 ### RAW Processing
 
-- **Format Conversion**: CR2 files are converted to the configured output format (default: JPG)
+- **Development**: `rawpy` (LibRaw) develops the RAW to an 8-bit RGB image using the
+  camera white balance and automatic brightness, and `imageio` writes an intermediate
+  JPEG
+- **Thumbnail shortcut**: With `features.cr2.use_thumbnail`, the embedded preview JPEG is
+  extracted instead of developing the RAW. Much faster, but limited to the resolution and
+  in-camera processing of that preview
+- **Format Conversion**: The intermediate JPEG then goes through the normal image
+  pipeline and ends up in the configured output format (default: JPG)
 - **Quality Settings**: Configurable via `image_options` in configuration
-- **EXIF Preservation**: Metadata extraction occurs before conversion
+- **EXIF Preservation**: Metadata is read from the original RAW, not from the
+  intermediate JPEG
 - **Unique Naming**: Duplicate filenames handled with automatic counter suffixes
 
 ## Configuration
@@ -45,20 +61,24 @@ Canon Raw v2 (CR2) files are processed similarly to common image formats, with f
 ```yaml
 site:
   image_format: jpg                  # Output format for converted RAW files
-  image_options: {}                  # PIL/Pillow save options for conversion
+  image_options: {}                  # PIL/Pillow save options for the final image
 
 features:
+  cr2:
+    use_thumbnail: false             # true = extract the embedded preview instead of developing
   geo_correlation:                   # For coordinate fallback
-    enabled: true
-    time_offset: !duration 0 seconds         # Camera time offset
     max_time_diff: !duration 300 seconds     # Max correlation window
 ```
+
+Camera clock offsets go into a [`calibration.yaml`](../calibration.md);
+`features.geo_correlation.time_offset` is not implemented.
 
 ## Dependencies
 
 - **ExifTool**: Required for CR2 metadata extraction
-- **PIL/Pillow**: For RAW to standard format conversion
-  - Note: CR2 support may require additional libraries or plugins
+- **rawpy** (LibRaw): RAW decoding and development
+- **imageio**: Writes the intermediate JPEG
+- **PIL/Pillow**: Final image conversion and saving
 
 ## Tips for Best Results
 

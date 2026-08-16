@@ -83,7 +83,15 @@ store queried by date, type, and geotag. There is no database; the registry *is*
 (and registering a new mixin in the `tasks` list). `@create_after(...)` is used where a
 task's *set* of subtasks can only be known once an upstream phase finished; barrier tasks
 (`pre_gpx`, `end_gpx`, `end_postprocessing`) exist purely to sequence phases.
-`docs/reference/task-dependencies.md` documents the full graph.
+`docs/reference/task-dependencies.md` documents the full graph. **Order in the `tasks`
+list is not cosmetic**: it is Python's MRO, so when one mixin declares an
+`@abstractmethod` property that only another mixin implements (e.g.
+`SiteTask.track_creators` and `GalleryTask.track_statistics`, both implemented only by
+`GPXTask`), the implementing mixin must be listed first — MRO resolves the first-listed
+class's definition of a name whether or not it is abstract, so an implementer listed
+after its abstract declarer leaves `TaskList` itself abstract and unable to
+instantiate. Alphabetizing or otherwise reordering the list without checking for this
+reintroduces the failure silently.
 
 **3. Postprocessors.** `tasks/postprocessingTask.py` runs two classes of processor from
 `postprocessors/`: `SingleAssetPostprocessor`s (one doit subtask per asset, parallel,
@@ -143,6 +151,12 @@ they are not theoretical.
   and `BaseTask.ai()` formats it, calls ollama, and optionally validates the response
   against a schema. UI strings use an `ui.` prefix. After touching `.po` files run
   `task translate`, or pre-commit fails.
+  **Gender-neutral German**: prefer neutral formulations — substantivierte
+  Partizipien (`Reisende`), abstract nouns, or reformulation. Where a gendered
+  noun is unavoidable, use the asterisk (`Urheber*innen`), not the colon or
+  Binnen-I. Precision that still reads as normal German wins: `Urheberschaft`
+  is legalese nobody says, and `Mitwirkende` is so broad it collapses into
+  `Reisende`, the section right next to it.
 - **AI transparency**: any feature putting machine-generated content into a journal must
   both render `templates/ai_label.j2` beside it and add a row to
   `SiteTask.__ai_disclosure()` for the credits page. Gate both on the feature flag —

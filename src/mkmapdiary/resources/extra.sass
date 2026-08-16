@@ -272,3 +272,27 @@ h2.hidden
 
 #gallery_captions
     display: none
+
+// mkdocs-glightbox caps the lightbox image at max-height:97vh
+// (assets/stylesheets/glightbox.min.css, `@media (min-width:769px)
+// .gslide-image img`). Image and caption are stacked and centred inside
+// `.glightbox-container`, which clips overflow, so at 97vh a wrapped
+// caption has nowhere left to sit and its last line gets sheared off.
+// The creator field this feature adds makes that line (time, timezone,
+// place, admin area, creator) wrap routinely, so budget for up to three
+// lines: 3 * ~18.07px line height + 44px of .gdesc-inner padding ≈ 98px,
+// plus a margin. Cap the image at 100vh minus 110px instead of 97vh.
+// Prefixing with .glightbox-container raises specificity to (0,2,1),
+// above glightbox's own (0,1,1) `.gslide-image img`, so this wins on
+// specificity alone regardless of extra.css vs glightbox.min.css load
+// order. Scoped to the lightbox image only; the description element is
+// untouched, as it is not the source of the clip.
+//
+// Confined to the same breakpoint as the rule it corrects. Below 769px the
+// base cap is 100vh and glightbox switches to `.glightbox-mobile`, which
+// absolutely positions the description over the image with a gradient, so
+// no vertical room needs reserving there and shortening the image by 110px
+// would cost height for nothing.
+@media (min-width: 769px)
+    .glightbox-container .gslide-image img
+        max-height: calc(100vh - 110px)

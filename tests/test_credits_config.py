@@ -11,6 +11,7 @@ RESOURCES = Path(__file__).parent.parent / "src" / "mkmapdiary" / "resources"
 CREDITS_STRINGS = (
     "credits_title",
     "credits_travellers",
+    "credits_creators",
     "credits_made_with",
     "credits_software",
     "credits_toolchain",
@@ -21,6 +22,12 @@ def test_defaults_have_empty_travellers() -> None:
     config = load_config_file(RESOURCES / "defaults.yaml")
 
     assert config["credits"]["travellers"] == []
+
+
+def test_defaults_have_empty_creators() -> None:
+    config = load_config_file(RESOURCES / "defaults.yaml")
+
+    assert config["credits"]["creators"] == []
 
 
 def test_defaults_declare_credits_strings() -> None:
@@ -45,3 +52,19 @@ def test_travellers_rejects_a_bare_string() -> None:
 def test_travellers_rejects_non_string_entries() -> None:
     with pytest.raises(ValidationError):
         load_config_data({"credits": {"travellers": [42]}})
+
+
+def test_creators_accepts_a_list_of_names() -> None:
+    config: dict[str, Any] = {"credits": {"creators": ["Janna Hopp", "Alex"]}}
+
+    assert load_config_data(config)["credits"]["creators"] == ["Janna Hopp", "Alex"]
+
+
+def test_creators_rejects_a_bare_string() -> None:
+    with pytest.raises(ValidationError):
+        load_config_data({"credits": {"creators": "Janna Hopp"}})
+
+
+def test_creators_rejects_non_string_entries() -> None:
+    with pytest.raises(ValidationError):
+        load_config_data({"credits": {"creators": [42]}})

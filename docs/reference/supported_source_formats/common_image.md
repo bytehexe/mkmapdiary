@@ -27,9 +27,22 @@ All image formats supported by the identify library, including:
 
 ### Time Extraction (Priority Order)
 
-1. **EXIF Metadata** (Primary): `EXIF:CreateDate` field in `YYYY:MM:DD HH:MM:SS` format
+1. **EXIF Metadata** (Primary): the first tag that parses, in the order
+   `Composite:SubSecDateTimeOriginal`, `EXIF:DateTimeOriginal`,
+   `Composite:SubSecCreateDate`, `EXIF:CreateDate`
 2. **Filename Parsing** (Fallback): Extracts numeric sequences from filename (e.g., `photo_20200101_012709.jpg` → 2020-01-01 01:27:09)
 3. **File Modification Time** (Last Resort): Uses the file's `mtime` when other methods fail
+
+All three are wall-clock readings with no timezone of their own. They are turned into
+absolute instants using the [`calibration.yaml`](../calibration.md) in effect for the
+directory, which supplies the camera's timezone and its clock drift. Without one, the
+reading is interpreted as system-local time with no offset.
+
+### Creator
+
+The creator of an image is taken from the `creator` key of the calibration stack. Where
+no calibration file sets one, the image's own `Artist`, `By-line` or `XMP:Creator` tag is
+used instead.
 
 ### Coordinate Extraction
 
@@ -53,10 +66,12 @@ site:
 
 features:
   geo_correlation:                   # For coordinate fallback
-    enabled: true
-    time_offset: !duration 0 seconds         # Camera time offset
     max_time_diff: !duration 300 seconds     # Max correlation window
 ```
+
+Camera clock offsets are *not* configured here — `features.geo_correlation.time_offset`
+is not implemented. Use a [`calibration.yaml`](../calibration.md), which scopes the
+offset to the directory the affected photos are in.
 
 ## Dependencies
 

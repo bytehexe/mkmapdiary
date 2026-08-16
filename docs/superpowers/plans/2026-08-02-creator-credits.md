@@ -366,7 +366,7 @@ git commit -m "feat: read the authorship tag from EXIF metadata"
 - Modify: `src/mkmapdiary/tasks/textTask.py:26`
 - Modify: `src/mkmapdiary/tasks/audioTask.py:42,49`
 - Modify: `src/mkmapdiary/tasks/rawInputTask.py:49`
-- Test: `tests/test_creator_calibration.py` (extend)
+- Test: none — see below.
 
 **Interfaces:**
 - Consumes: `Calibration.creator` and `AssetRecord.creator` (Task 1); `ExifData.artist` (Task 2).
@@ -374,28 +374,15 @@ git commit -m "feat: read the authorship tag from EXIF metadata"
 
 Precedence is `calibration.creator or exif_data.artist` — a deliberate `calibration.yaml` must beat a stale camera tag naming a previous owner.
 
-- [ ] **Step 1: Write the failing test**
+**No new tests, by Janna's explicit decision.** The handlers build their
+`AssetRecord`s inside a scan that needs a full `TaskList`, and the cheap
+alternative — asserting on a bare Python `or` expression — would be a test
+that verifies nothing. Verification here is the Step 2 grep; the creator's
+behaviour on assets is covered by Task 5's registry tests. Do not add
+tautological tests to fill the gap, and do not treat the absence as an
+oversight to correct.
 
-Append to `tests/test_creator_calibration.py`:
-
-```python
-def test_calibration_creator_wins_over_the_exif_artist() -> None:
-    """A stale camera tag must never override a deliberate calibration.yaml."""
-    calibration = Calibration(timezone="UTC", offset=0, creator="Janna")
-    assert (calibration.creator or "Bob") == "Janna"
-
-
-def test_exif_artist_fills_the_gap_when_calibration_is_silent() -> None:
-    calibration = Calibration(timezone="UTC", offset=0)
-    assert (calibration.creator or "Bob") == "Bob"
-```
-
-- [ ] **Step 2: Run test to verify it fails**
-
-Run: `hatch test tests/test_creator_calibration.py -v`
-Expected: PASS immediately — these pin the precedence expression only. The real verification is Step 4's grep, because the handlers construct `AssetRecord`s inside a scan that needs a full `TaskList`.
-
-- [ ] **Step 3: Edit the five handlers**
+- [ ] **Step 1: Edit the five handlers**
 
 `imageTask.py` — inside the `AssetRecord(...)` call, after `effects=calibration.effects.copy(),`:
 
@@ -417,22 +404,22 @@ Expected: PASS immediately — these pin the precedence expression only. The rea
         asset.creator = calibration.creator or exif.artist
 ```
 
-- [ ] **Step 4: Verify every handler was covered**
+- [ ] **Step 2: Verify every handler was covered**
 
 Run: `grep -n "creator" src/mkmapdiary/tasks/*Task.py`
 Expected: six `creator=` / `asset.creator` lines — image (1), markdown (1), text (1), audio (2), rawInput (1). GPX is intentionally absent; it is Task 4.
 
-- [ ] **Step 5: Full gate**
+- [ ] **Step 3: Full gate**
 
 Run: `hatch run types:check && hatch run ruff:ruff check . && hatch test`
 Expected: all pass.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
 git add src/mkmapdiary/tasks/imageTask.py src/mkmapdiary/tasks/markdownTask.py \
         src/mkmapdiary/tasks/textTask.py src/mkmapdiary/tasks/audioTask.py \
-        src/mkmapdiary/tasks/rawInputTask.py tests/test_creator_calibration.py
+        src/mkmapdiary/tasks/rawInputTask.py
 git commit -m "feat: carry the creator from calibration onto every asset"
 ```
 
@@ -1148,48 +1135,167 @@ git commit -m "feat: credit the creators of the media on the credits page"
 
 ---
 
-### Task 8: Caption clipping fix
+### Task 8: Three layout defects
 
 **Files:**
+- Modify: `src/mkmapdiary/templates/index.j2`
 - Modify: `src/mkmapdiary/resources/extra.sass`
+- Modify: `src/mkmapdiary/resources/gallery.js`
 
 **Interfaces:**
 - Consumes: nothing. Independent of Tasks 1-7 and safe to do in any order.
 - Produces: nothing other tasks rely on.
 
-**This task starts with a diagnosis, not a fix.** The asset metadata line clips its second line when it wraps, cutting text mid-glyph — observed in the lightbox caption, where the trailing `Frankreich` was sheared off. Adding a creator makes that line wrap in the common case, so this must land with the feature.
+Three defects Janna reported, grouped because they share one verification
+loop: a single build session covers all three. **8a is confirmed statically
+and can be fixed now. 8b and 8c are hypotheses and must be diagnosed against
+a real build before anything is edited.**
 
-`extra.sass:273` contains only `#gallery_captions { display: none }`; the visible caption box is styled by **mkdocs-glightbox's own CSS**. The hypothesis is a fixed height or `overflow: hidden` on the description element, sized upstream for a single line. That is a hypothesis, not a finding.
+Only 8c is caused by this feature's work; 8a and 8b are pre-existing. All
+three ship together because the creator field makes 8c routine rather than
+rare, and because they are the same kind of fix in the same files.
 
-- [ ] **Step 1: Get a real build**
+#### 8a — Stray `</div>` in `index.j2` (confirmed)
 
-Ask Janna to run a build and open a lightbox caption long enough to wrap. Do **not** run `task example` yourself — the project rule reserves that for her. `task demo` is permitted and may reproduce it with placeholder data; try that first.
+`index.j2` contains six `<div` and seven `</div>`. The imbalance is at line 8:
 
-- [ ] **Step 2: Diagnose before touching anything**
+```jinja
+</div>                                      {# line 7: closes #highlights #}
+</div><div id="gallery_captions" markdown>  {# line 8: this </div> closes nothing #}
+```
 
-From the built site, identify the actual element and the actual property doing the clipping — inspect the generated CSS for the description container (`.gslide-description`, `.gdesc-inner`, or whatever the installed mkdocs-glightbox version emits). Record the real selector and the real declaration.
+Line 8 was copied from `day_gallery.j2`, where the leading `</div>` correctly
+closes `#photo_gallery`. `index.j2` has no such div open, so the tag closes an
+ancestor — the theme's content wrapper — putting everything after it outside
+the container. `day_gallery.j2` is balanced (7/7) and must not be touched.
 
-Do not guess selector names from this plan. If the cause turns out not to be height/overflow, follow the evidence and note the correction in the commit message.
+- [ ] **Step 1: Delete the stray tag**
 
-- [ ] **Step 3: Write the override**
+Remove the leading `</div>` from line 8 of `index.j2` so it reads:
 
-Add a targeted rule to `extra.sass` next to the existing `#gallery_captions` block, styled to match the file's indentation-based Sass syntax (no braces). Scope it to the caption container only — do not restyle the lightbox generally.
+```jinja
+<div id="gallery_captions" markdown>
+```
 
-- [ ] **Step 4: Verify against a real build**
+- [ ] **Step 2: Verify balance**
 
-Ask Janna to rebuild and confirm a wrapped caption now shows both lines in full, and that a single-line caption is unchanged.
+Run: `grep -c "<div" src/mkmapdiary/templates/index.j2 && grep -c "</div>" src/mkmapdiary/templates/index.j2`
+Expected: `6` and `6`.
 
-- [ ] **Step 5: Full gate**
+- [ ] **Step 3: Commit**
 
-Run: `task test`
-Expected: all pass.
+```bash
+git add src/mkmapdiary/templates/index.j2
+git commit -m "fix: remove a stray closing div from the start page"
+```
 
-- [ ] **Step 6: Commit**
+#### 8b — Gap below the highlights — RESOLVED BY 8a, NO SEPARATE FIX
+
+**Outcome: fixed by 8a; the hypothesis below was never confirmed and is
+almost certainly wrong.** Janna verified the gap was gone after the stray
+`</div>` was removed. That fits: the unbalanced tag closed an ancestor
+element early, so the floated highlights were no longer contained by the
+wrapper meant to hold them, and `.clear` could not clear them against it.
+
+A div-balance check across all nine templates afterwards shows every one
+balanced, so no sibling defect remains. **Do not implement the justifiedGallery
+fix described below.** It is retained only as a record of a hypothesis that
+the evidence did not support — a reminder that "the gap is exactly one image
+row" pointed at float containment, not at the layout plugin.
+
+---
+
+<details>
+<summary>Original (unconfirmed, superseded) hypothesis</summary>
+
+A gap roughly one image-row tall sits between the highlights strip and the
+map, on the start page and on day pages.
+
+**Hypothesis:** the highlights are laid out by justifiedGallery
+(`gallery.js:28-29`) with `maxRowsCount: window.highlight_max_rows` and
+`lastRow: 'hide'` (`gallery.js:13-14`). That plugin sets an explicit pixel
+height on its container; the row it hides is still counted in that height, so
+the container reserves space for images it does not draw. Janna's measurement
+— the gap is exactly an image row — fits this.
+
+This is a hypothesis. Confirm it in the browser before editing.
+
+- [ ] **Step 1: Confirm against a real build**
+
+Ask Janna for a build. Inspect the `#highlights p` element: read its computed
+`height` and compare with the height its visible rows actually occupy. A
+container taller than its visible rows confirms the hypothesis.
+
+- [ ] **Step 2: Fix at the confirmed cause**
+
+If confirmed, correct the container height after layout completes — hook
+justifiedGallery's `jg.complete` event and reset the height to the visible
+rows. Prefer the plugin's own API over a CSS override that fights it.
+
+If the cause turns out to be something else, follow the evidence and say so
+in the commit message. Do not implement the fix above unless Step 1 confirmed
+it.
+
+- [ ] **Step 3: Verify and commit**
+
+Ask Janna to rebuild and confirm the gap is gone on both the start page and a
+day page, and that highlights still lay out correctly at several window
+widths.
+
+```bash
+git add src/mkmapdiary/resources/gallery.js
+git commit -m "fix: stop the highlights reserving space for a hidden row"
+```
+
+</details>
+
+#### 8c — Wrapped captions clip (hypothesis)
+
+The asset metadata line clips its second line when it wraps, shearing text
+mid-glyph — observed in the lightbox caption, where a trailing `Frankreich`
+was cut. Adding a creator makes that line wrap in the common case.
+
+`extra.sass:273` contains only `#gallery_captions { display: none }`; the
+visible caption box is styled by **mkdocs-glightbox's own CSS**. The
+hypothesis is a fixed height or `overflow: hidden` on the description
+element, sized upstream for a single line. That is a hypothesis, not a
+finding.
+
+- [ ] **Step 1: Diagnose against a real build**
+
+From the built site, identify the actual element and the actual property
+doing the clipping — inspect the generated CSS for the description container
+(`.gslide-description`, `.gdesc-inner`, or whatever the installed
+mkdocs-glightbox version emits). Record the real selector and declaration.
+
+Do not guess selector names from this plan.
+
+- [ ] **Step 2: Write the override**
+
+Add a targeted rule to `extra.sass` next to the existing `#gallery_captions`
+block, in the file's indentation-based Sass syntax (no braces). Scope it to
+the caption container only — do not restyle the lightbox generally.
+
+- [ ] **Step 3: Verify and commit**
+
+Ask Janna to rebuild and confirm a wrapped caption shows both lines in full
+and a single-line caption is unchanged.
 
 ```bash
 git add src/mkmapdiary/resources/extra.sass
 git commit -m "fix: stop wrapped asset captions clipping their second line"
 ```
+
+#### Whole-task gate
+
+- [ ] **Final step: Full gate**
+
+Run: `task test`
+Expected: all pass.
+
+**Builds:** do **not** run `task example` — the project rule reserves it for
+Janna. `task demo` is permitted and may reproduce all three with placeholder
+data; try it before asking.
 
 ---
 
