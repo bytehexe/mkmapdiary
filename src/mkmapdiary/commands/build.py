@@ -214,7 +214,12 @@ def main(
         config_filenames=(),
         extra_config=doit_config,
     ).run(proccess_args)
-    logger.info("Done.", extra={"icon": "✅"})
+    if exitcode == 0:
+        logger.info("Done.", extra={"icon": "✅"})
+    else:
+        logger.error(
+            f"Error: Build failed (exit code {exitcode}), see the task output above.",
+        )
 
     if profile:
         import yappi
