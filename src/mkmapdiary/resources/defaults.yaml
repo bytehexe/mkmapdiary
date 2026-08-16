@@ -129,6 +129,14 @@ strings:
   track_elevation_loss: null
   track_time_moving: null
   track_total_time: null
+  meta_time: null
+  meta_timezone: null
+  meta_location: null
+  meta_location_admin: null
+  meta_creator: null
+  meta_creator_image: null
+  meta_creator_audio: null
+  meta_creator_text: null
   credits_title: null
   credits_travellers: null
   credits_creators: null

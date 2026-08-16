@@ -161,9 +161,14 @@ strings:
   text_title: null
   gallery_title: null
   home_title: null
-  # ... plus legend_*, quality_*, track_*, credits_*, ai_disclosure_* and the
-  # *_prompt keys; see resources/defaults.yaml for the complete list
+  # ... plus legend_*, quality_*, track_*, meta_*, credits_*, ai_disclosure_*
+  # and the *_prompt keys; see resources/defaults.yaml for the complete list
 ```
+
+The `meta_*` keys are the tooltips on the icons in an asset's metadata line — time,
+time zone, location, region, and the creator. The creator tooltip depends on the asset
+type, so a photo reads "Photographed by" (`meta_creator_image`), a recording "Recorded
+by" (`meta_creator_audio`) and a written entry "Written by" (`meta_creator_text`).
 
 The `*_prompt` keys (`generate_title_prompt`, `generate_tags_prompt`,
 `summarize_journal_entry_prompt`, `summarize_image_prompt`,

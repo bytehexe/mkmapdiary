@@ -142,6 +142,30 @@ msgstr "Time Moving"
 msgid "track_total_time"
 msgstr "Total Time"
 
+msgid "meta_time"
+msgstr "Time"
+
+msgid "meta_timezone"
+msgstr "Time zone"
+
+msgid "meta_location"
+msgstr "Location"
+
+msgid "meta_location_admin"
+msgstr "Region"
+
+msgid "meta_creator"
+msgstr "Created by"
+
+msgid "meta_creator_image"
+msgstr "Photographed by"
+
+msgid "meta_creator_audio"
+msgstr "Recorded by"
+
+msgid "meta_creator_text"
+msgstr "Written by"
+
 msgid "A city in {admin} (rank {rank})"
 msgstr "A city in {admin} (rank {rank})"
 

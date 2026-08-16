@@ -323,6 +323,22 @@ properties:
         $ref: "#/definitions/customString"
       track_total_time:
         $ref: "#/definitions/customString"
+      meta_time:
+        $ref: "#/definitions/customString"
+      meta_timezone:
+        $ref: "#/definitions/customString"
+      meta_location:
+        $ref: "#/definitions/customString"
+      meta_location_admin:
+        $ref: "#/definitions/customString"
+      meta_creator:
+        $ref: "#/definitions/customString"
+      meta_creator_image:
+        $ref: "#/definitions/customString"
+      meta_creator_audio:
+        $ref: "#/definitions/customString"
+      meta_creator_text:
+        $ref: "#/definitions/customString"
       credits_title:
         $ref: "#/definitions/customString"
       credits_travellers:

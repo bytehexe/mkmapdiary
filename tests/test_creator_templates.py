@@ -31,6 +31,14 @@ STRINGS: dict[str, Any] = {
     "track_time_moving": "Moving",
     "track_total_time": "Total",
     "home_title": "Home",
+    "meta_time": "Time",
+    "meta_timezone": "Time zone",
+    "meta_location": "Location",
+    "meta_location_admin": "Region",
+    "meta_creator": "Created by",
+    "meta_creator_image": "Photographed by",
+    "meta_creator_audio": "Recorded by",
+    "meta_creator_text": "Written by",
 }
 
 
@@ -78,12 +86,32 @@ def test_journal_renders_no_separator_for_an_unattributed_asset() -> None:
     """show_creators is journal-wide; individual assets may still have none."""
     output = _journal(asset={"creator": None})
 
-    assert "iconoir-user" not in output
+    assert "iconoir-edit-pencil" not in output
 
 
 def test_journal_carries_no_ai_label() -> None:
     """Creator attribution is human authorship, not machine-generated output."""
     assert "ai-generated" not in _journal()
+
+
+def test_journal_marks_a_written_entry_with_the_pencil() -> None:
+    output = _journal(asset={"type": "markdown"})
+
+    assert 'title="Written by"><i class="iconoir iconoir-edit-pencil"' in output
+
+
+def test_journal_marks_a_recording_with_the_microphone() -> None:
+    """A person icon on a recording reads as the person speaking in it."""
+    output = _journal(asset={"type": "audio"})
+
+    assert 'title="Recorded by"><i class="iconoir iconoir-microphone"' in output
+
+
+def test_journal_falls_back_to_the_person_icon_for_an_unknown_type() -> None:
+    """A type added to journalTask must not silently lose its attribution."""
+    output = _journal(asset={"type": "video"})
+
+    assert 'title="Created by"><i class="iconoir iconoir-user"' in output
 
 
 def test_journal_metadata_stays_one_paragraph_without_location() -> None:
@@ -93,6 +121,16 @@ def test_journal_metadata_stays_one_paragraph_without_location() -> None:
     block = output[start : output.index("</div>", start)]
 
     assert "\n\n" not in block
+
+
+def test_journal_titles_every_metadata_icon() -> None:
+    """A bare icon says nothing to a reader who does not recognise it."""
+    output = _journal(
+        asset={"location": "Paris", "location_admin": "Ile-de-France, France"}
+    )
+
+    for title in ("Time", "Time zone", "Location", "Region"):
+        assert f'title="{title}"' in output
 
 
 def _gallery_item(**params: Any) -> dict[str, Any]:
@@ -150,12 +188,28 @@ def test_gallery_renders_no_separator_for_an_unattributed_asset() -> None:
     """show_creators is journal-wide; individual items may still have none."""
     output = _gallery(item={"creator": None})
 
-    assert "iconoir-user" not in output
+    assert "iconoir-camera" not in output
 
 
 def test_gallery_carries_no_ai_label() -> None:
     """Creator attribution is human authorship, not machine-generated output."""
     assert "ai-generated" not in _gallery()
+
+
+def test_gallery_credits_the_photographer_with_a_camera() -> None:
+    """A person icon here reads as the person depicted, not the one shooting."""
+    output = _gallery()
+
+    assert 'title="Photographed by"><i class="iconoir iconoir-camera"' in output
+    assert "iconoir-user" not in output
+
+
+def test_gallery_titles_every_metadata_icon() -> None:
+    """A bare icon says nothing to a reader who does not recognise it."""
+    output = _gallery(item={"location": "Paris", "location_admin": "France"})
+
+    for title in ("Time", "Time zone", "Location", "Region"):
+        assert f'title="{title}"' in output
 
 
 def _index(**params: Any) -> str:
@@ -187,9 +241,25 @@ def test_index_renders_no_separator_for_an_unattributed_asset() -> None:
     """show_creators is journal-wide; individual items may still have none."""
     output = _index(item={"creator": None})
 
-    assert "iconoir-user" not in output
+    assert "iconoir-camera" not in output
 
 
 def test_index_carries_no_ai_label() -> None:
     """Creator attribution is human authorship, not machine-generated output."""
     assert "ai-generated" not in _index()
+
+
+def test_index_credits_the_photographer_with_a_camera() -> None:
+    """A person icon here reads as the person depicted, not the one shooting."""
+    output = _index()
+
+    assert 'title="Photographed by"><i class="iconoir iconoir-camera"' in output
+    assert "iconoir-user" not in output
+
+
+def test_index_titles_every_metadata_icon() -> None:
+    """A bare icon says nothing to a reader who does not recognise it."""
+    output = _index(item={"location": "Paris", "location_admin": "France"})
+
+    for title in ("Time", "Time zone", "Location", "Region"):
+        assert f'title="{title}"' in output

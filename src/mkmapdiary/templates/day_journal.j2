@@ -9,11 +9,15 @@
 --8<-- "docs/assets/{{ asset.path }}.md:1:1"
 {% endif %}
 <div class="metadata">
-<i class="iconoir iconoir-clock"></i> {{ asset.time }}
-{%- if asset.timezone %} · <i class="iconoir iconoir-time-zone"></i> {{ asset.timezone }}{% endif %}
-{%- if asset.location %} · <i class="iconoir iconoir-map-pin"></i> <a href="#" class="location-link" data-lat="{{ asset.latitude }}" data-lng="{{ asset.longitude }}">{{ asset.location }}</a>{% endif %}
-{%- if asset.location_admin %} · <i class="iconoir iconoir-map"></i> {{ asset.location_admin }}{% endif %}
-{%- if show_creators and asset.creator %} · <i class="iconoir iconoir-user"></i> {{ asset.creator }}{% endif %}
+<span title="{{ strings.meta_time }}"><i class="iconoir iconoir-clock"></i> {{ asset.time }}</span>
+{%- if asset.timezone %} · <span title="{{ strings.meta_timezone }}"><i class="iconoir iconoir-time-zone"></i> {{ asset.timezone }}</span>{% endif %}
+{%- if asset.location %} · <span title="{{ strings.meta_location }}"><i class="iconoir iconoir-map-pin"></i> <a href="#" class="location-link" data-lat="{{ asset.latitude }}" data-lng="{{ asset.longitude }}">{{ asset.location }}</a></span>{% endif %}
+{%- if asset.location_admin %} · <span title="{{ strings.meta_location_admin }}"><i class="iconoir iconoir-map"></i> {{ asset.location_admin }}</span>{% endif %}
+{#- the icon names the instrument of creation, so it cannot be misread as the person in the recording -#}
+{%- if show_creators and asset.creator %} ·
+{%- if asset.type == "audio" %}{% set creator_icon, creator_title = "microphone", strings.meta_creator_audio %}
+{%- elif asset.type == "markdown" %}{% set creator_icon, creator_title = "edit-pencil", strings.meta_creator_text %}
+{%- else %}{% set creator_icon, creator_title = "user", strings.meta_creator %}{% endif %} <span title="{{ creator_title }}"><i class="iconoir iconoir-{{ creator_icon }}"></i> {{ asset.creator }}</span>{% endif %}
 </div>
 {% if asset.type == "markdown" %}
 --8<-- "docs/assets/{{ asset.path }}:2"
