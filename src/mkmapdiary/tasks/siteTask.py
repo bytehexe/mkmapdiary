@@ -349,7 +349,7 @@ class SiteTask(HttpRequest):
         "mkdocs-glightbox",  # lightbox assets are copied into the site
     )
 
-    DOCS_CREDITS_URL = "https://bytehexe.github.io/mkmapdiary/reference/credits.html"
+    DOCS_CREDITS_URL = "https://bytehexe.github.io/mkmapdiary/reference/credits/"
 
     def __ai_disclosure(self) -> list[dict[str, str]]:
         """Content/model pairs for the AI transparency section of the credits.
