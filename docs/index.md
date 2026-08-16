@@ -21,8 +21,11 @@ Mkmapdiary is a Python tool that automatically creates travel journals from your
 Install mkmapdiary with all optional dependencies:
 
 ```bash
-pipx install mkmapdiary[all]
+pipx install 'mkmapdiary[all]' --pip-args=--pre
 ```
+
+`--pre` is needed for now: mkmapdiary has not published a stable release yet, so pip
+would otherwise refuse to select a version.
 
 Generate a travel journal from your data directory:
 
@@ -43,8 +46,9 @@ x-www-browser demo_dist/index.html
 
 ## Getting Help
 
-- Browse the [supported file formats](reference/supported_source_formats/) 
-- See [development documentation](reference/development/) if you want to contribute
+- Browse the [supported file formats](reference/supported_source_formats/index.md)
+- Read the [configuration reference](reference/configuration.md) and the [command reference](reference/commands.md)
+- See the [development commands](reference/development/dev-commands.md) if you want to contribute
 
 ## Repository
 

@@ -46,10 +46,11 @@ Files identified with the `markdown` tag by the [`identify` library](https://pyp
 ```yaml
 features:
   geo_correlation:                   # For coordinate correlation
-    enabled: true
-    time_offset: !duration 0 seconds         # Markdown creation time offset
     max_time_diff: !duration 300 seconds     # Max correlation window
 ```
+
+Timestamps are interpreted through the [`calibration.yaml`](../calibration.md) in effect
+for the directory; `features.geo_correlation.time_offset` is not implemented.
 
 ## Tips for Best Results
 

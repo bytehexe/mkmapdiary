@@ -23,12 +23,17 @@ This document shows the dependency graph of the various build tasks in mkmapdiar
 - **get_gpx_deps**: Calculates dependencies on GPX files for downstream tasks
 
 ### Postprocessing Tasks
-- **post_processing_single**: Runs single-asset postprocessors (e.g., ImageHasher) on each asset individually
-- **post_processing**: Runs multi-asset postprocessors that require context from multiple assets (DuplicateDetector, JournalSummarizer, ImageSummarizer, QualityAssessment, ImageEmbedder)
+- **post_processing_single**: Runs single-asset postprocessors on each asset individually,
+  in parallel and in arbitrary order (currently ImageHasher and EntropyCalculator)
+- **post_processing**: Runs multi-asset postprocessors that require context from multiple
+  assets, sequentially and in list order (currently ImageQualityAssessment,
+  DuplicateDetector, AutoRotator and JournalSummarizer). ImageSummarizer and ImageEmbedder
+  exist but are commented out of the list
 - **end_postprocessing**: Marks the end of postprocessing pipeline
 
 ### Content Generation Tasks
-- **transcribe_audio**: Transcribes audio files to text using AI
+- **transcribe_audio**: Transcribes audio files to text with a local Whisper model
+  (gated on `features.transcription.enabled`)
 - **all_assets**: Pseudo-node representing the collection of all generated assets (images, audio, text files)
 - **build_day_page**: Generates daily summary pages
 - **build_gallery**: Creates photo gallery pages for each day
@@ -39,8 +44,10 @@ This document shows the dependency graph of the various build tasks in mkmapdiar
 - **generate_mkdocs_config**: Creates the MkDocs configuration file
 - **build_index_page**: Generates the main index page
 - **build_credits_page**: Generates the credits page, listing travellers
-  (`credits.travellers`) alongside dependency and frontend-library credits computed at
-  build time; `build_site` depends on it
+  (`credits.travellers`) and creators (`credits.creators` merged with the creators found
+  in `calibration.yaml` files, in image metadata and on GPX tracks) alongside dependency
+  and frontend-library credits computed at build time, plus the AI disclosure;
+  `build_site` depends on it
 - **compile_css**: Compiles SASS to CSS
 - **copy_simple_asset**: Copies static assets (JS, CSS, images)
 - **pre_build_site**: Ensures all site directories exist before building

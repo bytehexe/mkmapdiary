@@ -37,41 +37,46 @@ All audio formats supported by `pydub.AudioSegment`, including:
 ### Audio Processing
 
 1. **Format Conversion**: All audio is converted to MP3 format for web compatibility
-2. **Transcription** (Optional): 
-   - Automatic speech-to-text using AI/Ollama
+2. **Transcription** (Optional):
+   - Automatic speech-to-text with a local [Whisper](https://github.com/openai/whisper)
+     model — nothing is sent to a network service
    - Creates timestamped segments
    - Generates searchable text content
-3. **Title Generation**: AI analyzes transcribed content to create descriptive titles
+3. **Title Generation**: An LLM served by ollama summarizes the transcript into a title
 4. **Web Player**: Creates interactive audio player with transcript display
+
+Both steps are labelled as machine-generated in the journal and listed on the credits
+page's AI disclosure.
 
 ## Configuration
 
 ```yaml
 features:
   transcription:
-    enabled: !auto transcription.enabled    # Enable/disable transcription (auto-detect)
+    enabled: !auto                          # Auto-detect: true when whisper is installed
   llms:
     enabled: true                           # Enable/disable LLM features
-    text_model: "llama3:8b"                # Model for transcription and titles
-  geo_correlation:                         # For coordinate correlation
-    enabled: true
-    time_offset: !duration 0 seconds       # Audio device time offset
-    max_time_diff: !duration 300 seconds   # Max correlation window
+  geo_correlation:                          # For coordinate correlation
+    max_time_diff: !duration 300 seconds    # Max correlation window
 
 llm_prompts:
-  generate_title:                          # Title generation settings
-    prompt: |
-      Create exactly one title that summarizes the following text...
+  generate_title:                           # Title generation settings
+    model: "granite3.3:8b"                  # The ollama model to use
     options:
       temperature: 0.2
-      top_p: 0.8
 ```
+
+The prompt text itself lives in `strings.generate_title_prompt`; see the
+[configuration reference](../configuration.md#llm-prompts-section). Per-recorder clock
+offsets belong in a [`calibration.yaml`](../calibration.md), not in
+`features.geo_correlation.time_offset`, which is not implemented.
 
 ## Dependencies
 
 - **pydub**: Audio format conversion
-- **FFmpeg**: Backend for audio processing  
-- **Ollama**: AI transcription and title generation (optional)
+- **FFmpeg**: Backend for audio processing
+- **openai-whisper** (`transcription` extra): Local speech-to-text (optional)
+- **Ollama**: Title generation (optional)
 
 ## Tips for Best Results
 

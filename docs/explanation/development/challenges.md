@@ -55,9 +55,13 @@ Mkmapdiary faces unique challenges as it bridges multiple domains: geospatial da
 
 **Current Approach**:
 - `gpxpy` for GPX file parsing and manipulation
-- Custom clustering algorithms for POI detection
-- OpenStreetMap integration via `osmium`
-- Multiple coordinate system support
+- `hdbscan` clustering to turn dense track sections into activity areas, which are then
+  named from the POIs near their centre
+- Douglas-Peucker track simplification with a configurable tolerance
+- OpenStreetMap POI and boundary lookups delegated to `poiidx`, a separate library backed
+  by PostgreSQL/PostGIS. It used to be an in-tree module writing its own binary index
+  files; extracting it removed that format entirely
+- Multiple coordinate system support via `pyproj`
 
 ### Static Site Generation at Scale
 
@@ -125,9 +129,13 @@ Mkmapdiary faces unique challenges as it bridges multiple domains: geospatial da
 
 **Current Approach**:
 - Purposely avoiding Nominatim and other web-based geocoding services
-- Parsing all POI data locally from OpenStreetMap datasets
-- Using local LLMs instead of cloud-based AI services for transcription
-- Avoiding vision models completely, due to their reliability issues
+- Parsing all POI data locally from OpenStreetMap extracts, into a database the user owns
+- Local Whisper for transcription and a local ollama for text generation, instead of
+  cloud AI services
+- Avoiding generative vision models, due to their reliability issues; the image-summary
+  and vision-based quality postprocessors exist but are left out of the pipeline. Image
+  quality is scored instead by CLIP-IQA or, without the `iqa` extra, a statistical
+  heuristic
 
 Note: Mkmapdiary still needs to load external resources like map tiles or JavaScript libraries on its website.
 

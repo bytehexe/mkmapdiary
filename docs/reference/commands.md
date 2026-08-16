@@ -38,12 +38,19 @@ mkmapdiary build [OPTIONS] SOURCE_DIR [DIST_DIR]
 
 ### Options
 
-- `-x, --params TEXT`: Add configuration parameter. Format: `key=value`. Can be used multiple times.
+- `-x, --params TEXT`: Add configuration parameter. Format: `key=value`, the value parsed as [YAML](configuration.md#parameter-values-are-yaml). Can be used multiple times.
 - `-b, --build-dir PATH`: Path to build directory (implies `-B`)
 - `-B, --persistent-build`: Use persistent build directory instead of temporary
 - `-a, --always-execute`: Always execute tasks, even if up-to-date
 - `-n, --num-processes INTEGER`: Number of parallel processes (default: CPU count)
-- `--no-cache`: Disable cache in home directory
+- `--no-cache`: Disable cache in home directory (not recommended)
+- `--profile`: Profile the build with yappi (needs the `profile` extra)
+- `--debug-fast`: Development only. Layers `resources/debug_fast.yaml` over the defaults
+  to disable slow features or swap in faster alternatives; the resulting journal is not
+  representative.
+
+`-a, --always-execute` only matters together with a persistent build directory, since a
+temporary one has no up-to-date database to consult.
 
 ### Examples
 
@@ -75,8 +82,9 @@ mkmapdiary config [OPTIONS] [SOURCE_DIR]
 
 ### Options
 
-- `-x, --params TEXT`: Configuration parameter to set. Format: `key=value`. Can be used multiple times.
+- `-x, --params TEXT`: Configuration parameter to set. Format: `key=value`, the value parsed as [YAML](configuration.md#parameter-values-are-yaml). Can be used multiple times.
 - `--user`: Write to user config file instead of project config file
+- `--get`: Print the effective configuration as YAML to stdout instead of writing it
 
 ### Examples
 
@@ -90,6 +98,36 @@ mkmapdiary config -x site.title="My Trip" -x site.author="John Doe" my_project
 # Set user-wide configuration (affects all projects)
 mkmapdiary config --user -x features.llms.enabled=false
 ```
+
+### Showing the effective configuration
+
+`--get` prints the configuration a build would actually use: the packaged
+defaults with the user configuration, the project's `config.yaml` and any
+`-x` parameters merged on top. Nothing is written, so it is safe to combine
+with `-x` to preview a change before applying it.
+
+```bash
+# Show the full configuration for a project
+mkmapdiary config --get my_project
+
+# Preview what a parameter would change
+mkmapdiary config --get -x site.image_format=webp my_project
+
+# Show the configuration without any project layer
+mkmapdiary config --get --user
+
+# Save it as a starting point for a project config
+mkmapdiary config --get my_project > my_project/config.yaml
+```
+
+Values are shown fully computed: `!auto`, `!duration` and `!distance` appear
+as the values they resolve to, and every `strings` entry carries its
+translation rather than a null. The output is still valid configuration and
+can be fed back in.
+
+**Warning:** The dump contains every configured secret in plain text, such as
+`features.poi_detection.connection.password`. Take care when redirecting it to
+a file or sharing it.
 
 ## generate-demo
 
@@ -221,22 +259,9 @@ mkmapdiary build -x site.title="My Travel Journal" source_dir
 mkmapdiary build -x features.transcription.enabled=true source_dir
 mkmapdiary build -x features.llms.text_model="llama3:70b" source_dir
 
-# Special types (durations, etc.)
+# Special types (durations, distances)
 mkmapdiary build -x features.geo_correlation.max_time_diff="!duration 10 minutes" source_dir
+mkmapdiary build -x features.track_simplification.tolerance="!distance 2 meters" source_dir
 ```
 
-## Migration from v1.x
-
-If you were using the old single-command interface:
-
-```bash
-# Old (v1.x)
-mkmapdiary source_dir
-mkmapdiary -x key=value source_dir
-mkmapdiary --config -x key=value
-
-# New (v2.x)
-mkmapdiary build source_dir
-mkmapdiary build -x key=value source_dir
-mkmapdiary config -x key=value source_dir
-```
+See the [configuration reference](configuration.md) for the full set of keys.
