@@ -143,9 +143,15 @@ class SiteTask(HttpRequest):
 
             language = get_language(self.config["site"]["locale"])
             config["theme"]["language"] = language
-            config["markdown_extensions"][0]["pymdownx.snippets"]["base_path"] = [
-                self.dirs.build_dir,
-            ]
+            # Look the extension up by name rather than by position — the order
+            # of `markdown_extensions` in site_config.yaml is not part of its
+            # contract, and indexing into it breaks on any entry added above.
+            snippets = next(
+                extension["pymdownx.snippets"]
+                for extension in config["markdown_extensions"]
+                if isinstance(extension, dict) and "pymdownx.snippets" in extension
+            )
+            snippets["base_path"] = [self.dirs.build_dir]
 
             with open(self.dirs.build_dir / "mkdocs.yml", "w") as f:
                 yaml.dump(config, f, sort_keys=False)
