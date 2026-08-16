@@ -86,6 +86,15 @@ def test_journal_carries_no_ai_label() -> None:
     assert "ai-generated" not in _journal()
 
 
+def test_journal_metadata_stays_one_paragraph_without_location() -> None:
+    """A blank line inside a markdown div splits the metadata into paragraphs."""
+    output = _journal(asset={"location": None, "location_admin": None})
+    start = output.index('<div class="metadata">')
+    block = output[start : output.index("</div>", start)]
+
+    assert "\n\n" not in block
+
+
 def _gallery_item(**params: Any) -> dict[str, Any]:
     class _Path:
         """Minimal stand-in for the PosixPath the real template receives."""
