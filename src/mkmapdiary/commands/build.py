@@ -1,4 +1,3 @@
-import gettext
 import locale
 import logging
 import os
@@ -17,16 +16,15 @@ import poiidx
 import yaml
 from doit.cmd_base import ModuleTaskLoader
 from doit.doit_cmd import DoitMain
-from jsonschema.exceptions import ValidationError
 from tabulate import tabulate
 
 from .. import util
 from ..lib.cache import Cache
-from ..lib.config import load_config_file, load_config_param
+from ..lib.config import install_translations, resolve_config
 from ..lib.dirs import Dirs
 from ..taskList import TaskList
-from ..util.locale import get_language
 from ..util.log import add_file_logging, current_task
+from .params import params_option
 
 logger = logging.getLogger(__name__)
 runner_logger = logging.getLogger(__name__ + ".runner")
@@ -61,98 +59,10 @@ def main(
 
     logger.info("Generating configuration ...", extra={"icon": "⚙️"})
 
-    # Load config defaults
-    default_config = dirs.resources_dir / "defaults.yaml"
-    try:
-        config_data: MutableMapping[str, Any] = load_config_file(default_config)
-    except ValidationError as e:
-        logger.critical(f"Default configuration is invalid: {e.message}")
-        logger.info(f"Path: {'.'.join(str(p) for p in e.path)}")
-        sys.exit(1)
-    except ValueError as e:
-        logger.critical(f"Error loading default configuration: {e}")
-        sys.exit(1)
+    config_data: MutableMapping[str, Any] = resolve_config(dirs, params, debug_fast)
 
-    # Apply debug fast mode overrides
-    if debug_fast:
-        logger.info("Debug fast mode enabled.", extra={"icon": "🐇"})
-        try:
-            config_data = util.deep_update(
-                config_data,
-                load_config_file(dirs.resources_dir / "debug_fast.yaml"),
-            )
-        except ValidationError as e:
-            logger.error(f"Debug fast configuration is invalid: {e.message}")
-            logger.info(f"Path: {'.'.join(str(p) for p in e.path)}")
-            sys.exit(1)
-        except ValueError as e:
-            logger.error(f"Error loading debug fast configuration: {e}")
-            sys.exit(1)
-
-    # Load local user configuration
-    user_config_file = dirs.user_config_file
-    if user_config_file.exists():
-        try:
-            config_data = util.deep_update(
-                config_data,
-                load_config_file(user_config_file),
-            )
-        except ValidationError as e:
-            logger.error(f"User configuration is invalid: {e.message}")
-            logger.info(f"Path: {'.'.join(str(p) for p in e.path)}")
-            sys.exit(1)
-        except ValueError as e:
-            logger.error(f"Error loading user configuration: {e}")
-            sys.exit(1)
-
-    # Load project configuration file if provided
-    project_config_file = dirs.source_dir / "config.yaml"
-    if project_config_file.is_file():
-        try:
-            config_data = util.deep_update(
-                config_data,
-                load_config_file(project_config_file),
-            )
-        except ValidationError as e:
-            logger.error(f"Project configuration is invalid: {e.message}")
-            logger.info(f"Path: {'.'.join(str(p) for p in e.path)}")
-            sys.exit(1)
-        except ValueError as e:
-            logger.error(f"Error loading project configuration: {e}")
-            sys.exit(1)
-
-    # Override config with params
-    for param in params:
-        try:
-            param_config = load_config_param(param)
-            config_data = util.deep_update(config_data, param_config)
-        except ValidationError as e:
-            logger.error(f"Config parameter '{param}' is invalid: {e.message}")
-            logger.info(f"Path: {'.'.join(str(p) for p in e.path)}")
-            sys.exit(1)
-        except ValueError as e:
-            logger.error(f"Error loading config parameter '{param}': {e}")
-            sys.exit(1)
-
-    # Load gettext
-    localedir = dirs.locale_dir
-
-    language = get_language(config_data["site"]["locale"])
-
-    lang = gettext.translation(
-        "messages",
-        localedir=str(localedir),
-        languages=[language],
-        fallback=False,
-    )
-    lang.install()
-    _ = lang.gettext
-
-    # Load translations
-    for key, value in config_data["strings"].items():
-        if value is None:
-            translation = _(key)
-            config_data["strings"][key] = translation
+    # Load gettext and the translations for the configured strings
+    lang = install_translations(config_data, dirs.locale_dir)
 
     # Set locale
     logger.debug(f"Setting locale to {config_data['site']['locale']}")
@@ -322,24 +232,8 @@ def main(
     sys.exit(exitcode)
 
 
-def validate_param(
-    ctx: click.Context, param: click.Parameter, value: tuple[str, ...]
-) -> tuple[str, ...]:
-    for val in value:
-        if "=" not in val:
-            raise click.BadParameter("Parameters must be in the format key=value")
-    return value
-
-
 @click.command()
-@click.option(
-    "-x",
-    "--params",
-    multiple=True,
-    callback=validate_param,
-    type=str,
-    help="Add additional configuration parameter. Format: key=value. Nested keys can be specified using dot notation, e.g., 'features.transcription=False'",
-)
+@params_option
 @click.option(
     "-b",
     "--build-dir",

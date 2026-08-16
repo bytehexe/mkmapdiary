@@ -1,3 +1,4 @@
+import gettext
 import importlib.util
 import logging
 import pathlib
@@ -13,7 +14,12 @@ from jsonschema.exceptions import ValidationError
 from jsonschema.validators import Draft7Validator, create
 
 from mkmapdiary import util
-from mkmapdiary.util.locale import auto_detect_locale, auto_detect_timezone
+from mkmapdiary.lib.dirs import Dirs
+from mkmapdiary.util.locale import (
+    auto_detect_locale,
+    auto_detect_timezone,
+    get_language,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -150,6 +156,107 @@ def load_config_param(param: str) -> dict:
     d[key_list[-1]] = yaml.load(value, Loader=ConfigLoader)
 
     return load_config_data(config_data)
+
+
+def _load_layer(
+    config_data: MutableMapping[str, Any],
+    path: pathlib.Path,
+    description: str,
+    critical: bool = False,
+) -> MutableMapping[str, Any]:
+    """Merge a configuration file into `config_data`, or exit on a bad layer."""
+    try:
+        return util.deep_update(config_data, load_config_file(path))
+    except ValidationError as e:
+        log = logger.critical if critical else logger.error
+        log(f"{description} is invalid: {e.message}")
+        logger.info(f"Path: {'.'.join(str(p) for p in e.path)}")
+        sys.exit(1)
+    except ValueError as e:
+        log = logger.critical if critical else logger.error
+        log(f"Error loading {description.lower()}: {e}")
+        sys.exit(1)
+
+
+def resolve_config(
+    dirs: Dirs,
+    params: Sequence[str],
+    debug_fast: bool = False,
+) -> MutableMapping[str, Any]:
+    """Build the effective configuration from all its layers.
+
+    The layers are applied in order: the packaged defaults, the debug-fast
+    overrides, the user configuration file, the project's `config.yaml` and
+    finally the `key=value` params. Every layer is validated on its own; an
+    invalid one aborts the process.
+    """
+    config_data: MutableMapping[str, Any] = _load_layer(
+        {},
+        dirs.resources_dir / "defaults.yaml",
+        "Default configuration",
+        critical=True,
+    )
+
+    if debug_fast:
+        logger.info("Debug fast mode enabled.", extra={"icon": "🐇"})
+        config_data = _load_layer(
+            config_data,
+            dirs.resources_dir / "debug_fast.yaml",
+            "Debug fast configuration",
+        )
+
+    user_config_file = dirs.user_config_file
+    if user_config_file.is_file():
+        config_data = _load_layer(
+            config_data,
+            user_config_file,
+            "User configuration",
+        )
+
+    project_config_file = dirs.source_dir / "config.yaml"
+    if project_config_file.is_file():
+        config_data = _load_layer(
+            config_data,
+            project_config_file,
+            "Project configuration",
+        )
+
+    for param in params:
+        try:
+            config_data = util.deep_update(config_data, load_config_param(param))
+        except ValidationError as e:
+            logger.error(f"Config parameter '{param}' is invalid: {e.message}")
+            logger.info(f"Path: {'.'.join(str(p) for p in e.path)}")
+            sys.exit(1)
+        except ValueError as e:
+            logger.error(f"Error loading config parameter '{param}': {e}")
+            sys.exit(1)
+
+    return config_data
+
+
+def install_translations(
+    config_data: MutableMapping[str, Any],
+    locale_dir: pathlib.Path,
+) -> gettext.NullTranslations:
+    """Install the catalogue for the configured locale and resolve `strings`.
+
+    Every entry in `strings` left unset is replaced by its translation, so the
+    configuration carries the actual text from here on.
+    """
+    lang = gettext.translation(
+        "messages",
+        localedir=str(locale_dir),
+        languages=[get_language(config_data["site"]["locale"])],
+        fallback=False,
+    )
+    lang.install()
+
+    for key, value in config_data["strings"].items():
+        if value is None:
+            config_data["strings"][key] = lang.gettext(key)
+
+    return lang
 
 
 def write_config(source_dir: pathlib.Path, params: Sequence[str]) -> None:
