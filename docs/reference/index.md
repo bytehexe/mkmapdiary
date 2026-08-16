@@ -4,7 +4,8 @@ This section contains technical reference documentation for mkmapdiary's interna
 
 ## Command Line Interface
 
-- **[Commands](commands.md)** - Complete command reference and examples for `build` and `config` subcommands
+- **[Commands](commands.md)** - Complete command reference and examples for the `build`, `config`,
+  `generate-demo`, `calibrate` and `inspect` subcommands
 
 ## Configuration
 
@@ -12,8 +13,8 @@ This section contains technical reference documentation for mkmapdiary's interna
 
 ## File Formats
 
-- **[POI Index Format](poi-index-format.md)** - Binary format for cached points of interest data
 - **[Supported Source Formats](supported_source_formats/index.md)** - Input file formats that mkmapdiary can process
+- **[Calibration files](calibration.md)** - The `calibration.yaml` that describes a source subtree's clock, effects and creator
 
 ## Development
 

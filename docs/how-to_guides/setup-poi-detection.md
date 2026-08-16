@@ -4,7 +4,9 @@ This guide walks you through setting up the POI (Points of Interest) detection f
 
 ## Overview
 
-POI detection uses OpenStreetMap data to enrich your travel journal with contextual information about places you've visited. The feature requires a PostgreSQL database with the PostGIS extension to store and query geographic data efficiently.
+POI detection uses OpenStreetMap data to enrich your travel journal with contextual information about places you've visited. The work is done by [poiidx](https://github.com/bytehexe/poiidx), which mkmapdiary installs as a dependency. poiidx needs a PostgreSQL database with the PostGIS extension: it downloads the OpenStreetMap extracts covering your tracks, imports the POIs and administrative boundaries into that database, and queries them from there.
+
+The database is a cache, not a store you have to fill by hand — but it does have to exist and be reachable before the first build.
 
 ## Prerequisites
 
@@ -109,7 +111,7 @@ features:
 - **`connection.database`**: Database name (should match the database created in Step 2)
 - **`connection.user`**: Database username (should match the user created in Step 2)
 - **`connection.password`**: Database password
-- **`max_age`**: Maximum age for cached POI data before rebuilding indexes
+- **`max_age`**: Accepted by the schema but not implemented — nothing reads it yet
 - **`priorities`**: Priority values for different POI types (higher values = more important; `null` to disable a type)
 
 ### Alternative: Command-Line Configuration
@@ -132,13 +134,16 @@ Run mkmapdiary on a directory containing GPS tracks:
 mkmapdiary build source_dir
 ```
 
-On the first run with POI detection enabled, mkmapdiary will:
+On the first run with POI detection enabled, poiidx will:
 
-1. Download OpenStreetMap data for the regions covered by your GPS tracks
-2. Build spatial indexes for efficient POI queries
-3. Cache the indexes in `~/.mkmapdiary/cache/poi_index/`
+1. Work out which OpenStreetMap regions your GPS tracks cover
+2. Download the matching Geofabrik extracts, cached as `.pbf` files in `~/.cache/poiidx/`
+3. Import the POIs and administrative boundaries of those regions into the PostgreSQL database
 
-This initial setup may take several minutes depending on the size of the regions. Subsequent builds will use the cached indexes and be much faster.
+This initial setup may take several minutes per region, and the imported data needs a
+few hundred megabytes of database space for a country-sized extract. Subsequent builds
+query the database directly and are much faster; a region is only re-imported when it is
+missing.
 
 ## Troubleshooting
 
@@ -180,7 +185,11 @@ sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE mkmapdiary TO mkmapdi
 
 ### Custom Priority Settings
 
-You can customize which POI types to include and their importance levels. Higher priority POIs are shown at lower zoom levels. See the default priorities in [`defaults.yaml`](https://github.com/bytehexe/mkmapdiary/blob/main/src/mkmapdiary/resources/defaults.yaml).
+You can customize which POI types to include and their importance levels. mkmapdiary
+clusters your track into activity areas and picks the POI to name each one: candidates
+are sorted by priority first and by distance from the cluster's centre second, so a
+higher priority wins even over a somewhat closer POI. Types not listed get priority 0.
+See the default priorities in [`defaults.yaml`](https://github.com/bytehexe/mkmapdiary/blob/main/src/mkmapdiary/resources/defaults.yaml).
 
 To disable a specific POI type, set its priority to `null`:
 
@@ -210,6 +219,6 @@ features:
 
 ## Next Steps
 
-- Learn about [POI index format](../reference/poi-index-format.md)
-- Customize [POI filter configuration](../reference/poi-index-format.md#filter-configuration-integration)
+- Read the [poiidx documentation](https://bytehexe.github.io/poiidx/) for how the index
+  is built and queried
 - Explore other [configuration options](../reference/configuration.md)
