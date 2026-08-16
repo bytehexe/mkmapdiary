@@ -29,7 +29,7 @@ def _render(**params: Any) -> str:
         "creators": [],
         "mkmapdiary_version": "1.2.3",
         "libraries": [],
-        "docs_url": "https://bytehexe.github.io/mkmapdiary/reference/credits.html",
+        "docs_url": "https://bytehexe.github.io/mkmapdiary/reference/credits/",
         "strings": STRINGS,
         "ai_disclosure": [],
     }
@@ -78,7 +78,7 @@ def test_renders_libraries_with_versions_and_licenses() -> None:
 def test_links_to_the_docs_for_the_toolchain() -> None:
     output = _render()
 
-    assert "https://bytehexe.github.io/mkmapdiary/reference/credits.html" in output
+    assert "https://bytehexe.github.io/mkmapdiary/reference/credits/" in output
 
 
 def test_renders_missing_license_as_not_declared() -> None:
