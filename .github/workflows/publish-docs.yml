@@ -13,7 +13,7 @@ jobs:
       id-token: write   # to verify the deployment originates from an appropriate source
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           # Pinned, not 3.x: the docs build resolves .[all], which includes
           # torch and the CUDA stack. torch lags new CPython releases by
