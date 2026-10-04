@@ -17,6 +17,7 @@ from doit import create_after
 from mkmapdiary.lib import aiUsage
 from mkmapdiary.lib.credits import (
     Package,
+    bundled_binary_credits,
     canonical_name,
     frontend_libraries,
     installed_packages,
@@ -518,6 +519,12 @@ class SiteTask(HttpRequest):
                 installed,
                 self.__bundled_packages,
             )
+            libraries.extend(
+                bundled_binary_credits(
+                    enabled=self.config["features"]["bundle_viewer_server"]["enabled"],
+                ),
+            )
+            libraries.sort(key=lambda package: package.name.lower())
 
             version = installed.get("mkmapdiary")
             content = self.template(

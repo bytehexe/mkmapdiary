@@ -146,6 +146,31 @@ def installed_packages(root: str = "mkmapdiary") -> list[Package]:
     return sorted(packages, key=lambda package: package.name.lower())
 
 
+# Binaries bundled directly into generated output (not resolved from pip or
+# a CDN URL, so neither installed_packages() nor FRONTEND_LICENSES covers
+# them). Only shown on the credits page for builds that actually bundle
+# them — see bundled_binary_credits().
+BUNDLED_BINARY_LICENSES: dict[str, tuple[str, str]] = {
+    "miniserve": ("MIT", "https://github.com/svenstaro/miniserve"),
+}
+
+
+def bundled_binary_credits(enabled: bool) -> list[Package]:
+    """Credits entries for binaries bundled directly into build output.
+
+    ``enabled`` reflects whether this specific build actually bundled them
+    (``features.bundle_viewer_server.enabled``), not whether the feature
+    exists in general — a build that didn't bundle the server shouldn't
+    claim credit for shipping it.
+    """
+    if not enabled:
+        return []
+    return [
+        Package(name=name, version=None, license=license_name, url=url)
+        for name, (license_name, url) in BUNDLED_BINARY_LICENSES.items()
+    ]
+
+
 # Licenses for CDN-hosted libraries, which a URL cannot express. Keyed by the
 # canonical name that parse_cdn_url() returns. The test
 # test_every_cdn_library_has_a_license_entry guards this against site_config.yaml.
