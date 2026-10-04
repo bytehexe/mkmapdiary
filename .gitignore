@@ -56,3 +56,6 @@ env/
 
 # Profiling data
 mkmapdiary_profile.prof
+
+# Worktrees
+/.worktrees/
