@@ -124,18 +124,29 @@ def merge_creators(
 @dataclasses.dataclass(frozen=True)
 class _ViewerServerPlatformFile:
     launcher_name: str
-    platform: str
-    binary_name: str
+    # One launcher may need more than one bundled binary -- the Mac launcher
+    # picks between an x86_64 and an arm64 miniserve build at runtime (see
+    # "Open on Mac.command"), so it carries both. Each pair is
+    # (platform key into MINISERVE_RELEASES, bundled binary filename).
+    binaries: tuple[tuple[str, str], ...]
 
 
 def viewer_server_platform_files() -> list["_ViewerServerPlatformFile"]:
     return [
-        _ViewerServerPlatformFile("Open on Linux.sh", "linux", "miniserve-linux"),
-        _ViewerServerPlatformFile("Open on Mac.command", "macos", "miniserve-macos"),
+        _ViewerServerPlatformFile(
+            "Open on Linux.sh",
+            (("linux", "miniserve-linux"),),
+        ),
+        _ViewerServerPlatformFile(
+            "Open on Mac.command",
+            (
+                ("macos-x86_64", "miniserve-macos-x86_64"),
+                ("macos-arm64", "miniserve-macos-arm64"),
+            ),
+        ),
         _ViewerServerPlatformFile(
             "Open on Windows.bat",
-            "windows",
-            "miniserve-windows.exe",
+            (("windows", "miniserve-windows.exe"),),
         ),
     ]
 
@@ -157,7 +168,11 @@ def clean_viewer_server_layout(dist_dir: pathlib.Path, *, enabled: bool) -> None
         for entry in dist_dir.iterdir():
             if entry.name in launcher_names or entry.name == "_site":
                 continue
-            if entry.name == ".mkmapdiary_dist_dir":
+            # Matches mkdocs build --clean's own convention of leaving
+            # dot-entries alone -- covers the marker file as well as
+            # anything else a deployment workflow might drop at the top of
+            # dist_dir, such as a deployed .git directory.
+            if entry.name.startswith("."):
                 continue
             if entry.is_dir():
                 shutil.rmtree(entry)
@@ -171,6 +186,18 @@ def clean_viewer_server_layout(dist_dir: pathlib.Path, *, enabled: bool) -> None
         stale_site = dist_dir / "_site"
         if stale_site.is_dir():
             shutil.rmtree(stale_site)
+
+
+def copy_viewer_server_license(source: pathlib.Path, dest: pathlib.Path) -> None:
+    """Copy miniserve's MIT license text alongside the bundled binaries.
+
+    One file regardless of how many per-platform binaries get bundled --
+    it's the same license text for all of them. Extracted to module level
+    (like clean_viewer_server_layout) so it's testable without constructing
+    a full SiteTask/doit context.
+    """
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(source, dest)
 
 
 def resolve_mkdocs_site_dir(dirs: "Dirs") -> pathlib.Path:
@@ -587,28 +614,33 @@ class SiteTask(HttpRequest):
             cache_dir=self.dirs.user_cache_dir / "viewer_server"
         )
 
+        seen_platforms: set[str] = set()
         for platform_file in viewer_server_platform_files():
+            for platform_key, _binary_name in platform_file.binaries:
+                if platform_key in seen_platforms:
+                    continue
+                seen_platforms.add(platform_key)
 
-            def _fetch(platform: str = platform_file.platform) -> None:
-                # doit's PythonAction only accepts False/True/None/str/dict
-                # as a return value -- a pathlib.Path (what get_binary_path
-                # returns) fails the task even though the fetch succeeded.
-                # The call is for its side effect (download into the cache);
-                # task_bundle_viewer_server calls get_binary_path again
-                # afterwards to get the path, which is then a cache hit.
-                binaries.get_binary_path(platform)
+                def _fetch(platform: str = platform_key) -> None:
+                    # doit's PythonAction only accepts False/True/None/str/dict
+                    # as a return value -- a pathlib.Path (what get_binary_path
+                    # returns) fails the task even though the fetch succeeded.
+                    # The call is for its side effect (download into the cache);
+                    # task_bundle_viewer_server calls get_binary_path again
+                    # afterwards to get the path, which is then a cache hit.
+                    binaries.get_binary_path(platform)
 
-            yield dict(
-                name=platform_file.platform,
-                actions=[(_fetch, ())],
-                uptodate=[
-                    True
-                ],  # cache correctness is handled inside ViewerServerBinaries
-                # No file_dep/targets: the cached binary lives outside dirs.build_dir
-                # (in the user cache dir), so doit's dep tracking doesn't apply here
-                # the way it does for build-local outputs. The checksum check inside
-                # ViewerServerBinaries.get_binary_path is what guards correctness.
-            )
+                yield dict(
+                    name=platform_key,
+                    actions=[(_fetch, ())],
+                    uptodate=[
+                        True
+                    ],  # cache correctness is handled inside ViewerServerBinaries
+                    # No file_dep/targets: the cached binary lives outside dirs.build_dir
+                    # (in the user cache dir), so doit's dep tracking doesn't apply here
+                    # the way it does for build-local outputs. The checksum check inside
+                    # ViewerServerBinaries.get_binary_path is what guards correctness.
+                )
 
     def task_bundle_viewer_server(self) -> Iterator[dict[str, Any]]:
         from mkmapdiary.lib.viewerServer import ViewerServerBinaries
@@ -624,11 +656,13 @@ class SiteTask(HttpRequest):
         # nest), so this is simply the .server/ subdirectory inside it.
         server_dir = self.dirs.published_site_dir / ".server"
         launcher_resources_dir = self.dirs.resources_dir / "viewer_server"
+        license_source = launcher_resources_dir / "miniserve-LICENSE.txt"
+        license_dest = server_dir / "miniserve-LICENSE.txt"
 
-        def _copy_binary(platform_file: "_ViewerServerPlatformFile") -> None:
+        def _copy_binary(platform: str, binary_name: str) -> None:
             server_dir.mkdir(parents=True, exist_ok=True)
-            source = binaries.get_binary_path(platform_file.platform)
-            dest = server_dir / platform_file.binary_name
+            source = binaries.get_binary_path(platform)
+            dest = server_dir / binary_name
             shutil.copy2(source, dest)
             dest.chmod(0o755)
 
@@ -638,19 +672,30 @@ class SiteTask(HttpRequest):
             shutil.copy2(source, dest)
             dest.chmod(0o755)
 
+        yield dict(
+            name="license",
+            actions=[
+                (copy_viewer_server_license, (license_source, license_dest)),
+            ],
+            file_dep=[license_source],
+            task_dep=[f"create_directory:{self.dirs.published_site_dir}"],
+            targets=[license_dest],
+        )
+
         for platform_file in viewer_server_platform_files():
+            for platform_key, binary_name in platform_file.binaries:
+                yield dict(
+                    name=f"binary:{platform_key}",
+                    actions=[(_copy_binary, (platform_key, binary_name))],
+                    task_dep=[
+                        f"fetch_viewer_server_binaries:{platform_key}",
+                        f"create_directory:{self.dirs.published_site_dir}",
+                    ],
+                    targets=[server_dir / binary_name],
+                    uptodate=[False],
+                )
             yield dict(
-                name=f"binary:{platform_file.platform}",
-                actions=[(_copy_binary, (platform_file,))],
-                task_dep=[
-                    f"fetch_viewer_server_binaries:{platform_file.platform}",
-                    f"create_directory:{self.dirs.published_site_dir}",
-                ],
-                targets=[server_dir / platform_file.binary_name],
-                uptodate=[False],
-            )
-            yield dict(
-                name=f"launcher:{platform_file.platform}",
+                name=f"launcher:{platform_file.launcher_name.replace(' ', '_')}",
                 actions=[(_copy_launcher, (platform_file,))],
                 file_dep=[launcher_resources_dir / platform_file.launcher_name],
                 task_dep=[f"create_directory:{self.dirs.dist_dir}"],

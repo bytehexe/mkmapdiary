@@ -24,9 +24,13 @@ MINISERVE_RELEASES: dict[str, tuple[str, str]] = {
         f"https://github.com/svenstaro/miniserve/releases/download/v{_MINISERVE_VERSION}/miniserve-{_MINISERVE_VERSION}-x86_64-unknown-linux-gnu",
         "3b43ec6cb8ef5d5cc72a216b2309ef77c90952fd2c3e3c6eb9010dec39f3a086",
     ),
-    "macos": (
+    "macos-x86_64": (
         f"https://github.com/svenstaro/miniserve/releases/download/v{_MINISERVE_VERSION}/miniserve-{_MINISERVE_VERSION}-x86_64-apple-darwin",
         "63a99448bf7c450f1264a1af313646df30251bdbc3284b8f4d2d55cee2b98c55",
+    ),
+    "macos-arm64": (
+        f"https://github.com/svenstaro/miniserve/releases/download/v{_MINISERVE_VERSION}/miniserve-{_MINISERVE_VERSION}-aarch64-apple-darwin",
+        "8e8dc916b1dc3bc2a46bf5a44308caf7db153e6940db178668929e1de40d1fbb",
     ),
     "windows": (
         f"https://github.com/svenstaro/miniserve/releases/download/v{_MINISERVE_VERSION}/miniserve-{_MINISERVE_VERSION}-x86_64-pc-windows-msvc.exe",
@@ -34,7 +38,12 @@ MINISERVE_RELEASES: dict[str, tuple[str, str]] = {
     ),
 }
 
-_BINARY_SUFFIX = {"linux": "", "macos": "", "windows": ".exe"}
+_BINARY_SUFFIX = {
+    "linux": "",
+    "macos-x86_64": "",
+    "macos-arm64": "",
+    "windows": ".exe",
+}
 
 
 class ChecksumMismatchError(Exception):

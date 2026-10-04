@@ -31,8 +31,15 @@ Generate a travel journal from your data directory:
 
 ```bash
 mkmapdiary build your_travel_data/
-x-www-browser your_travel_data_dist/index.html
 ```
+
+Open the generated `your_travel_data_dist` directory and double-click the
+`Open on Linux.sh` / `Open on Mac.command` / `Open on Windows.bat` script for your
+platform — it starts a small bundled local server and opens the journal in your browser
+(needed for OpenStreetMap's tile policy, which requires `http://` rather than `file://`).
+Set `features.bundle_viewer_server.enabled: false` to go back to the old flat layout with
+`index.html` at the top, opened directly via `file://` (e.g.
+`x-www-browser your_travel_data_dist/index.html`).
 
 ## Try the Demo
 
@@ -41,8 +48,9 @@ Want to see mkmapdiary in action? Generate a demo project with sample data:
 ```bash
 mkmapdiary generate-demo demo
 mkmapdiary build demo
-x-www-browser demo_dist/index.html
 ```
+
+Then open `demo_dist/Open on Linux.sh` (or the Mac/Windows equivalent) as above.
 
 ## Getting Help
 

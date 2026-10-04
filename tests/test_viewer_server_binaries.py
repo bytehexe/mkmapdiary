@@ -65,3 +65,19 @@ def test_unknown_platform_raises_key_error(tmp_path: pathlib.Path) -> None:
     binaries = ViewerServerBinaries(cache_dir=tmp_path)
     with pytest.raises(KeyError):
         binaries.get_binary_path("amiga")
+
+
+def test_four_platforms_are_declared_with_64_char_hex_checksums() -> None:
+    from mkmapdiary.lib.viewerServer import MINISERVE_RELEASES
+
+    assert set(MINISERVE_RELEASES) == {
+        "linux",
+        "macos-x86_64",
+        "macos-arm64",
+        "windows",
+    }
+    for platform, (_url, checksum) in MINISERVE_RELEASES.items():
+        assert len(checksum) == 64, (
+            f"{platform} checksum is {len(checksum)} chars, expected 64"
+        )
+        int(checksum, 16)  # raises ValueError if not valid hex

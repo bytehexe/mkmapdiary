@@ -154,6 +154,18 @@ BUNDLED_BINARY_LICENSES: dict[str, tuple[str, str]] = {
     "miniserve": ("MIT", "https://github.com/svenstaro/miniserve"),
 }
 
+# Duplicated from lib/viewerServer.py's _MINISERVE_VERSION rather than
+# imported: this module must import only the standard library (see the
+# module docstring), and importing mkmapdiary.lib.viewerServer -- even
+# locally inside a function -- would still register as a non-stdlib import
+# under test_credits_module_imports_only_stdlib's ast.walk check, which
+# looks at every Import/ImportFrom node in the file regardless of nesting.
+# test_credits_bundled_binaries.py::test_miniserve_entry_has_the_pinned_version
+# guards the two constants staying in sync.
+BUNDLED_BINARY_VERSIONS: dict[str, str] = {
+    "miniserve": "0.35.0",
+}
+
 
 def bundled_binary_credits(enabled: bool) -> list[Package]:
     """Credits entries for binaries bundled directly into build output.
@@ -166,7 +178,12 @@ def bundled_binary_credits(enabled: bool) -> list[Package]:
     if not enabled:
         return []
     return [
-        Package(name=name, version=None, license=license_name, url=url)
+        Package(
+            name=name,
+            version=BUNDLED_BINARY_VERSIONS.get(name),
+            license=license_name,
+            url=url,
+        )
         for name, (license_name, url) in BUNDLED_BINARY_LICENSES.items()
     ]
 

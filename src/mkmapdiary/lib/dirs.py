@@ -159,3 +159,22 @@ class Dirs:
     def dist_dir_marker_file(self) -> pathlib.Path:
         marker_path = self.dist_dir / ".mkmapdiary_dist_dir"
         return marker_path
+
+    @property
+    def dist_dir_is_recognized(self) -> bool:
+        """True if dist_dir is already known to be ours.
+
+        The marker file is the forward-looking mechanism: every build now
+        touches it. This also recognizes the two layouts mkmapdiary itself
+        produced *before* the marker existed -- a flat top-level
+        ``index.html`` (bundle_viewer_server disabled, or pre-dating this
+        feature entirely) or a nested ``_site/index.html`` (bundle_viewer_server
+        enabled) -- so rebuilding into a `*_dist` folder from an older
+        mkmapdiary version doesn't start failing just because the marker
+        wasn't there yet.
+        """
+        if self.dist_dir_marker_file.is_file():
+            return True
+        if (self.dist_dir / "index.html").is_file():
+            return True
+        return (self.dist_dir / "_site" / "index.html").is_file()

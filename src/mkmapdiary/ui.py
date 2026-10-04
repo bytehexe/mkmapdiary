@@ -7,6 +7,9 @@ import io
 import logging
 import os
 import pathlib
+import platform
+import shutil
+import subprocess
 import threading
 import tkinter as tk
 import webbrowser
@@ -33,6 +36,62 @@ from .util.locale import auto_detect_locale, get_language
 def _(x: str) -> str:
     """Placeholder translation function until gettext is initialized."""
     return x
+
+
+_VIEWER_SERVER_LAUNCHER_NAMES = {
+    "Linux": "Open on Linux.sh",
+    "Darwin": "Open on Mac.command",
+    "Windows": "Open on Windows.bat",
+}
+
+
+def viewer_server_launcher_path(dist_dir: pathlib.Path) -> pathlib.Path | None:
+    """The platform-appropriate launcher script at the top of dist_dir, if any.
+
+    Returns None on an unrecognized platform.system() value or when the
+    launcher isn't there (e.g. features.bundle_viewer_server.enabled is
+    false, so dist_dir keeps the old flat index.html-at-the-top layout).
+    """
+    launcher_name = _VIEWER_SERVER_LAUNCHER_NAMES.get(platform.system())
+    if launcher_name is None:
+        return None
+    launcher_path = dist_dir / launcher_name
+    if launcher_path.is_file():
+        return launcher_path
+    return None
+
+
+def launch_viewer_server_script(launcher_path: pathlib.Path) -> None:
+    """Start the launcher the way a real double-click would, non-blocking.
+
+    The launcher runs the server in the foreground of its own
+    process/window until closed, so this must never .wait()/run() --
+    that would hang the Tkinter GUI thread.
+    """
+    system = platform.system()
+    if system == "Darwin":
+        # Routes through Finder's LaunchServices association for
+        # .command files, which is what a real double-click does (opens
+        # Terminal.app running the script).
+        subprocess.Popen(["open", str(launcher_path)])  # noqa: S603, S607
+        return
+    if system == "Windows":
+        # The standard Python API for "do what a double-click would do".
+        os.startfile(str(launcher_path))  # type: ignore[attr-defined] # noqa: S606
+        return
+
+    # Linux: there is no single portable "open in a visible terminal" call.
+    # Try a short list of common terminal emulators, falling back to
+    # running the script directly (without a visible terminal) if none are
+    # found. This is a known rough edge -- which terminal emulator (if any)
+    # is installed varies a lot across distros/desktop environments, and
+    # this list is not exhaustive.
+    for terminal in ("x-terminal-emulator", "gnome-terminal", "xterm"):
+        terminal_path = shutil.which(terminal)
+        if terminal_path is not None:
+            subprocess.Popen([terminal_path, "-e", str(launcher_path)])  # noqa: S603
+            return
+    subprocess.Popen([str(launcher_path)])  # noqa: S603
 
 
 def capture_command_output(
@@ -340,6 +399,9 @@ class MkmapdiaryUI:
 
         dist_dir = self.get_dist_directory()
         if dist_dir and dist_dir.exists():
+            if viewer_server_launcher_path(dist_dir) is not None:
+                self.browser_button.config(state="normal")
+                return
             index_path = dist_dir / "index.html"
             if index_path.exists():
                 self.browser_button.config(state="normal")
@@ -348,12 +410,25 @@ class MkmapdiaryUI:
         self.browser_button.config(state="disabled")
 
     def open_in_browser(self) -> None:
-        """Open the generated diary in the default web browser."""
+        """Open the generated diary in the default web browser.
+
+        Prefers the platform launcher script, which starts the bundled
+        viewer server and reuses its own port-selection/readiness logic.
+        Falls back to opening index.html directly via file:// when bundling
+        is off (dist_dir keeps the old flat layout then, with no launcher).
+        """
         dist_dir = self.get_dist_directory()
-        if dist_dir:
-            index_path = dist_dir / "index.html"
-            if index_path.exists():
-                webbrowser.open(index_path.as_uri())
+        if not dist_dir:
+            return
+
+        launcher_path = viewer_server_launcher_path(dist_dir)
+        if launcher_path is not None:
+            launch_viewer_server_script(launcher_path)
+            return
+
+        index_path = dist_dir / "index.html"
+        if index_path.exists():
+            webbrowser.open(index_path.as_uri())
 
     def create_build_tab(self) -> None:
         """Create the Build Diary tab."""

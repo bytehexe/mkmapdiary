@@ -106,6 +106,9 @@ features:
   track_simplification:
     enabled: true
     tolerance: !distance 1 meter            # Set to 0 to disable simplification
+
+  bundle_viewer_server:
+    enabled: true                           # Bundle a local HTTP server + launcher scripts
 ```
 
 **Not implemented:** the keys marked above are accepted by the schema but no code reads
@@ -114,6 +117,15 @@ them. In particular, per-camera clock offsets are configured through
 [`calibration.yaml`](calibration.md), not through `features.geo_correlation.time_offset`.
 
 **Note:** POI detection is disabled by default and requires PostgreSQL with PostGIS. See [How to Set Up POI Detection](../how-to_guides/setup-poi-detection.md) for detailed setup instructions.
+
+**Note:** `features.bundle_viewer_server.enabled` (default `true`) bundles a small local
+HTTP server (`miniserve`) and a per-OS launcher script (`Open on Linux.sh` / `Open on
+Mac.command` / `Open on Windows.bat`) into the top level of the output directory. The
+generated site itself moves under `_site/` inside it. This exists because OpenStreetMap's
+tile usage policy requires requests to come from `http://`/`https://`, not `file://` — opening
+`index.html` directly no longer loads the map tiles. Disable it to restore the old flat
+layout, with `index.html` back at the top of the output directory, openable directly via
+`file://`.
 
 ### Site Section
 

@@ -120,7 +120,7 @@ def main(
     if (
         dist_dir.is_dir()
         and any(dist_dir.iterdir())
-        and not dirs.dist_dir_marker_file.is_file()
+        and not dirs.dist_dir_is_recognized
     ):
         logger.error(
             f"Error: Distribution directory '{dist_dir}' is not empty and does not contain a .mkmapdiary_dist_dir file.",

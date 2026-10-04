@@ -29,4 +29,8 @@ start "" "!URL!"
 echo Your travel journal is running at !URL!
 echo Close this window to stop viewing.
 pause >nul
+rem Kills every running miniserve-windows.exe system-wide, not just this
+rem journal's instance -- a clean PID-scoped kill is awkward in plain batch
+rem (no portable job-object/process-tree primitive without extra tooling).
+rem Accepted as a known limitation rather than over-engineering it here.
 taskkill /f /im miniserve-windows.exe >nul 2>&1

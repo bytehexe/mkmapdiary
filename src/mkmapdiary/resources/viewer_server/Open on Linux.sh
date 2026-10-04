@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Starts the bundled viewer server and opens this journal in your browser.
 # Close this terminal window to stop viewing.
 set -eu

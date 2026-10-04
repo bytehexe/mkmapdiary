@@ -20,8 +20,18 @@ if [ -z "$PORT" ]; then
     exit 1
 fi
 
-chmod +x ./_site/.server/miniserve-macos
-./_site/.server/miniserve-macos -i 127.0.0.1 -p "$PORT" --index index.html --disable-indexing ./_site &
+if [ "$(uname -m)" = "arm64" ]; then
+    MINISERVE_BIN="./_site/.server/miniserve-macos-arm64"
+else
+    MINISERVE_BIN="./_site/.server/miniserve-macos-x86_64"
+fi
+
+# The binary should already be executable from how it was bundled (copy2
+# preserves the exec bit); this chmod is a defensive no-op in the common
+# case, so tolerate failure on read-only media (e.g. a mounted read-only
+# DMG or USB stick) instead of aborting under set -e.
+chmod +x "$MINISERVE_BIN" || true
+"$MINISERVE_BIN" -i 127.0.0.1 -p "$PORT" --index index.html --disable-indexing ./_site &
 SERVER_PID=$!
 trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
 
