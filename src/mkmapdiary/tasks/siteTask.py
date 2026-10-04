@@ -156,8 +156,9 @@ def clean_viewer_server_layout(dist_dir: pathlib.Path, *, enabled: bool) -> None
 
     Keeps dist_dir consistent across a persistent build directory being
     rebuilt with the flag flipped from its previous value. Never touches
-    .mkmapdiary_dist_dir (Task 3) or the entries that belong to the current
-    mode.
+    dotfiles (covers .mkmapdiary_dist_dir as well as anything else a
+    deployment workflow might drop at the top of dist_dir, such as a
+    deployed .git directory) or the entries that belong to the current mode.
     """
     if not dist_dir.is_dir():
         return

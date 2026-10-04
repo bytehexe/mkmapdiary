@@ -58,13 +58,17 @@ This document shows the dependency graph of the various build tasks in mkmapdiar
   site vs. launchers + `_site/`) doesn't match the current
   `features.bundle_viewer_server.enabled` value. Runs unconditionally
   (not gated on the flag) so a persistent build directory stays consistent
-  across a flag flip; never touches `.mkmapdiary_dist_dir`
+  across a flag flip; never touches dotfiles (covers `.mkmapdiary_dist_dir`
+  and anything else a deployment workflow might drop at the top of
+  `dist_dir`, such as a deployed `.git` directory)
 - **fetch_viewer_server_binaries**: Downloads and checksum-verifies the
   per-platform miniserve binaries into the user cache dir (gated on
   `features.bundle_viewer_server.enabled`)
 - **bundle_viewer_server**: Copies the cached binaries into
-  `published_site_dir/.server/` and the per-OS launcher scripts into the
-  top-level `dist_dir` (gated on `features.bundle_viewer_server.enabled`)
+  `published_site_dir/.server/`, miniserve's MIT license text into
+  `published_site_dir/.server/miniserve-LICENSE.txt` (the `license`
+  subtask), and the per-OS launcher scripts into the top-level `dist_dir`
+  (gated on `features.bundle_viewer_server.enabled`)
 - **build_site**: Final step that builds the complete MkDocs site
 
 ## Dependency Types

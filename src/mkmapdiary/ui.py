@@ -86,10 +86,14 @@ def launch_viewer_server_script(launcher_path: pathlib.Path) -> None:
     # found. This is a known rough edge -- which terminal emulator (if any)
     # is installed varies a lot across distros/desktop environments, and
     # this list is not exhaustive.
-    for terminal in ("x-terminal-emulator", "gnome-terminal", "xterm"):
+    for terminal, option in (
+        ("x-terminal-emulator", "-e"),
+        ("gnome-terminal", "--"),
+        ("xterm", "-e"),
+    ):
         terminal_path = shutil.which(terminal)
         if terminal_path is not None:
-            subprocess.Popen([terminal_path, "-e", str(launcher_path)])  # noqa: S603
+            subprocess.Popen([terminal_path, option, str(launcher_path)])  # noqa: S603
             return
     subprocess.Popen([str(launcher_path)])  # noqa: S603
 
@@ -392,7 +396,7 @@ class MkmapdiaryUI:
         return None
 
     def update_browser_button_state(self) -> None:
-        """Update the browser button state based on whether index.html exists."""
+        """Update the browser button state based on whether a viewer launcher or index.html exists."""
         if self.build_running:
             self.browser_button.config(state="disabled")
             return

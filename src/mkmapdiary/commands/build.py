@@ -123,7 +123,9 @@ def main(
         and not dirs.dist_dir_is_recognized
     ):
         logger.error(
-            f"Error: Distribution directory '{dist_dir}' is not empty and does not contain a .mkmapdiary_dist_dir file.",
+            f"Error: Distribution directory '{dist_dir}' is not empty and does not look like a "
+            "mkmapdiary output directory (no .mkmapdiary_dist_dir file, top-level index.html, "
+            "or _site/index.html).",
         )
         sys.exit(1)
 
