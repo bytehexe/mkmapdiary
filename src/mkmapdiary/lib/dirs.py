@@ -17,6 +17,7 @@ class Dirs:
         self.__dist_dir = dist_dir
         self.__sys_dirs = PlatformDirs("mkmapdiary", "bytehexe")
         self.create_dirs = create_dirs
+        self.bundle_viewer_server = False
 
     @property
     def source_dir(self) -> pathlib.Path:
@@ -32,6 +33,16 @@ class Dirs:
     @property
     def dist_dir(self) -> pathlib.Path:
         return self.__dist_dir
+
+    @property
+    def published_site_dir(self) -> pathlib.Path:
+        if self.bundle_viewer_server:
+            site_path = self.dist_dir / "_site"
+        else:
+            site_path = self.dist_dir
+        if self.create_dirs:
+            site_path.mkdir(parents=True, exist_ok=True)
+        return site_path
 
     @property
     def files_dir(self) -> pathlib.Path:
@@ -142,4 +153,9 @@ class Dirs:
         self,
     ) -> pathlib.Path:
         marker_path = self.build_dir / ".mkmapdiary_build_dir"
+        return marker_path
+
+    @property
+    def dist_dir_marker_file(self) -> pathlib.Path:
+        marker_path = self.dist_dir / ".mkmapdiary_dist_dir"
         return marker_path
