@@ -61,6 +61,10 @@ def main(
 
     config_data: MutableMapping[str, Any] = resolve_config(dirs, params, debug_fast)
 
+    dirs.bundle_viewer_server = config_data["features"]["bundle_viewer_server"][
+        "enabled"
+    ]
+
     # Load gettext and the translations for the configured strings
     lang = install_translations(config_data, dirs.locale_dir)
 
@@ -116,10 +120,10 @@ def main(
     if (
         dist_dir.is_dir()
         and any(dist_dir.iterdir())
-        and not (dist_dir / "index.html").is_file()
+        and not dirs.dist_dir_marker_file.is_file()
     ):
         logger.error(
-            f"Error: Distribution directory '{dist_dir}' is not empty and does not contain an index.html file.",
+            f"Error: Distribution directory '{dist_dir}' is not empty and does not contain a .mkmapdiary_dist_dir file.",
         )
         sys.exit(1)
 
@@ -131,6 +135,9 @@ def main(
 
     # Create build directory marker file
     dirs.build_dir_marker_file.touch()
+
+    # Create dist directory marker file
+    dirs.dist_dir_marker_file.touch()
 
     # Clean build directory if needed
     if always_execute:
