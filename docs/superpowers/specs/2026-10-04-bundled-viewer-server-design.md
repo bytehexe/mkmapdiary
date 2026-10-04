@@ -116,13 +116,53 @@ New flag, following the existing `features.<name>.enabled` convention used by
 
 ```yaml
 features:
-  viewer_server:
+  bundle_viewer_server:
     enabled: true
 ```
 
 When `false`, the build produces exactly today's output: a flat directory with `index.html`
 at the top, no launchers, no bundled binaries. This is a clean, regression-free fallback —
 nothing about the existing `file://`-browsable behavior changes when the feature is off.
+
+### Output layout is conditional, not dual-path
+
+The `_site/` nesting only happens when `features.bundle_viewer_server.enabled` is `true`.
+When `false`, output stays exactly as it is today — a flat `dist_dir` with `index.html` at
+its top. Always nesting regardless of the flag was considered and rejected: with the server
+feature off, it would leave `dist_dir` containing nothing but an empty-looking `_site/`
+folder with no launcher to justify the extra layer, a pointless and regression-causing
+change for anyone not using this feature.
+
+This must be implemented as a single, centrally-computed path, not a post-build move step.
+`siteTask.py`'s `task_generate_mkdocs_config` currently sets mkdocs's own `site_dir` config
+key directly from `self.dirs.dist_dir` (`siteTask.py:183-188`) — that is the one place that
+controls where mkdocs actually writes the site. The fix is a new `Dirs` property (e.g.
+`published_site_dir`) that returns `dist_dir` when the feature is off, or
+`dist_dir / "_site"` when it is on, computed once. Every other place in `siteTask.py` that
+currently reads `self.dirs.dist_dir` to mean "where the finished, browsable site lives"
+(found so far: the `__site_dirs` list and `site_dir` config at lines 142-188, the
+`create_directory` task dependencies around lines 350/507/538, and the `sitemap.xml` output
+path at line 552) must be audited and switched to the new property. `dist_dir` itself keeps
+its current meaning — the top-level output folder that holds the launchers and `_site/`
+alongside each other — and is not itself renamed or moved.
+
+### Existing directory-safety check must not rely on `index.html`'s location
+
+`commands/build.py:116-124` currently guards against overwriting an unrelated non-empty
+directory: if `dist_dir` exists and is non-empty, the build refuses to proceed unless a
+top-level `index.html` is present — this is how it recognizes "a directory mkmapdiary
+previously built into" versus "some other directory the user pointed `dist` at by mistake".
+Once `index.html` can legitimately live at `dist_dir/_site/index.html` instead of
+`dist_dir/index.html` depending on the feature flag, this check breaks: a second build into
+an existing, legitimately-mkmapdiary-built `dist_dir` with bundling enabled would find no
+top-level `index.html` and wrongly refuse.
+
+The fix is to stop inferring ownership from `index.html`'s location and give `dist_dir` the
+same treatment `build_dir` already has: a dedicated marker file, checked the same way
+`dirs.build_dir_marker_file` already is (`lib/dirs.py:141`, checked at
+`commands/build.py:110`). This decouples the safety check from internal layout entirely, so
+it stays correct regardless of the flag's value — and is robust to any future layout change,
+not just this one.
 
 ### Licensing & attribution
 
