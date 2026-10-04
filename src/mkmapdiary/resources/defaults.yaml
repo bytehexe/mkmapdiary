@@ -32,6 +32,8 @@ input_formats:
 
 features:
   # Feature configuration defaults
+  bundle_viewer_server:
+    enabled: true
   cr2:
     use_thumbnail: false
   transcription:

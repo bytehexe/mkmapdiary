@@ -147,6 +147,14 @@ properties:
 
         additionalProperties: false
 
+      bundle_viewer_server:
+        type: object
+        properties:
+          enabled:
+            type: boolean
+            description: "Bundle a local static-file server and per-OS launchers into the build output, so the generated journal is served over http://127.0.0.1 instead of file:// (required for the OpenStreetMap tile layer's Referer check)."
+        additionalProperties: false
+
       iqa:
         type: object
         properties:
