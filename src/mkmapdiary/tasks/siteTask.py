@@ -21,6 +21,7 @@ from mkmapdiary.lib.credits import (
     frontend_libraries,
     installed_packages,
 )
+from mkmapdiary.lib.dirs import Dirs
 from mkmapdiary.lib.highlights import Highlights, resolve_pinned_highlights
 from mkmapdiary.lib.statistics import Statistics
 
@@ -119,6 +120,16 @@ def merge_creators(
     return sorted(name for name in merged if name is not None)
 
 
+def resolve_mkdocs_site_dir(dirs: "Dirs") -> pathlib.Path:
+    """Where mkdocs actually writes the finished, browsable site.
+
+    Separate from ``dirs.dist_dir``, which is the top-level output folder:
+    when the viewer server is bundled, the site itself nests under
+    ``dist_dir / "_site"`` so the top level holds only the launchers.
+    """
+    return dirs.published_site_dir
+
+
 class SiteTask(HttpRequest):
     def __init__(self) -> None:
         super().__init__()
@@ -145,6 +156,7 @@ class SiteTask(HttpRequest):
             self.dirs.assets_dir,
             self.dirs.docs_dir,
             self.dirs.dist_dir,
+            self.dirs.published_site_dir,
             self.dirs.files_dir,
             self.dirs.templates_dir,
         ]
@@ -181,11 +193,14 @@ class SiteTask(HttpRequest):
                     self.dirs.docs_dir.relative_to(self.dirs.build_dir),
                 )
                 config["site_dir"] = str(
-                    self.dirs.dist_dir.relative_to(self.dirs.build_dir, walk_up=True),
+                    resolve_mkdocs_site_dir(self.dirs).relative_to(
+                        self.dirs.build_dir,
+                        walk_up=True,
+                    ),
                 )
             except ValueError:
                 config["docs_dir"] = str(self.dirs.docs_dir.absolute())
-                config["site_dir"] = str(self.dirs.dist_dir.absolute())
+                config["site_dir"] = str(resolve_mkdocs_site_dir(self.dirs).absolute())
 
             language = get_language(self.config["site"]["locale"])
             config["theme"]["language"] = language
@@ -505,6 +520,7 @@ class SiteTask(HttpRequest):
                 f"create_directory:{self.dirs.assets_dir}",
                 f"create_directory:{self.dirs.docs_dir}",
                 f"create_directory:{self.dirs.dist_dir}",
+                f"create_directory:{self.dirs.published_site_dir}",
                 f"create_directory:{self.dirs.files_dir}",
                 f"create_directory:{self.dirs.templates_dir}",
                 "geo_correlation",
@@ -535,7 +551,7 @@ class SiteTask(HttpRequest):
             ],
             file_dep=list(_generate_file_deps()),
             task_dep=[
-                f"create_directory:{self.dirs.dist_dir}",
+                f"create_directory:{self.dirs.published_site_dir}",
                 "build_index_page",
                 "build_credits_page",
                 "generate_mkdocs_config",
@@ -549,6 +565,6 @@ class SiteTask(HttpRequest):
             ],
             calc_dep=["get_gpx_deps"],
             targets=[
-                self.dirs.dist_dir / "sitemap.xml",
+                self.dirs.published_site_dir / "sitemap.xml",
             ],
         )
