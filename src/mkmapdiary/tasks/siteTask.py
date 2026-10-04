@@ -120,6 +120,58 @@ def merge_creators(
     return sorted(name for name in merged if name is not None)
 
 
+@dataclasses.dataclass(frozen=True)
+class _ViewerServerPlatformFile:
+    launcher_name: str
+    platform: str
+    binary_name: str
+
+
+def viewer_server_platform_files() -> list["_ViewerServerPlatformFile"]:
+    return [
+        _ViewerServerPlatformFile("Open on Linux.sh", "linux", "miniserve-linux"),
+        _ViewerServerPlatformFile("Open on Mac.command", "macos", "miniserve-macos"),
+        _ViewerServerPlatformFile(
+            "Open on Windows.bat",
+            "windows",
+            "miniserve-windows.exe",
+        ),
+    ]
+
+
+def clean_viewer_server_layout(dist_dir: pathlib.Path, *, enabled: bool) -> None:
+    """Remove whichever layout doesn't match the current bundle_viewer_server value.
+
+    Keeps dist_dir consistent across a persistent build directory being
+    rebuilt with the flag flipped from its previous value. Never touches
+    .mkmapdiary_dist_dir (Task 3) or the entries that belong to the current
+    mode.
+    """
+    if not dist_dir.is_dir():
+        return
+
+    launcher_names = {f.launcher_name for f in viewer_server_platform_files()}
+
+    if enabled:
+        for entry in dist_dir.iterdir():
+            if entry.name in launcher_names or entry.name == "_site":
+                continue
+            if entry.name == ".mkmapdiary_dist_dir":
+                continue
+            if entry.is_dir():
+                shutil.rmtree(entry)
+            else:
+                entry.unlink()
+    else:
+        for name in launcher_names:
+            stale_launcher = dist_dir / name
+            if stale_launcher.is_file():
+                stale_launcher.unlink()
+        stale_site = dist_dir / "_site"
+        if stale_site.is_dir():
+            shutil.rmtree(stale_site)
+
+
 def resolve_mkdocs_site_dir(dirs: "Dirs") -> pathlib.Path:
     """Where mkdocs actually writes the finished, browsable site.
 
@@ -167,7 +219,14 @@ class SiteTask(HttpRequest):
         def _create_directory(dir_name: pathlib.Path) -> None:
             dir_name.mkdir(parents=True, exist_ok=True)
 
+        # published_site_dir collapses onto dist_dir when the viewer server
+        # isn't bundled (see Dirs.published_site_dir); dedupe so that case
+        # doesn't yield two "create_directory" subtasks with the same name.
+        seen: set[pathlib.Path] = set()
         for dir_name in self.__site_dirs:
+            if dir_name in seen:
+                continue
+            seen.add(dir_name)
             yield dict(
                 name=dir_name,
                 actions=[(_create_directory, (dir_name,))],
@@ -511,11 +570,102 @@ class SiteTask(HttpRequest):
                 targets=[output],
             )
 
+    def task_fetch_viewer_server_binaries(self) -> Iterator[dict[str, Any]]:
+        from mkmapdiary.lib.viewerServer import ViewerServerBinaries
+
+        if not self.config["features"]["bundle_viewer_server"]["enabled"]:
+            return
+
+        binaries = ViewerServerBinaries(
+            cache_dir=self.dirs.user_cache_dir / "viewer_server"
+        )
+
+        for platform_file in viewer_server_platform_files():
+
+            def _fetch(platform: str = platform_file.platform) -> None:
+                # doit's PythonAction only accepts False/True/None/str/dict
+                # as a return value -- a pathlib.Path (what get_binary_path
+                # returns) fails the task even though the fetch succeeded.
+                # The call is for its side effect (download into the cache);
+                # task_bundle_viewer_server calls get_binary_path again
+                # afterwards to get the path, which is then a cache hit.
+                binaries.get_binary_path(platform)
+
+            yield dict(
+                name=platform_file.platform,
+                actions=[(_fetch, ())],
+                uptodate=[
+                    True
+                ],  # cache correctness is handled inside ViewerServerBinaries
+                # No file_dep/targets: the cached binary lives outside dirs.build_dir
+                # (in the user cache dir), so doit's dep tracking doesn't apply here
+                # the way it does for build-local outputs. The checksum check inside
+                # ViewerServerBinaries.get_binary_path is what guards correctness.
+            )
+
+    def task_bundle_viewer_server(self) -> Iterator[dict[str, Any]]:
+        from mkmapdiary.lib.viewerServer import ViewerServerBinaries
+
+        if not self.config["features"]["bundle_viewer_server"]["enabled"]:
+            return
+
+        binaries = ViewerServerBinaries(
+            cache_dir=self.dirs.user_cache_dir / "viewer_server"
+        )
+        # published_site_dir is dist_dir / "_site" whenever this task runs at
+        # all (it's gated on the same flag that makes published_site_dir
+        # nest), so this is simply the .server/ subdirectory inside it.
+        server_dir = self.dirs.published_site_dir / ".server"
+        launcher_resources_dir = self.dirs.resources_dir / "viewer_server"
+
+        def _copy_binary(platform_file: "_ViewerServerPlatformFile") -> None:
+            server_dir.mkdir(parents=True, exist_ok=True)
+            source = binaries.get_binary_path(platform_file.platform)
+            dest = server_dir / platform_file.binary_name
+            shutil.copy2(source, dest)
+            dest.chmod(0o755)
+
+        def _copy_launcher(platform_file: "_ViewerServerPlatformFile") -> None:
+            source = launcher_resources_dir / platform_file.launcher_name
+            dest = self.dirs.dist_dir / platform_file.launcher_name
+            shutil.copy2(source, dest)
+            dest.chmod(0o755)
+
+        for platform_file in viewer_server_platform_files():
+            yield dict(
+                name=f"binary:{platform_file.platform}",
+                actions=[(_copy_binary, (platform_file,))],
+                task_dep=[
+                    f"fetch_viewer_server_binaries:{platform_file.platform}",
+                    f"create_directory:{self.dirs.published_site_dir}",
+                ],
+                targets=[server_dir / platform_file.binary_name],
+                uptodate=[False],
+            )
+            yield dict(
+                name=f"launcher:{platform_file.platform}",
+                actions=[(_copy_launcher, (platform_file,))],
+                file_dep=[launcher_resources_dir / platform_file.launcher_name],
+                task_dep=[f"create_directory:{self.dirs.dist_dir}"],
+                targets=[self.dirs.dist_dir / platform_file.launcher_name],
+            )
+
+    def task_clean_viewer_server_layout(self) -> dict[str, Any]:
+        enabled = self.config["features"]["bundle_viewer_server"]["enabled"]
+        dist_dir = self.dirs.dist_dir
+
+        return dict(
+            actions=[(clean_viewer_server_layout, (dist_dir,), {"enabled": enabled})],
+            task_dep=[f"create_directory:{self.dirs.dist_dir}"],
+            uptodate=[False],
+        )
+
     def task_pre_build_site(self) -> dict[str, Any]:
         # Ensure that the site directories exist
         return {
             "actions": None,
             "task_dep": [
+                "clean_viewer_server_layout",
                 f"create_directory:{self.dirs.build_dir}",
                 f"create_directory:{self.dirs.assets_dir}",
                 f"create_directory:{self.dirs.docs_dir}",
@@ -562,6 +712,7 @@ class SiteTask(HttpRequest):
                 "build_tags",
                 "geo_correlation",
                 "pre_build_site",
+                "bundle_viewer_server",
             ],
             calc_dep=["get_gpx_deps"],
             targets=[

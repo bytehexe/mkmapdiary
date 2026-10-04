@@ -57,7 +57,7 @@ class DuplicateDetector(MultiAssetPostprocessor):
                 hash2: imagehash.ImageHash = hashes[j]  # type: ignore
                 distance = abs(hash1 - hash2)
                 time_distance = abs(
-                    (assets[i].timestamp_utc - assets[j].timestamp_utc).in_minutes()  # type: ignore
+                    (assets[i].timestamp_utc - assets[j].timestamp_utc).total("minutes")  # type: ignore
                 )
                 distance_matrix[i][j] = distance + time_distance * 0.5
                 distance_matrix[j][i] = distance + time_distance * 0.5

@@ -102,6 +102,9 @@ rectangle "build_credits_page" as build_credits_page #lavender
 rectangle "compile_css" as compile_css #lavender
 rectangle "copy_simple_asset" as copy_simple_asset #lavender
 rectangle "pre_build_site" as pre_build_site #lavender
+rectangle "clean_viewer_server_layout" as clean_viewer_server_layout #lavender
+rectangle "fetch_viewer_server_binaries" as fetch_viewer_server_binaries #lavender
+rectangle "bundle_viewer_server" as bundle_viewer_server #lavender
 rectangle "build_site" as build_site #red
 
 ' Source file to conversion task dependencies
@@ -177,6 +180,7 @@ build_gallery --> build_site
 build_journal --> build_site
 build_tags --> build_site
 pre_build_site --> build_site
+bundle_viewer_server --> build_site
 geo_correlation --> build_site
 get_gpx_deps -.-> build_site : calc_dep
 
@@ -190,6 +194,12 @@ get_gpx_deps -.-> build_tags : calc_dep
 
 ' Dependencies for pre_build_site
 geo_correlation --> pre_build_site
+clean_viewer_server_layout --> pre_build_site
+
+' Dependencies for the bundled viewer server (gated on
+' features.bundle_viewer_server.enabled; clean_viewer_server_layout itself
+' always runs, since it must react to either direction of a flag flip)
+fetch_viewer_server_binaries --> bundle_viewer_server
 
 ' Legend
 legend top left
