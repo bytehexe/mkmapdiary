@@ -159,6 +159,13 @@ all_assets --> build_tags
 all_assets --> build_index_page
 unpositioned_assets --> geo_correlation
 
+' Dependencies for build_credits_page
+' The AI disclosure reports what these tasks recorded as actually generated,
+' so the credits page must not be written before they have run.
+text2markdown --> build_credits_page
+transcribe_audio --> build_credits_page
+build_tags --> build_credits_page
+
 ' Dependencies for build_site
 build_index_page --> build_site
 build_credits_page --> build_site

@@ -4,6 +4,14 @@ on: push
 jobs:
   test:
     name: Lint and test the code 🧪
+    # Runs the full pre-commit suite (mypy, tests, ruff, translation-files)
+    # with nothing skipped. This job used to run on every push and skipped
+    # the slow checks for that reason (see git history: "Skip mypy in
+    # workflow (takes a long time)", "fix: skip tests in the pipeline") --
+    # now that it's tag-gated (fires once per release, not once per commit),
+    # the wall-clock cost of running everything for real is no longer a
+    # per-push tax, so there's no more reason to skip them.
+    if: github.ref_type == 'tag'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,10 +27,11 @@ jobs:
           python -m pip install hatch pre-commit yamllint --user
       - name: Run tests
         run: |
-          env SKIP="mypy,translation-files,run-tests,ruff-check,ruff-format" pre-commit run -a
+          pre-commit run -a
 
   build:
     name: Build distribution 📦
+    if: github.ref_type == 'tag'
     runs-on: ubuntu-latest
     needs:
       - test
@@ -49,8 +58,12 @@ jobs:
           name: python-package-distributions
           path: dist/
 
-  publish-to-testpypi:
-    name: Publish Python 🐍 distribution 📦 to TestPyPI
+  publish-to-pypi:
+    name: Publish Python 🐍 distribution 📦 to PyPI
+    # Was misnamed "publish-to-testpypi": there's no repository-url override
+    # here, so pypa/gh-action-pypi-publish's default target is real PyPI (as
+    # the environment url below always said) -- the name just never matched
+    # what the job does. Renamed rather than actually pointed at TestPyPI.
     if: github.ref_type == 'tag'
     needs:
       - build
@@ -69,7 +82,7 @@ jobs:
         with:
           name: python-package-distributions
           path: dist/
-      - name: Publish distribution 📦 to TestPyPI
+      - name: Publish distribution 📦 to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
 
   create-release:
@@ -78,6 +91,10 @@ jobs:
     permissions:
       contents: write
     if: github.ref_type == 'tag'
+    # Previously had no `needs`, so it could create a GitHub Release even if
+    # build/publish failed. Wait for a successful publish first.
+    needs:
+      - publish-to-pypi
     steps:
       - name: Create GitHub Release (stable)
         uses: softprops/action-gh-release@v2

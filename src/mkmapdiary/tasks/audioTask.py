@@ -1,12 +1,13 @@
 import hashlib
 import logging
 import threading
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator, Mapping
 from pathlib import PosixPath
 from typing import Any
 
 from pydub import AudioSegment
 
+from mkmapdiary.lib import aiUsage
 from mkmapdiary.lib.asset import AssetRecord
 from mkmapdiary.lib.calibration import Calibration
 from mkmapdiary.util.log import ThisMayTakeAWhile
@@ -20,6 +21,27 @@ whisper_lock = threading.Lock()
 WHISPER_MODEL = "turbo"
 
 logger = logging.getLogger(__name__)
+
+
+def usable_segments(
+    segments: Iterable[Mapping[str, Any]],
+    duration_seconds: float,
+) -> list[Mapping[str, Any]]:
+    """Whisper segments that fall inside the audio.
+
+    Whisper keeps emitting segments past the end of a file it has run out of,
+    so transcription stops at the first overrun. An audio file that yields
+    nothing here was never transcribed, and gets neither a title nor a row in
+    the AI disclosure.
+    """
+    kept = []
+
+    for segment in segments:
+        if segment["end"] > duration_seconds:
+            break
+        kept.append(segment)
+
+    return kept
 
 
 class AudioTask(BaseTask):
@@ -102,9 +124,32 @@ class AudioTask(BaseTask):
         def _transcribe(src: PosixPath, dst: PosixPath) -> None:
             audio_title = self.config["strings"]["audio_title"]
 
-            if not self.config["features"]["transcription"]["enabled"]:
+            def _write_untranscribed() -> None:
+                self.record_ai_usage(str(dst), [])
                 with open(dst, "w") as f:
                     f.write(f"### {audio_title}\n\n")
+
+            if not self.config["features"]["transcription"]["enabled"]:
+                _write_untranscribed()
+                return
+
+            result = self.with_cache(
+                "whisper",
+                self.__transcribe_audio,
+                src,
+                cache_args=(self.__file_md5(src),),
+                bypass_cache=not self.config["debug"]["enable_user_cache"],
+            )
+
+            audio = AudioSegment.from_file(src)
+            segments = usable_segments(result["segments"], audio.duration_seconds)
+            text = [segment["text"].strip() for segment in segments]
+
+            if not any(text):
+                # Silence transcribes to nothing. Falling through would emit an
+                # empty transcript block under an AI marker, and ask the model
+                # to title it — a claim about content nobody generated.
+                _write_untranscribed()
                 return
 
             # The transcript itself is machine-produced, so it carries the
@@ -116,21 +161,7 @@ class AudioTask(BaseTask):
             output.append("<div class='transcript'>")
             output.append(f"{ai_label}\n")
 
-            result = self.with_cache(
-                "whisper",
-                self.__transcribe_audio,
-                src,
-                cache_args=(self.__file_md5(src),),
-                bypass_cache=not self.config["debug"]["enable_user_cache"],
-            )
-
-            audio = AudioSegment.from_file(src)
-            text = []
-
-            for segment in result["segments"]:
-                if segment["end"] > audio.duration_seconds:
-                    break
-
+            for segment in segments:
                 output.append(
                     self.template(
                         "transcript_segment.j2",
@@ -139,11 +170,15 @@ class AudioTask(BaseTask):
                         text=segment["text"].strip(),
                     ),
                 )
-                text.append(segment["text"].strip())
 
             title = self.ai(
                 "generate_title",
                 dict(locale=self.config["site"]["locale"], text=text),
+            )
+
+            self.record_ai_usage(
+                str(dst),
+                [aiUsage.TRANSCRIPT, *([aiUsage.TITLE] if title else [])],
             )
 
             output.append("</div>")
@@ -171,6 +206,7 @@ class AudioTask(BaseTask):
         for src in self.__sources:
             dst = self.__generate_destination_filename(src, ".mp3.md")
             targets.append(dst)
+            targets.append(self.ai_usage_path(str(dst)))
             task_deps.append(f"create_directory:{dst.parent}")
 
         # Remove duplicate task dependencies

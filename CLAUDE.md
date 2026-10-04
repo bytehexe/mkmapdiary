@@ -158,11 +158,18 @@ they are not theoretical.
   is legalese nobody says, and `Mitwirkende` is so broad it collapses into
   `Reisende`, the section right next to it.
 - **AI transparency**: any feature putting machine-generated content into a journal must
-  both render `templates/ai_label.j2` beside it and add a row to
-  `SiteTask.__ai_disclosure()` for the credits page. Gate both on the feature flag —
+  both render `templates/ai_label.j2` beside it and add a row to `ai_disclosure_rows()`
+  in `siteTask.py` for the credits page. Gate both on the feature flag —
   `BaseTask.ai()` returns `""` when `features.llms` is off, and an unguarded label
   claims AI wrote something it did not. Marks output only: a postprocessor that merely
   reads assets (quality scoring, embeddings) needs no label.
+  Both the label and the row are driven by what a build *actually* generated, not by
+  what its flags permit: a model that returns nothing, or a journal with no text at
+  all, must produce neither. The producing task calls `BaseTask.record_ai_usage()` with
+  the keys it got content for and declares `BaseTask.ai_usage_path()` as a target; the
+  credits page reads those records back. See `lib/aiUsage.py` for why they live in the
+  build directory — an incremental `-B` run skips the producing tasks entirely, so
+  anything derived from in-memory state would silently drop the disclosure.
 - **Caching**: `lib/cache.py` is a sqlite-backed `MutableMapping` in the platform cache dir;
   reach it via `BaseTask.with_cache(key, fn, *args)`. `--no-cache` swaps in a throwaway db.
   Separately, doit's own up-to-date db lives in the build dir.

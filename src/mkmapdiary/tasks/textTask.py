@@ -2,6 +2,7 @@ from collections.abc import Iterator
 from pathlib import PosixPath
 from typing import Any
 
+from mkmapdiary.lib import aiUsage
 from mkmapdiary.lib.asset import AssetRecord
 from mkmapdiary.lib.calibration import Calibration
 
@@ -43,10 +44,21 @@ class TextTask(BaseTask):
                 text = content.strip()
 
                 # Empty when features.llms is disabled; the heading then stays
-                # the plain label and carries no AI marker.
-                generated_title = self.ai(
-                    "generate_title",
-                    dict(locale=self.config["site"]["locale"], text=text),
+                # the plain label and carries no AI marker. An empty source
+                # file has nothing to title, so the model is not asked.
+                generated_title = ""
+                if text:
+                    generated_title = (
+                        self.ai(
+                            "generate_title",
+                            dict(locale=self.config["site"]["locale"], text=text),
+                        )
+                        or ""
+                    )
+
+                self.record_ai_usage(
+                    str(dst),
+                    [aiUsage.TITLE] if generated_title else [],
                 )
 
                 title = self.config["strings"]["text_title"]
@@ -69,5 +81,5 @@ class TextTask(BaseTask):
                 actions=[(_to_md, (src, dst))],
                 file_dep=[src],
                 task_dep=[f"create_directory:{dst.parent}"],
-                targets=[dst],
+                targets=[dst, self.ai_usage_path(str(dst))],
             )

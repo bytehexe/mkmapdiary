@@ -273,6 +273,44 @@ h2.hidden
 #gallery_captions
     display: none
 
+// The previous/next footer (theme.features `navigation.footer` in
+// site_config.yaml) otherwise sits on Material's default
+// --md-footer-bg-color, a near-black that closes a journal page with a slab.
+// Put the navigation on the page background instead, with body text on top
+// of it, so it reads as the last part of the page rather than as a plinth
+// under it. Deliberately unseparated from the content above: the bar takes
+// the page background and no rule divides them, so the navigation reads as
+// the end of the page. The dark copyright strip below is what closes the
+// footer off.
+.md-footer
+    background-color: var(--md-default-bg-color)
+    color: var(--md-default-fg-color)
+
+// The copyright strip stays dark. Material's own --md-footer-bg-color is the
+// token for exactly this — the colour a Material footer has — so the strip
+// keeps the site chrome it always had while the navigation above it goes
+// light. Both tokens are translucent blacks that composite over whatever is
+// behind them, which is why the colour has to be restated here at all: left
+// alone, .md-footer-meta would take its --md-footer-bg-color--dark over the
+// light bar and land on a mid grey instead of near-black. The matching
+// foreground has to be restated too, since it would otherwise inherit the
+// dark body text set on .md-footer above and disappear into the strip.
+.md-footer-meta
+    background-color: var(--md-footer-bg-color)
+    color: var(--md-footer-fg-color)
+
+// Trim the bar's height. Material budgets 1rem above each link, .4rem below
+// it and another .7rem below its title; at the theme's 20px root that is
+// ~42px of margin wrapped around a single line of text, which is most of
+// what makes the footer read as bulky. .4rem all round keeps the links clear
+// of the copyright strip and of each other without the bulk.
+.md-footer__link
+    margin-top: .4rem
+    margin-bottom: .4rem
+
+.md-footer__title
+    margin-bottom: .4rem
+
 // mkdocs-glightbox caps the lightbox image at max-height:97vh
 // (assets/stylesheets/glightbox.min.css, `@media (min-width:769px)
 // .gslide-image img`). Image and caption are stacked and centred inside

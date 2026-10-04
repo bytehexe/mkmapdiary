@@ -3,7 +3,7 @@ import logging
 import pathlib
 import shutil
 from abc import abstractmethod
-from collections.abc import Iterator, Mapping, Sequence
+from collections.abc import Collection, Iterator, Mapping, Sequence
 from typing import Any
 
 import gpxpy
@@ -14,6 +14,7 @@ import shapely
 import yaml
 from doit import create_after
 
+from mkmapdiary.lib import aiUsage
 from mkmapdiary.lib.credits import (
     Package,
     canonical_name,
@@ -29,6 +30,51 @@ from .audioTask import WHISPER_MODEL
 from .base.httpRequest import HttpRequest
 
 logger = logging.getLogger(__name__)
+
+
+def ai_disclosure_rows(
+    used: Collection[str],
+    strings: Mapping[str, str],
+    prompts: Mapping[str, Any],
+    features: Mapping[str, Any],
+    whisper_model: str,
+) -> list[dict[str, str]]:
+    """Content/model pairs for the AI transparency section of the credits.
+
+    Art. 50 AI Act disclosure (see CLAUDE.md "AI transparency"). `used` holds
+    the prompt keys a build actually got content out of, so a journal only
+    declares what it really generated; the feature flags gate on top of that,
+    because a persistent build directory keeps records written before a flag
+    was turned off.
+    """
+    rows: list[dict[str, str]] = []
+    llms = features["llms"]["enabled"]
+
+    if llms and aiUsage.TITLE in used:
+        rows.append(
+            {
+                "content": strings["ai_disclosure_titles"],
+                "model": prompts["generate_title"]["model"],
+            },
+        )
+
+    if llms and aiUsage.TAGS in used:
+        rows.append(
+            {
+                "content": strings["ai_disclosure_tags"],
+                "model": prompts["generate_tags"]["model"],
+            },
+        )
+
+    if features["transcription"]["enabled"] and aiUsage.TRANSCRIPT in used:
+        rows.append(
+            {
+                "content": strings["ai_disclosure_transcripts"],
+                "model": f"whisper {whisper_model}",
+            },
+        )
+
+    return rows
 
 
 def credits_libraries(
@@ -360,38 +406,24 @@ class SiteTask(HttpRequest):
     def __ai_disclosure(self) -> list[dict[str, str]]:
         """Content/model pairs for the AI transparency section of the credits.
 
-        Art. 50 AI Act disclosure (see CLAUDE.md "AI transparency"). Gated on
-        the same feature flags that decide whether the content is generated at
-        all, so a build without AI carries no claim that it used any.
+        Reads back what the generating tasks recorded, pruned to the scopes
+        this build still has: a persistent build directory keeps the records of
+        sources that have since been deleted, since doit neither re-runs a
+        vanished task nor removes its targets.
         """
-        strings = self.config["strings"]
-        prompts = self.config["llm_prompts"]
-        features = self.config["features"]
-        rows: list[dict[str, str]] = []
-
-        if features["llms"]["enabled"]:
-            rows.append(
-                {
-                    "content": strings["ai_disclosure_titles"],
-                    "model": prompts["generate_title"]["model"],
-                },
-            )
-            rows.append(
-                {
-                    "content": strings["ai_disclosure_tags"],
-                    "model": prompts["generate_tags"]["model"],
-                },
+        live_scopes = {str(date) for date in self.db.get_all_dates()}
+        for asset_type in ("markdown", "transcript"):
+            live_scopes.update(
+                str(asset.path) for asset in self.db.get_assets_by_type(asset_type)
             )
 
-        if features["transcription"]["enabled"]:
-            rows.append(
-                {
-                    "content": strings["ai_disclosure_transcripts"],
-                    "model": f"whisper {WHISPER_MODEL}",
-                },
-            )
-
-        return rows
+        return ai_disclosure_rows(
+            aiUsage.used_keys(self.dirs.ai_usage_dir, live_scopes),
+            strings=self.config["strings"],
+            prompts=self.config["llm_prompts"],
+            features=self.config["features"],
+            whisper_model=WHISPER_MODEL,
+        )
 
     @create_after("end_postprocessing")
     def task_build_credits_page(self) -> dict[str, Any]:
@@ -434,7 +466,16 @@ class SiteTask(HttpRequest):
         return dict(
             actions=[(_generate, ())],
             targets=[self.dirs.docs_dir / "credits.md"],
-            task_dep=[f"create_directory:{self.dirs.docs_dir}"],
+            task_dep=[
+                f"create_directory:{self.dirs.docs_dir}",
+                # The AI disclosure reports what these tasks recorded, so it
+                # cannot be written before they have run. task_dep only
+                # orders execution, which is all that is needed here: the
+                # page rebuilds unconditionally anyway.
+                "text2markdown",
+                "transcribe_audio",
+                "build_tags",
+            ],
             uptodate=[False],
         )
 

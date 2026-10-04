@@ -47,7 +47,10 @@ This document shows the dependency graph of the various build tasks in mkmapdiar
   (`credits.travellers`) and creators (`credits.creators` merged with the creators found
   in `calibration.yaml` files, in image metadata and on GPX tracks) alongside dependency
   and frontend-library credits computed at build time, plus the AI disclosure;
-  `build_site` depends on it
+  `build_site` depends on it. The AI disclosure names only what the build really
+  generated, read back from the records that `text2markdown`, `transcribe_audio`
+  and `build_tags` write into the build directory — hence the `task_dep` on all
+  three, which orders them ahead of the credits page
 - **compile_css**: Compiles SASS to CSS
 - **copy_simple_asset**: Copies static assets (JS, CSS, images)
 - **pre_build_site**: Ensures all site directories exist before building

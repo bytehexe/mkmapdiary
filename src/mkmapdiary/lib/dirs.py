@@ -62,6 +62,19 @@ class Dirs:
         return assets_path
 
     @property
+    def ai_usage_dir(self) -> pathlib.Path:
+        """Records of which AI prompts a build really produced content with.
+
+        Deliberately inside the build directory: that gives it the same
+        lifetime as doit's up-to-date database, so `-a` clears both at once
+        (see lib/aiUsage.py).
+        """
+        usage_path = self.build_dir / "ai_usage"
+        if self.create_dirs:
+            usage_path.mkdir(parents=True, exist_ok=True)
+        return usage_path
+
+    @property
     def user_cache_dir(self) -> pathlib.Path:
         cache_path = pathlib.Path(self.__sys_dirs.user_cache_dir)
         if self.create_dirs:
