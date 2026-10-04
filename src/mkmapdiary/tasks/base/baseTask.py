@@ -2,7 +2,7 @@ import datetime
 import json
 import threading
 from abc import ABC, ABCMeta, abstractmethod
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from pathlib import PosixPath
 from types import MappingProxyType
 from typing import Any, TypeVar
@@ -13,6 +13,7 @@ import whenever
 from jinja2 import Environment, PackageLoader, StrictUndefined, select_autoescape
 from pydantic import TypeAdapter
 
+from mkmapdiary.lib import aiUsage
 from mkmapdiary.lib.assetRegistry import AssetRegistry
 from mkmapdiary.lib.calibration import Calibration
 from mkmapdiary.lib.dirs import Dirs
@@ -176,6 +177,23 @@ class BaseTask(ABC, metaclass=ABCMeta):
 
         self.__unique_paths[candidate] = source
         return candidate
+
+    def ai_usage_path(self, scope: str) -> PosixPath:
+        """Marker file recording what AI produced for `scope`.
+
+        Declared as a task target so doit keeps it in step with the artifact it
+        describes; see lib/aiUsage.py for why it lives in the build directory.
+        """
+        return PosixPath(aiUsage.usage_path(self.dirs.ai_usage_dir, scope))
+
+    def record_ai_usage(self, scope: str, used: Iterable[str]) -> None:
+        """Record which AI prompts produced content for `scope`.
+
+        Call it on every run of the producing task, including the runs that
+        generated nothing — the credits page reads these records back, and a
+        missing file would make doit rerun the task on an unchanged source.
+        """
+        aiUsage.record_usage(self.dirs.ai_usage_dir, scope, used)
 
     def ai(
         self,
