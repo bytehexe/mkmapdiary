@@ -112,5 +112,5 @@ class ThisMayTakeAWhile:
         self.__time_ended = whenever.Instant.now()
         duration = self.__time_ended - self.__time_started
         self.logger.info(
-            f"Done{text} after {duration.in_seconds():.0f}s.", extra={"icon": "✔️"}
+            f"Done{text} after {duration.total('seconds'):.0f}s.", extra={"icon": "✔️"}
         )

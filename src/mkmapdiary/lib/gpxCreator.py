@@ -81,7 +81,7 @@ class GpxCreator:
         # Process waypoints
         for mwpt in gpx.waypoints:
             if mwpt.time is not None:
-                pt_date = Date.from_py_date(mwpt.time.date())
+                pt_date = Date(mwpt.time.date())
                 # defaultdict will automatically create the entry if it doesn't exist
                 self.__gpx_data_by_date[pt_date]["waypoints"].append(mwpt)
 
@@ -100,8 +100,8 @@ class GpxCreator:
                 last_time = Instant.MAX
                 for pt in seg.points:
                     if pt.time is not None:
-                        pt_time = Instant.from_py_datetime(pt.time)
-                        pt_date = Date.from_py_date(pt.time.date())
+                        pt_time = Instant(pt.time)
+                        pt_date = Date(pt.time.date())
                         if last_time == Instant.MAX:
                             self.__statistics_by_date[pt_date].reset()
 
@@ -118,7 +118,7 @@ class GpxCreator:
                         # Store coordinates as (lon, lat) for consistent interface format
                         # Converting from GPX format (lat, lon) to interface format (lon, lat)
                         time_diff = max(
-                            int(round((pt_time - last_time).in_seconds())), 1
+                            int(round((pt_time - last_time).total("seconds"))), 1
                         )
                         self.__coords_by_date[pt_date].extend(
                             [[pt.longitude, pt.latitude]] * time_diff
@@ -148,7 +148,7 @@ class GpxCreator:
 
             for rte_pt in rte.points:
                 if rte_pt.time is not None:
-                    pt_date = Date.from_py_date(rte_pt.time.date())
+                    pt_date = Date(rte_pt.time.date())
                     # defaultdict will automatically create the entry if it doesn't exist
                     if pt_date not in route_points_by_date:
                         route_points_by_date[pt_date] = []

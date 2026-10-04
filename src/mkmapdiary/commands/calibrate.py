@@ -103,7 +103,7 @@ def file(
     logger.info(f"Camera time (UTC)   : {wi_camera_time}")
     logger.info(f"Reference time (UTC): {wi_ref_time}")
 
-    offset_seconds = int((wi_camera_time - wi_ref_time).in_seconds())
+    offset_seconds = int((wi_camera_time - wi_ref_time).total("seconds"))
     offset_minutes = round(offset_seconds / 60)
     logger.info(
         f"Calculated offset   : {offset_seconds} seconds (about {offset_minutes} minutes)",

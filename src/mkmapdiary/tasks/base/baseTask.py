@@ -102,7 +102,7 @@ class BaseTask(ABC, metaclass=ABCMeta):
         dt: whenever.PlainDateTime | datetime.datetime, calibration: Calibration
     ) -> whenever.Instant:
         if isinstance(dt, datetime.datetime):
-            dt = whenever.PlainDateTime.from_py_datetime(dt)
+            dt = whenever.PlainDateTime(dt)
         return (
             dt.assume_tz(calibration.timezone)
             .to_instant()
@@ -127,7 +127,7 @@ class BaseTask(ABC, metaclass=ABCMeta):
                 f"<{timestr}>", fuzzy=True, ignoretz=True
             )
             return (
-                whenever.PlainDateTime.from_py_datetime(py_datetime)
+                whenever.PlainDateTime(py_datetime)
                 .assume_tz(calibration.timezone)
                 .to_instant()
                 .add(seconds=calibration.offset)
@@ -139,7 +139,7 @@ class BaseTask(ABC, metaclass=ABCMeta):
         # Fallback: Use the file's modification time
         py_datetime = datetime.datetime.fromtimestamp(stat.st_mtime)
         return (
-            whenever.PlainDateTime.from_py_datetime(py_datetime)
+            whenever.PlainDateTime(py_datetime)
             .assume_tz(calibration.timezone)
             .to_instant()
             .add(seconds=calibration.offset)

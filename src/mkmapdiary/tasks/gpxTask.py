@@ -61,16 +61,16 @@ class GPXTask(HttpRequest):
             gpx = gpxpy.parse(f)
         for wpt in gpx.waypoints:
             if wpt.time is not None:
-                dates.add(Date.from_py_date(wpt.time.date()))
+                dates.add(Date(wpt.time.date()))
         for trk in gpx.tracks:
             for seg in trk.segments:
                 for pt in seg.points:
                     if pt.time is not None:
-                        dates.add(Date.from_py_date(pt.time.date()))
+                        dates.add(Date(pt.time.date()))
         for rte in gpx.routes:
             for rte_pt in rte.points:
                 if rte_pt.time is not None:
-                    dates.add(Date.from_py_date(rte_pt.time.date()))
+                    dates.add(Date(rte_pt.time.date()))
         return dates
 
     def __generate_destination_filename(self, date: Date) -> Path:
@@ -129,7 +129,7 @@ class GPXTask(HttpRequest):
             # Filter out ignored dates
             ignore_dates = self.config.get("ignore_dates", [])
             if ignore_dates:
-                ignored = {Date.from_py_date(d) for d in ignore_dates}
+                ignored = {Date(d) for d in ignore_dates}
                 all_dates = all_dates - ignored
 
             logger.debug(f"Generating GPX files for dates: {sorted(all_dates)}")
@@ -165,7 +165,7 @@ class GPXTask(HttpRequest):
         # Filter out ignored dates from source_dates
         ignore_dates = self.config.get("ignore_dates", [])
         if ignore_dates:
-            ignored = {Date.from_py_date(d) for d in ignore_dates}
+            ignored = {Date(d) for d in ignore_dates}
             source_dates = source_dates - ignored
 
         # Add geotagged journal dates
@@ -228,7 +228,7 @@ class GPXTask(HttpRequest):
             if wpt.time is not None:
                 coords.append(
                     (
-                        whenever.Instant.from_py_datetime(wpt.time),
+                        whenever.Instant(wpt.time),
                         wpt.longitude,
                         wpt.latitude,
                     )
@@ -239,7 +239,7 @@ class GPXTask(HttpRequest):
                     if pt.time is not None:
                         coords.append(
                             (
-                                whenever.Instant.from_py_datetime(pt.time),
+                                whenever.Instant(pt.time),
                                 pt.longitude,
                                 pt.latitude,
                             )
@@ -249,7 +249,7 @@ class GPXTask(HttpRequest):
                 if rte_pt.time is not None:
                     coords.append(
                         (
-                            whenever.Instant.from_py_datetime(rte_pt.time),
+                            whenever.Instant(rte_pt.time),
                             rte_pt.longitude,
                             rte_pt.latitude,
                         )
@@ -281,7 +281,7 @@ class GPXTask(HttpRequest):
                             candidates, key=lambda x: abs(x[0] - asset_datetime)
                         )
                         diff_w: whenever.TimeDelta = closest[0] - asset_datetime
-                        diff = diff_w.in_seconds()
+                        diff = diff_w.total("seconds")
                         if (
                             abs(diff)
                             < self.config["features"]["geo_correlation"][

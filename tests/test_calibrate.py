@@ -12,7 +12,7 @@ def test_pre_calibrate() -> None:
     assert dt1.isoformat() == "2023-01-01T12:00:00"
     calibration = Calibration(timezone="UTC", offset=0)
 
-    dt = whenever.PlainDateTime.from_py_datetime(dt1)
+    dt = whenever.PlainDateTime(dt1)
 
     assert dt.format_iso() == "2023-01-01T12:00:00"
 

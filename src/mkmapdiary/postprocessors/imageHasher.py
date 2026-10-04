@@ -27,8 +27,8 @@ class ImageHasher(SingleAssetPostprocessor):
 
     def processSingleAsset(self, asset: AssetRecord) -> None:
         if not self.__enabled:
-            asset.image_hash = ImageHash(np.asarray([0]))
-            asset.color_hash = ImageHash(np.asarray([0]))
+            asset.image_hash = ImageHash(np.asarray([0], dtype=bool))
+            asset.color_hash = ImageHash(np.asarray([0], dtype=bool))
             return
 
         with Image.open(asset.path) as img:

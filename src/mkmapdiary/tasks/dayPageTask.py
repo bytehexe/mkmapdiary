@@ -20,7 +20,7 @@ class DayPageTask(BaseTask):
 
             day_page_path = self.dirs.docs_dir / f"{date}.md"
             with open(day_page_path, "w") as f:
-                formatted_date = date.py_date().strftime(
+                formatted_date = date.to_stdlib().strftime(
                     formatter,
                 )
                 f.write(

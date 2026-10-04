@@ -122,7 +122,7 @@ class AssetRegistry:
 
             # Filter out ignored dates
             if ignore_dates:
-                ignored = {whenever.Date.from_py_date(d) for d in ignore_dates}
+                ignored = {whenever.Date(d) for d in ignore_dates}
                 dates = dates - ignored
 
             return sorted(list(dates))
@@ -291,7 +291,7 @@ class AssetRegistry:
 
             # Filter out ignored dates
             if ignore_dates:
-                ignored = {whenever.Date.from_py_date(d) for d in ignore_dates}
+                ignored = {whenever.Date(d) for d in ignore_dates}
                 dates = dates - ignored
 
             return sorted(list(dates))

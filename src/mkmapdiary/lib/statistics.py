@@ -86,7 +86,7 @@ class Statistics:
         assert self.__time is not None
         assert self.__position is not None
 
-        time_delta = (time - self.__time).in_seconds()
+        time_delta = (time - self.__time).total("seconds")
         # calculate distance using haversine
         distance = 0.0
         # Convert from interface format (lon, lat) to haversine format (lat, lon)
@@ -111,6 +111,6 @@ class Statistics:
 
         # Update total time (time between first and last timestamp)
         if self.__first_time is not None:
-            self.total_time = (time - self.__first_time).in_seconds()
+            self.total_time = (time - self.__first_time).total("seconds")
 
         self.__set_point(time, position)

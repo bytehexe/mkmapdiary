@@ -12,7 +12,7 @@ def time_string(
 
     if timestamp_obj:
         # Format time
-        obj_dt = timestamp_obj.py_datetime()
+        obj_dt = timestamp_obj.to_stdlib()
         # Include day name if timestamp is from a different date
         if current_date is None:
             time_str = obj_dt.strftime("%c")
